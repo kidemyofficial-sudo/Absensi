@@ -1,6 +1,7 @@
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
+import RegisterStudentForm from '@/components/RegisterStudentForm'
 
 export default async function DashboardPage() {
   const user = await getCurrentUser()
@@ -146,42 +147,7 @@ export default async function DashboardPage() {
         <h2 className="text-2xl font-bold mb-6">Dashboard Orang Tua</h2>
 
         {/* Form Daftarkan Siswa Baru */}
-        <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Daftarkan Siswa Baru</h3>
-          <p className="text-gray-500 text-sm mb-4">
-            Isi form di bawah untuk mendaftarkan anak Anda. Setelah itu, tunggu persetujuan dari Admin.
-          </p>
-          <form action="/api/students" method="POST" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nama Siswa</label>
-                <input
-                  type="text"
-                  name="name"
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-                  placeholder="Nama lengkap siswa"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">NIS</label>
-                <input
-                  type="text"
-                  name="nis"
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-                  placeholder="Nomor Induk Siswa"
-                />
-              </div>
-            </div>
-            <button
-              type="submit"
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            >
-              Daftarkan Siswa
-            </button>
-          </form>
-        </div>
+        <RegisterStudentForm />
 
         {/* Status Anak */}
         <div className="bg-white p-6 rounded-lg shadow-sm">
