@@ -1,7 +1,7 @@
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
-import RegisterStudentForm from '@/components/RegisterStudentForm'
+import StudentForm from '@/components/StudentForm'
 
 export default async function DashboardPage() {
   const user = await getCurrentUser()
@@ -33,7 +33,7 @@ export default async function DashboardPage() {
             <p className="mt-2 text-3xl font-bold text-orange-600">{pendingStudents}</p>
             {pendingStudents > 0 && (
               <Link href="/students?status=PENDING" className="mt-2 text-sm text-blue-500 hover:underline">
-                Review →
+                Review
               </Link>
             )}
           </div>
@@ -49,11 +49,11 @@ export default async function DashboardPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Link href="/students" className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-            <h3 className="text-lg font-medium text-gray-900">👤 Kelola Siswa</h3>
+            <h3 className="text-lg font-medium text-gray-900">Kelola Siswa</h3>
             <p className="text-gray-500 mt-2">ACC pendaftaran, assign kelas & guru</p>
           </Link>
           <Link href="/reports" className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-            <h3 className="text-lg font-medium text-gray-900">📊 Laporan Absensi</h3>
+            <h3 className="text-lg font-medium text-gray-900">Laporan Absensi</h3>
             <p className="text-gray-500 mt-2">Lihat rekap kehadiran siswa</p>
           </Link>
         </div>
@@ -147,11 +147,17 @@ export default async function DashboardPage() {
         <h2 className="text-2xl font-bold mb-6">Dashboard Orang Tua</h2>
 
         {/* Form Daftarkan Siswa Baru */}
-        <RegisterStudentForm />
+        <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Daftarkan Siswa Baru</h3>
+          <p className="text-gray-500 text-sm mb-4">
+            Isi form di bawah untuk mendaftarkan anak Anda. Setelah itu, tunggu persetujuan dari Admin.
+          </p>
+          <StudentForm userId={user.id} />
+        </div>
 
         {/* Status Anak */}
         <div className="bg-white p-6 rounded-lg shadow-sm">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Status Anak</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Status Anak Hari Ini</h3>
           {children.length === 0 ? (
             <p className="text-gray-500">Belum ada data anak. Silakan daftarkan di atas.</p>
           ) : (
