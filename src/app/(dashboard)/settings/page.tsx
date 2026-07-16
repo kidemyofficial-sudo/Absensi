@@ -2,7 +2,6 @@ import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import ProfileForm from '@/components/ProfileForm'
 import PasswordForm from '@/components/PasswordForm'
-import ClassManagement from '@/components/ClassManagement'
 
 export default async function SettingsPage() {
   const user = await getCurrentUser()
@@ -35,14 +34,6 @@ export default async function SettingsPage() {
         <h3 className="text-lg font-medium text-gray-900 mb-4">Ubah Password</h3>
         <PasswordForm />
       </div>
-
-      {/* Class Management - Owner Only */}
-      {user.role === 'OWNER' && (
-        <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Kelola Kelas & Guru Pengampu</h3>
-          <ClassManagement />
-        </div>
-      )}
     </div>
   )
 }
