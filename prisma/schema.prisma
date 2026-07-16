@@ -43,14 +43,16 @@ model User {
 }
 
 model Student {
-  id        String        @id @default(cuid())
-  name      String
-  nis       String        @unique
-  class     String?
-  parentId  String
-  status    StudentStatus @default(PENDING)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  id            String        @id @default(cuid())
+  name          String
+  ttl           String        @db.VarChar(255)
+  domisili      String        @db.VarChar(500)
+  asalSekolah   String        @db.VarChar(255)
+  class         String?
+  parentId      String
+  status        StudentStatus @default(PENDING)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
   // Relations
   parent              User               @relation("ParentStudents", fields: [parentId], references: [id])

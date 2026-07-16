@@ -61,17 +61,6 @@ export async function PUT(
       return NextResponse.json({ error: 'Siswa tidak ditemukan' }, { status: 404 })
     }
 
-    // Check NIS uniqueness if changed
-    if (validatedData.nis && validatedData.nis !== existingStudent.nis) {
-      const nisExists = await prisma.student.findUnique({
-        where: { nis: validatedData.nis },
-      })
-
-      if (nisExists) {
-        return NextResponse.json({ error: 'NIS sudah digunakan' }, { status: 400 })
-      }
-    }
-
     const student = await prisma.student.update({
       where: { id },
       data: validatedData,

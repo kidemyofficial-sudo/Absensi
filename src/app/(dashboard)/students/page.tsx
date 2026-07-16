@@ -5,7 +5,9 @@ import { useState, useEffect } from 'react'
 interface Student {
   id: string
   name: string
-  nis: string
+  ttl: string
+  domisili: string
+  asalSekolah: string
   class: string | null
   status: string
   parent: {
@@ -223,7 +225,7 @@ export default function StudentsPage() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">NIS</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">TTL</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kelas</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Orang Tua</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
@@ -237,7 +239,7 @@ export default function StudentsPage() {
                 {students.map((student) => (
                   <tr key={student.id}>
                     <td className="px-4 py-3">{student.name}</td>
-                    <td className="px-4 py-3">{student.nis}</td>
+                    <td className="px-4 py-3">{student.ttl}</td>
                     <td className="px-4 py-3">{student.class || '-'}</td>
                     <td className="px-4 py-3">{student.parent?.name || '-'}</td>
                     <td className="px-4 py-3">

@@ -72,7 +72,9 @@ export async function GET() {
       select: {
         id: true,
         name: true,
-        nis: true,
+        ttl: true,
+        domisili: true,
+        asalSekolah: true,
         class: true,
       },
     })

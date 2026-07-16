@@ -122,7 +122,9 @@ export default async function DashboardPage() {
       select: {
         id: true,
         name: true,
-        nis: true,
+        ttl: true,
+        domisili: true,
+        asalSekolah: true,
         class: true,
         status: true,
       },
@@ -169,7 +171,9 @@ export default async function DashboardPage() {
                     <div className="flex justify-between items-start">
                       <div>
                         <p className="font-medium">{child.name}</p>
-                        <p className="text-sm text-gray-500">NIS: {child.nis}</p>
+                        <p className="text-sm">{child.ttl}</p>
+                        <p className="text-sm">{child.domisili}</p>
+                        <p className="text-sm">Asal: {child.asalSekolah}</p>
                         {child.class && (
                           <p className="text-sm text-gray-500">Kelas: {child.class}</p>
                         )}

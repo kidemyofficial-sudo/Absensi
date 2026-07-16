@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
     where,
     include: {
       student: {
-        select: { id: true, name: true, nis: true, class: true },
+        select: { id: true, name: true, ttl: true, class: true },
       },
       teacher: {
         select: { id: true, name: true },

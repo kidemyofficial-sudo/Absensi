@@ -6,7 +6,9 @@ import { z } from 'zod'
 // Schema untuk Orang Tua mendaftarkan siswa
 const parentRegisterSchema = z.object({
   name: z.string().min(2, 'Nama harus minimal 2 karakter'),
-  nis: z.string().min(1, 'NIS harus diisi'),
+  ttl: z.string().min(1, 'Tempat tanggal lahir harus diisi'),
+  domisili: z.string().min(1, 'Domisili harus diisi'),
+  asalSekolah: z.string().min(1, 'Asal sekolah harus diisi'),
 })
 
 // Schema untuk Owner approve dan assign
@@ -44,7 +46,8 @@ export async function GET(request: NextRequest) {
   if (search) {
     where.OR = [
       { name: { contains: search, mode: 'insensitive' } },
-      { nis: { contains: search } },
+      { ttl: { contains: search, mode: 'insensitive' } },
+      { asalSekolah: { contains: search, mode: 'insensitive' } },
     ]
   }
 
@@ -99,23 +102,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validatedData = parentRegisterSchema.parse(body)
 
-    // Check if NIS already exists
-    const existingStudent = await prisma.student.findUnique({
-      where: { nis: validatedData.nis },
-    })
-
-    if (existingStudent) {
-      return NextResponse.json(
-        { error: 'NIS sudah terdaftar' },
-        { status: 400 }
-      )
-    }
-
     // Create student with PENDING status
     const student = await prisma.student.create({
       data: {
         name: validatedData.name,
-        nis: validatedData.nis,
+        ttl: validatedData.ttl,
+        domisili: validatedData.domisili,
+        asalSekolah: validatedData.asalSekolah,
         parentId: user.id,
         status: 'PENDING',
       },
@@ -137,7 +130,7 @@ export async function POST(request: NextRequest) {
         prisma.notification.create({
           data: {
             userId: owner.id,
-            message: `Pendaftaran siswa baru: ${student.name} (NIS: ${student.nis}) menunggu persetujuan`,
+            message: `Pendaftaran siswa baru: ${student.name} menunggu persetujuan`,
           },
         })
       )

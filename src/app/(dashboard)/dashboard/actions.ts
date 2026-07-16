@@ -19,18 +19,11 @@ export async function registerStudent(formData: FormData) {
   }
 
   const name = formData.get('name') as string
-  const nis = formData.get('nis') as string
+  const ttl = formData.get('ttl') as string
+  const domisili = formData.get('domisili') as string
+  const asalSekolah = formData.get('asalSekolah') as string
 
-  if (!name || name.length < 2 || !nis) {
-    return
-  }
-
-  // Check if NIS already exists
-  const existing = await prisma.student.findUnique({
-    where: { nis },
-  })
-
-  if (existing) {
+  if (!name || name.length < 2 || !ttl || !domisili || !asalSekolah) {
     return
   }
 
@@ -38,7 +31,9 @@ export async function registerStudent(formData: FormData) {
   await prisma.student.create({
     data: {
       name,
-      nis,
+      ttl,
+      domisili,
+      asalSekolah,
       parentId: payload.userId,
       status: 'PENDING',
     },
@@ -54,7 +49,7 @@ export async function registerStudent(formData: FormData) {
     await prisma.notification.create({
       data: {
         userId: owner.id,
-        message: `Siswa baru: ${name} (NIS: ${nis}) menunggu persetujuan`,
+        message: `Siswa baru: ${name} menunggu persetujuan`,
       },
     })
   }

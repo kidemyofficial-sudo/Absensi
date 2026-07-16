@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     where,
     include: {
       student: {
-        select: { id: true, name: true, nis: true, class: true },
+        select: { id: true, name: true, ttl: true, class: true },
       },
     },
     orderBy: [{ date: 'desc' }, { student: { name: 'asc' } }],
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
 
   // Group by student for summary
   interface StudentSummary {
-    student: { id: string; name: string; nis: string; class: string | null }
+    student: { id: string; name: string; ttl: string; class: string | null }
     HADIR: number
     IZIN: number
     SAKIT: number

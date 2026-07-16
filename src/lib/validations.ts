@@ -16,7 +16,9 @@ export const loginSchema = z.object({
 
 export const studentSchema = z.object({
   name: z.string().min(2, 'Nama harus minimal 2 karakter'),
-  nis: z.string().min(1, 'NIS harus diisi'),
+  ttl: z.string().min(1, 'Tempat tanggal lahir harus diisi'),
+  domisili: z.string().min(1, 'Domisili harus diisi'),
+  asalSekolah: z.string().min(1, 'Asal sekolah harus diisi'),
   class: z.string().min(1, 'Kelas harus diisi'),
   parentId: z.string().cuid('ID orang tua tidak valid'),
 })
