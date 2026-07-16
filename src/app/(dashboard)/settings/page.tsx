@@ -23,7 +23,7 @@ export default async function SettingsPage() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-6">Pengaturan</h2>
+      <h2 className="text-2xl font-bold mb-6">Pengaturan Akun</h2>
 
       {/* Profile Settings - Semua Role */}
       <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
