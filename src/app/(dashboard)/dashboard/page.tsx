@@ -152,7 +152,7 @@ export default async function DashboardPage() {
           <p className="text-gray-500 text-sm mb-4">
             Isi form di bawah untuk mendaftarkan anak Anda. Setelah itu, tunggu persetujuan dari Admin.
           </p>
-          <StudentForm userId={user.id} />
+          <StudentForm />
         </div>
 
         {/* Status Anak */}
