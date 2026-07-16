@@ -21,15 +21,18 @@ const navItems = {
     { href: '/students', label: 'Siswa', icon: '👤' },
     { href: '/attendance', label: 'Absensi', icon: '📝' },
     { href: '/reports', label: 'Laporan', icon: '📈' },
+    { href: '/settings', label: 'Pengaturan', icon: '⚙️' },
   ],
   GURU: [
     { href: '/dashboard', label: 'Dashboard', icon: '📊' },
     { href: '/attendance', label: 'Input Absensi', icon: '📝' },
     { href: '/reports', label: 'Laporan', icon: '📈' },
+    { href: '/settings', label: 'Pengaturan', icon: '⚙️' },
   ],
   ORANG_TUA: [
     { href: '/dashboard', label: 'Dashboard', icon: '📊' },
     { href: '/reports', label: 'Laporan Anak', icon: '📈' },
+    { href: '/settings', label: 'Pengaturan', icon: '⚙️' },
   ],
 }
 
