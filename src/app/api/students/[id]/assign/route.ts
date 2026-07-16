@@ -5,7 +5,7 @@ import { z } from 'zod'
 
 const assignSchema = z.object({
   class: z.string().min(1, 'Kelas harus diisi'),
-  classroomTeacherId: z.string().optional(),
+  teacherId: z.string().optional(),
 })
 
 export async function PATCH(
@@ -45,22 +45,54 @@ export async function PATCH(
       data: { class: validatedData.class },
     })
 
-    // Assign to classroom teacher if provided
-    if (validatedData.classroomTeacherId) {
-      // Check if classroom teacher exists for this class
-      const classroomTeacher = await prisma.classroomTeacher.findFirst({
+    // Assign to teacher if provided
+    if (validatedData.teacherId) {
+      // Check if teacher exists
+      const teacher = await prisma.user.findUnique({
+        where: { id: validatedData.teacherId },
+      })
+
+      if (!teacher || teacher.role !== 'GURU') {
+        return NextResponse.json(
+          { error: 'Guru tidak ditemukan' },
+          { status: 400 }
+        )
+      }
+
+      // Find or create classroom teacher
+      let classroomTeacher = await prisma.classroomTeacher.findUnique({
         where: {
-          id: validatedData.classroomTeacherId,
-          className: validatedData.class,
+          userId_className: {
+            userId: validatedData.teacherId,
+            className: validatedData.class,
+          },
         },
       })
 
       if (!classroomTeacher) {
-        return NextResponse.json(
-          { error: 'Guru tidak mengampu kelas ini' },
-          { status: 400 }
-        )
+        // Create new classroom teacher
+        classroomTeacher = await prisma.classroomTeacher.create({
+          data: {
+            userId: validatedData.teacherId,
+            className: validatedData.class,
+          },
+        })
       }
+
+      // Disconnect student from other classroom teachers first
+      await prisma.student.update({
+        where: { id },
+        data: {
+          classroomTeachers: {
+            disconnect: await prisma.classroomTeacher.findMany({
+              where: {
+                student: { some: { id } },
+              },
+              select: { id: true },
+            }),
+          },
+        },
+      })
 
       // Connect student to classroom teacher
       await prisma.classroomTeacher.update({

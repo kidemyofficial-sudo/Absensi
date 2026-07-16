@@ -30,6 +30,12 @@ interface ClassroomTeacher {
   user: { name: string }
 }
 
+interface Teacher {
+  id: string
+  name: string
+  email: string
+}
+
 export default function StudentsPage() {
   const [students, setStudents] = useState<Student[]>([])
   const [user, setUser] = useState<User | null>(null)
@@ -38,14 +44,16 @@ export default function StudentsPage() {
   const [search, setSearch] = useState('')
   const [classFilter, setClassFilter] = useState('')
   const [classroomTeachers, setClassroomTeachers] = useState<ClassroomTeacher[]>([])
+  const [teachers, setTeachers] = useState<Teacher[]>([])
   const [assignModal, setAssignModal] = useState<Student | null>(null)
-  const [assignData, setAssignData] = useState({ class: '', classroomTeacherId: '' })
+  const [assignData, setAssignData] = useState({ class: '', teacherId: '' })
 
   useEffect(() => {
     fetchUser()
     fetchStudents()
     if (user?.role === 'OWNER') {
       fetchClassroomTeachers()
+      fetchTeachers()
     }
   }, [user?.role])
 
@@ -78,6 +86,12 @@ export default function StudentsPage() {
     setClassroomTeachers(data.classroomTeachers || [])
   }
 
+  const fetchTeachers = async () => {
+    const res = await fetch('/api/users?role=GURU')
+    const data = await res.json()
+    setTeachers(data.users || [])
+  }
+
   const handleApprove = async (studentId: string, status: 'APPROVED' | 'REJECTED') => {
     const res = await fetch(`/api/students/${studentId}/approve`, {
       method: 'PATCH',
@@ -101,13 +115,12 @@ export default function StudentsPage() {
 
     if (res.ok) {
       setAssignModal(null)
-      setAssignData({ class: '', classroomTeacherId: '' })
+      setAssignData({ class: '', teacherId: '' })
       fetchStudents()
     }
   }
 
   const classes = [...new Set(students.filter((s) => s.class).map((s) => s.class))].sort()
-  const teachersByClass = classroomTeachers.filter((ct) => ct.className === assignData.class)
 
   return (
     <div>
@@ -161,26 +174,24 @@ export default function StudentsPage() {
                 <input
                   type="text"
                   value={assignData.class}
-                  onChange={(e) => setAssignData({ ...assignData, class: e.target.value, classroomTeacherId: '' })}
+                  onChange={(e) => setAssignData({ ...assignData, class: e.target.value, teacherId: '' })}
                   className="w-full px-3 py-2 border rounded-md text-black"
                   placeholder="contoh: 1A"
                 />
               </div>
-              {assignData.class && (
-                <div>
-                  <label className="block text-sm font-medium mb-1">Guru Pengampu (opsional)</label>
-                  <select
-                    value={assignData.classroomTeacherId}
-                    onChange={(e) => setAssignData({ ...assignData, classroomTeacherId: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-md text-black"
-                  >
-                    <option value="">Pilih Guru</option>
-                    {teachersByClass.map((ct) => (
-                      <option key={ct.id} value={ct.id}>{ct.user.name}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
+              <div>
+                <label className="block text-sm font-medium mb-1">Guru Pengampu (opsional)</label>
+                <select
+                  value={assignData.teacherId}
+                  onChange={(e) => setAssignData({ ...assignData, teacherId: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-md text-black"
+                >
+                  <option value="">Pilih Guru</option>
+                  {teachers.map((teacher) => (
+                    <option key={teacher.id} value={teacher.id}>{teacher.name}</option>
+                  ))}
+                </select>
+              </div>
               <div className="flex gap-2">
                 <button
                   onClick={handleAssign}
@@ -273,7 +284,7 @@ export default function StudentsPage() {
                           <button
                             onClick={() => {
                               setAssignModal(student)
-                              setAssignData({ class: student.class || '', classroomTeacherId: '' })
+                              setAssignData({ class: student.class || '', teacherId: '' })
                             }}
                             className="text-blue-600 hover:text-blue-900"
                           >
