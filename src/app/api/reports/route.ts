@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
 
   // Group by student for summary
   interface StudentSummary {
-    student: { id: string; name: string; nis: string; class: string }
+    student: { id: string; name: string; nis: string; class: string | null }
     HADIR: number
     IZIN: number
     SAKIT: number

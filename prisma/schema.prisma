@@ -20,6 +20,12 @@ enum AttendanceStatus {
   ALPA
 }
 
+enum StudentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id        String   @id @default(cuid())
   name      String
@@ -37,13 +43,14 @@ model User {
 }
 
 model Student {
-  id        String   @id @default(cuid())
+  id        String        @id @default(cuid())
   name      String
-  nis       String   @unique
-  class     String
+  nis       String        @unique
+  class     String?
   parentId  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  status    StudentStatus @default(PENDING)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
   // Relations
   parent              User               @relation("ParentStudents", fields: [parentId], references: [id])

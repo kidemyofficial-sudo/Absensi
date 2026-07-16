@@ -12,22 +12,29 @@ export default async function DashboardPage() {
 
   // Owner dashboard
   if (user.role === 'OWNER') {
-    const [totalStudents, totalTeachers, todayAttendance] = await Promise.all([
-      prisma.student.count(),
+    const [totalStudents, totalTeachers, pendingStudents, todayAttendance] = await Promise.all([
+      prisma.student.count({ where: { status: 'APPROVED' } }),
       prisma.user.count({ where: { role: 'GURU' } }),
+      prisma.student.count({ where: { status: 'PENDING' } }),
       prisma.attendance.count({ where: { date: today } }),
     ])
 
     return (
       <div>
         <h2 className="text-2xl font-bold mb-6">Dashboard Owner</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h3 className="text-lg font-medium text-gray-900">Total Siswa</h3>
+            <h3 className="text-lg font-medium text-gray-900">Siswa Aktif</h3>
             <p className="mt-2 text-3xl font-bold text-blue-600">{totalStudents}</p>
-            <Link href="/students" className="mt-2 text-sm text-blue-500 hover:underline">
-              Kelola Siswa →
-            </Link>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <h3 className="text-lg font-medium text-gray-900">Menunggu ACC</h3>
+            <p className="mt-2 text-3xl font-bold text-orange-600">{pendingStudents}</p>
+            {pendingStudents > 0 && (
+              <Link href="/students?status=PENDING" className="mt-2 text-sm text-blue-500 hover:underline">
+                Review →
+              </Link>
+            )}
           </div>
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-lg font-medium text-gray-900">Total Guru</h3>
@@ -35,11 +42,19 @@ export default async function DashboardPage() {
           </div>
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-lg font-medium text-gray-900">Absensi Hari Ini</h3>
-            <p className="mt-2 text-3xl font-bold text-orange-600">{todayAttendance}</p>
-            <Link href="/reports" className="mt-2 text-sm text-blue-500 hover:underline">
-              Lihat Laporan →
-            </Link>
+            <p className="mt-2 text-3xl font-bold text-purple-600">{todayAttendance}</p>
           </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Link href="/students" className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <h3 className="text-lg font-medium text-gray-900">👤 Kelola Siswa</h3>
+            <p className="text-gray-500 mt-2">ACC pendaftaran, assign kelas & guru</p>
+          </Link>
+          <Link href="/reports" className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <h3 className="text-lg font-medium text-gray-900">📊 Laporan Absensi</h3>
+            <p className="text-gray-500 mt-2">Lihat rekap kehadiran siswa</p>
+          </Link>
         </div>
       </div>
     )
@@ -52,9 +67,7 @@ export default async function DashboardPage() {
       select: {
         className: true,
         _count: {
-          select: {
-            student: true,
-          },
+          select: { student: true },
         },
       },
     })
@@ -101,7 +114,7 @@ export default async function DashboardPage() {
     )
   }
 
-  // Orang tua dashboard
+  // Orang Tua dashboard
   if (user.role === 'ORANG_TUA') {
     const children = await prisma.student.findMany({
       where: { parentId: user.id },
@@ -110,6 +123,7 @@ export default async function DashboardPage() {
         name: true,
         nis: true,
         class: true,
+        status: true,
       },
     })
 
@@ -130,10 +144,50 @@ export default async function DashboardPage() {
     return (
       <div>
         <h2 className="text-2xl font-bold mb-6">Dashboard Orang Tua</h2>
+
+        {/* Form Daftarkan Siswa Baru */}
+        <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Daftarkan Siswa Baru</h3>
+          <p className="text-gray-500 text-sm mb-4">
+            Isi form di bawah untuk mendaftarkan anak Anda. Setelah itu, tunggu persetujuan dari Admin.
+          </p>
+          <form action="/api/students" method="POST" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nama Siswa</label>
+                <input
+                  type="text"
+                  name="name"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                  placeholder="Nama lengkap siswa"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">NIS</label>
+                <input
+                  type="text"
+                  name="nis"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                  placeholder="Nomor Induk Siswa"
+                />
+              </div>
+            </div>
+            <button
+              type="submit"
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
+              Daftarkan Siswa
+            </button>
+          </form>
+        </div>
+
+        {/* Status Anak */}
         <div className="bg-white p-6 rounded-lg shadow-sm">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Status Anak Hari Ini</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Status Anak</h3>
           {children.length === 0 ? (
-            <p className="text-gray-500">Belum ada data anak</p>
+            <p className="text-gray-500">Belum ada data anak. Silakan daftarkan di atas.</p>
           ) : (
             <div className="space-y-4">
               {children.map((child) => {
@@ -143,32 +197,45 @@ export default async function DashboardPage() {
                     <div className="flex justify-between items-start">
                       <div>
                         <p className="font-medium">{child.name}</p>
-                        <p className="text-sm text-gray-500">NIS: {child.nis} | Kelas: {child.class}</p>
-                      </div>
-                      <div className="text-right">
-                        {attendance ? (
-                          <span
-                            className={`px-3 py-1 rounded-full text-sm font-medium ${
-                              attendance.status === 'HADIR'
-                                ? 'bg-green-100 text-green-800'
-                                : attendance.status === 'IZIN'
-                                ? 'bg-yellow-100 text-yellow-800'
-                                : attendance.status === 'SAKIT'
-                                ? 'bg-orange-100 text-orange-800'
-                                : 'bg-red-100 text-red-800'
-                            }`}
-                          >
-                            {attendance.status}
-                          </span>
-                        ) : (
-                          <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-                            Belum dicatat
-                          </span>
+                        <p className="text-sm text-gray-500">NIS: {child.nis}</p>
+                        {child.class && (
+                          <p className="text-sm text-gray-500">Kelas: {child.class}</p>
                         )}
                       </div>
+                      <div className="text-right">
+                        <span
+                          className={`px-3 py-1 rounded-full text-sm font-medium ${
+                            child.status === 'APPROVED'
+                              ? 'bg-green-100 text-green-800'
+                              : child.status === 'PENDING'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}
+                        >
+                          {child.status === 'APPROVED'
+                            ? 'Disetujui'
+                            : child.status === 'PENDING'
+                            ? 'Menunggu ACC'
+                            : 'Ditolak'}
+                        </span>
+                      </div>
                     </div>
-                    {attendance?.note && (
-                      <p className="text-sm text-gray-600 mt-2">Catatan: {attendance.note}</p>
+                    {attendance && (
+                      <div className="mt-2">
+                        <span
+                          className={`px-2 py-1 rounded text-xs ${
+                            attendance.status === 'HADIR'
+                              ? 'bg-green-100 text-green-800'
+                              : attendance.status === 'IZIN'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : attendance.status === 'SAKIT'
+                              ? 'bg-orange-100 text-orange-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}
+                        >
+                          Hari ini: {attendance.status}
+                        </span>
+                      </div>
                     )}
                   </div>
                 )
@@ -176,12 +243,6 @@ export default async function DashboardPage() {
             </div>
           )}
         </div>
-        <Link
-          href="/reports"
-          className="mt-4 inline-block text-blue-500 hover:underline"
-        >
-          Lihat Laporan Lengkap →
-        </Link>
       </div>
     )
   }

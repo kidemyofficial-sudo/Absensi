@@ -1,7 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { studentSchema } from '@/lib/validations'
+import { z } from 'zod'
+
+// Schema untuk Orang Tua mendaftarkan siswa
+const parentRegisterSchema = z.object({
+  name: z.string().min(2, 'Nama harus minimal 2 karakter'),
+  nis: z.string().min(1, 'NIS harus diisi'),
+})
+
+// Schema untuk Owner approve dan assign
+const ownerAssignSchema = z.object({
+  studentId: z.string().cuid(),
+  class: z.string().min(1, 'Kelas harus diisi'),
+  classroomTeacherId: z.string().cuid().optional(),
+})
 
 export async function GET(request: NextRequest) {
   const user = await getCurrentUser()
@@ -11,10 +24,15 @@ export async function GET(request: NextRequest) {
   }
 
   const { searchParams } = new URL(request.url)
+  const status = searchParams.get('status')
   const classFilter = searchParams.get('class')
   const search = searchParams.get('search')
 
   const where: Record<string, unknown> = {}
+
+  if (status) {
+    where.status = status
+  }
 
   if (classFilter) {
     where.class = classFilter
@@ -27,9 +45,16 @@ export async function GET(request: NextRequest) {
     ]
   }
 
-  // Orang tua hanya bisa lihat anaknya sendiri
+  // Orang Tua hanya bisa lihat anaknya sendiri
   if (user.role === 'ORANG_TUA') {
     where.parentId = user.id
+  }
+
+  // Guru hanya bisa lihat siswa di kelasnya
+  if (user.role === 'GURU') {
+    where.classroomTeachers = {
+      some: { userId: user.id },
+    }
   }
 
   const students = await prisma.student.findMany({
@@ -38,8 +63,15 @@ export async function GET(request: NextRequest) {
       parent: {
         select: { id: true, name: true, email: true },
       },
+      classroomTeachers: {
+        include: {
+          user: {
+            select: { id: true, name: true },
+          },
+        },
+      },
     },
-    orderBy: { name: 'asc' },
+    orderBy: { createdAt: 'desc' },
   })
 
   return NextResponse.json({ students })
@@ -48,13 +80,21 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const user = await getCurrentUser()
 
-  if (!user || user.role !== 'OWNER') {
-    return NextResponse.json({ error: 'Tidak diizinkan' }, { status: 403 })
+  if (!user) {
+    return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 })
+  }
+
+  // Hanya Orang Tua yang bisa mendaftarkan siswa
+  if (user.role !== 'ORANG_TUA') {
+    return NextResponse.json(
+      { error: 'Hanya Orang Tua yang bisa mendaftarkan siswa' },
+      { status: 403 }
+    )
   }
 
   try {
     const body = await request.json()
-    const validatedData = studentSchema.parse(body)
+    const validatedData = parentRegisterSchema.parse(body)
 
     // Check if NIS already exists
     const existingStudent = await prisma.student.findUnique({
@@ -68,19 +108,37 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Create student with PENDING status
     const student = await prisma.student.create({
       data: {
         name: validatedData.name,
         nis: validatedData.nis,
-        class: validatedData.class,
-        parentId: validatedData.parentId,
+        parentId: user.id,
+        status: 'PENDING',
       },
       include: {
         parent: {
-          select: { id: true, name: true, email: true },
+          select: { id: true, name: true },
         },
       },
     })
+
+    // Notify owner
+    const owners = await prisma.user.findMany({
+      where: { role: 'OWNER' },
+      select: { id: true },
+    })
+
+    await Promise.all(
+      owners.map((owner) =>
+        prisma.notification.create({
+          data: {
+            userId: owner.id,
+            message: `Pendaftaran siswa baru: ${student.name} (NIS: ${student.nis}) menunggu persetujuan`,
+          },
+        })
+      )
+    )
 
     return NextResponse.json({ student }, { status: 201 })
   } catch (error) {
