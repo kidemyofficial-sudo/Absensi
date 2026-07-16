@@ -73,11 +73,12 @@ export async function POST(request: NextRequest) {
     const date = new Date(validatedData.date)
     date.setHours(0, 0, 0, 0)
 
-    // Verify teacher has access to these students
+    // Verify teacher has access to these students (only APPROVED)
     const studentIds = validatedData.attendances.map((a) => a.studentId)
     const validStudents = await prisma.student.findMany({
       where: {
         id: { in: studentIds },
+        status: 'APPROVED',
         classroomTeachers: {
           some: { userId: user.id },
         },

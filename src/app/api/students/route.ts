@@ -30,7 +30,10 @@ export async function GET(request: NextRequest) {
 
   const where: Record<string, unknown> = {}
 
-  if (status) {
+  // Default filter: Guru hanya lihat siswa APPROVED
+  if (user.role === 'GURU') {
+    where.status = 'APPROVED'
+  } else if (status) {
     where.status = status
   }
 
