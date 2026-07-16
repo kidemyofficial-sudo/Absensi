@@ -19,6 +19,7 @@ const navItems = {
   OWNER: [
     { href: '/dashboard', label: 'Dashboard', icon: '📊' },
     { href: '/students', label: 'Siswa', icon: '👤' },
+    { href: '/guru', label: 'Guru', icon: '👨‍🏫' },
     { href: '/attendance', label: 'Absensi', icon: '📝' },
     { href: '/reports', label: 'Laporan', icon: '📈' },
     { href: '/settings', label: 'Pengaturan', icon: '⚙️' },
