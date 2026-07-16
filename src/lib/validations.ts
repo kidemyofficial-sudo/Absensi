@@ -4,8 +4,8 @@ export const registerSchema = z.object({
   name: z.string().min(2, 'Nama harus minimal 2 karakter'),
   email: z.string().email('Email tidak valid'),
   password: z.string().min(6, 'Password harus minimal 6 karakter'),
-  role: z.enum(['GURU', 'ORANG_TUA', 'OWNER'], {
-    errorMap: () => ({ message: 'Role tidak valid' }),
+  role: z.enum(['GURU', 'ORANG_TUA'], {
+    errorMap: () => ({ message: 'Role tidak valid. Hanya Guru dan Orang Tua yang bisa mendaftar.' }),
   }),
 })
 

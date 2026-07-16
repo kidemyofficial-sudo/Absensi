@@ -10,7 +10,7 @@ export default function RegisterPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [role, setRole] = useState<'GURU' | 'ORANG_TUA' | 'OWNER'>('GURU')
+  const [role, setRole] = useState<'GURU' | 'ORANG_TUA'>('GURU')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -102,12 +102,11 @@ export default function RegisterPage() {
           <select
             id="role"
             value={role}
-            onChange={(e) => setRole(e.target.value as 'GURU' | 'ORANG_TUA' | 'OWNER')}
+            onChange={(e) => setRole(e.target.value as 'GURU' | 'ORANG_TUA')}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
           >
             <option value="GURU">Guru</option>
             <option value="ORANG_TUA">Orang Tua</option>
-            <option value="OWNER">Owner / Kepala Sekolah</option>
           </select>
         </div>
 
