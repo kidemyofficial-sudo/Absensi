@@ -39,7 +39,7 @@ export default async function SettingsPage() {
 
       {/* Teacher Management - Owner Only */}
       {user.role === 'OWNER' && (
-        <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
+        <div className="bg-white p-6 rounded-lg shadow-sm mb-6 border-2 border-blue-200">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Kelola Guru</h3>
           <TeacherManagement />
         </div>
@@ -47,7 +47,7 @@ export default async function SettingsPage() {
 
       {/* Class Management - Owner Only */}
       {user.role === 'OWNER' && (
-        <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
+        <div className="bg-white p-6 rounded-lg shadow-sm mb-6 border-2 border-green-200">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Kelola Kelas & Guru Pengampu</h3>
           <ClassManagement />
         </div>
