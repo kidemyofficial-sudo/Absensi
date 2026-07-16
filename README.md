@@ -1,36 +1,174 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sistem Absensi Sekolah
 
-## Getting Started
+Sistem absensi sekolah berbasis web dengan Next.js, Prisma, dan PostgreSQL.
 
-First, run the development server:
+## Fitur
+
+- **Autentikasi**: Register/Login dengan JWT (3 role: Owner, Guru, Orang Tua)
+- **Dashboard**: Statistik dan ringkasan per role
+- **Manajemen Siswa**: CRUD data siswa (Owner only)
+- **Input Absensi**: Form absensi per kelas (Guru only)
+- **Laporan**: Rekap absensi dengan filter dan export CSV
+- **Notifikasi**: Notifikasi otomatis ke Orang Tua saat anak absen
+- **Mobile Responsive**: UI responsif untuk semua perangkat
+
+## Tech Stack
+
+- **Frontend**: Next.js 16 + React 19 + Tailwind CSS 4
+- **Backend**: Next.js API Routes
+- **Database**: PostgreSQL (Neon)
+- **ORM**: Prisma
+- **Auth**: JWT (jose) + bcryptjs
+- **Deployment**: Vercel
+
+## Setup Lokal
+
+### Prerequisites
+
+- Node.js 18+
+- PostgreSQL database (local atau Neon)
+
+### Instalasi
 
 ```bash
+# Clone repository
+git clone https://github.com/kidemyofficial-sudo/Absensi.git
+cd Absensi
+
+# Install dependencies
+npm install
+
+# Setup environment variables
+cp .env.example .env
+# Edit .env dengan database URL Anda
+
+# Generate Prisma client
+npx prisma generate
+
+# Push schema ke database
+npx prisma db push
+
+# Jalankan development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```env
+DATABASE_URL="postgresql://username:password@host:5432/database?sslmode=require"
+JWT_SECRET="your-secret-key"
+NEXTAUTH_URL="http://localhost:3000"
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Deployment ke Vercel
 
-## Learn More
+### 1. Buat Database di Neon
 
-To learn more about Next.js, take a look at the following resources:
+1. Buat akun di [Neon](https://neon.tech)
+2. Buat project baru
+3. Copy connection string dari dashboard
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 2. Deploy ke Vercel
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Push kode ke GitHub
+2. Login ke [Vercel](https://vercel.com)
+3. Import repository `kidemyofficial-sudo/Absensi`
+4. Tambahkan environment variables:
+   - `DATABASE_URL`: Connection string dari Neon
+   - `JWT_SECRET`: Secret key untuk JWT
+5. Deploy
 
-## Deploy on Vercel
+### 3. Setup Database
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Setelah deploy, jalankan Prisma setup:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Login ke Vercel
+vercel login
+
+# Jalankan di production
+vercel env pull .env.local
+npx prisma generate
+npx prisma db push
+```
+
+## API Documentation
+
+### Auth
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /api/auth/register | Register user baru |
+| POST | /api/auth/login | Login |
+| POST | /api/auth/logout | Logout |
+| GET | /api/auth/me | Dapatkan user saat ini |
+
+### Dashboard
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /api/dashboard | Data dashboard berdasarkan role |
+
+### Students
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /api/students | List siswa |
+| POST | /api/students | Tambah siswa (OWNER) |
+| GET | /api/students/[id] | Detail siswa |
+| PUT | /api/students/[id] | Edit siswa (OWNER) |
+| DELETE | /api/students/[id] | Hapus siswa (OWNER) |
+
+### Attendance
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /api/attendance | List absensi |
+| POST | /api/attendance | Input absensi (GURU) |
+
+### Reports
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /api/reports | Laporan absensi |
+
+### Notifications
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /api/notifications | List notifikasi |
+| PATCH | /api/notifications/[id] | Tandai sudah dibaca |
+
+## Database Schema
+
+```prisma
+enum Role { GURU ORANG_TUA OWNER }
+enum AttendanceStatus { HADIR IZIN SAKIT ALPA }
+
+model User {
+  id, name, email, password, role
+}
+
+model Student {
+  id, name, nis, class, parentId
+}
+
+model Attendance {
+  id, studentId, teacherId, date, status, note
+}
+
+model Notification {
+  id, userId, message, isRead
+}
+
+model ClassroomTeacher {
+  id, userId, className
+}
+```
+
+## License
+
+MIT
