@@ -8,14 +8,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validatedData = registerSchema.parse(body)
 
-    // Check if user already exists
+    // Check if phone already exists
     const existingUser = await prisma.user.findUnique({
-      where: { email: validatedData.email },
+      where: { phone: validatedData.phone },
     })
 
     if (existingUser) {
       return NextResponse.json(
-        { error: 'Email sudah terdaftar' },
+        { error: 'Nomor telepon sudah terdaftar' },
         { status: 400 }
       )
     }
@@ -25,14 +25,14 @@ export async function POST(request: NextRequest) {
     const user = await prisma.user.create({
       data: {
         name: validatedData.name,
-        email: validatedData.email,
+        phone: validatedData.phone,
         password: hashedPassword,
         role: validatedData.role,
       },
       select: {
         id: true,
         name: true,
-        email: true,
+        phone: true,
         role: true,
       },
     })
@@ -40,10 +40,10 @@ export async function POST(request: NextRequest) {
     // Create token and set cookie
     const token = await createToken({
       userId: user.id,
-      email: user.email,
+      phone: user.phone,
       role: user.role,
     })
-    await setTokenCookie(token)
+    setTokenCookie(token)
 
     return NextResponse.json({ user }, { status: 201 })
   } catch (error) {

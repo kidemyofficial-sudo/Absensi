@@ -5,7 +5,7 @@ import { z } from 'zod'
 
 const updateProfileSchema = z.object({
   name: z.string().min(2).optional(),
-  email: z.string().email().optional(),
+  phone: z.string().min(10).optional(),
 })
 
 export async function PATCH(
@@ -29,17 +29,17 @@ export async function PATCH(
     const body = await request.json()
     const validatedData = updateProfileSchema.parse(body)
 
-    // Check email uniqueness if changed
-    if (validatedData.email) {
+    // Check phone uniqueness if changed
+    if (validatedData.phone) {
       const existing = await prisma.user.findFirst({
         where: {
-          email: validatedData.email,
+          phone: validatedData.phone,
           NOT: { id },
         },
       })
 
       if (existing) {
-        return NextResponse.json({ error: 'Email sudah digunakan' }, { status: 400 })
+        return NextResponse.json({ error: 'Nomor telepon sudah digunakan' }, { status: 400 })
       }
     }
 
@@ -49,7 +49,7 @@ export async function PATCH(
       select: {
         id: true,
         name: true,
-        email: true,
+        phone: true,
         role: true,
       },
     })

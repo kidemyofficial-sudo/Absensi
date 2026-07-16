@@ -6,14 +6,14 @@ import { useRouter } from 'next/navigation'
 interface User {
   id: string
   name: string
-  email: string
+  phone: string
   role: string
 }
 
 export default function ProfileForm({ user }: { user: User }) {
   const router = useRouter()
   const [name, setName] = useState(user.name)
-  const [email, setEmail] = useState(user.email)
+  const [phone, setPhone] = useState(user.phone)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
 
@@ -26,7 +26,7 @@ export default function ProfileForm({ user }: { user: User }) {
       const res = await fetch(`/api/users/${user.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email }),
+        body: JSON.stringify({ name, phone }),
       })
 
       const data = await res.json()
@@ -69,13 +69,14 @@ export default function ProfileForm({ user }: { user: User }) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Nomor Telepon</label>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+              placeholder="08xxxxxxxxxx"
             />
           </div>
         </div>

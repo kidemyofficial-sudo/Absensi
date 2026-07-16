@@ -7,7 +7,7 @@ const secretKey = new TextEncoder().encode(process.env.JWT_SECRET)
 
 export interface JWTPayload {
   userId: string
-  email: string
+  phone: string
   role: 'GURU' | 'ORANG_TUA' | 'OWNER'
 }
 
@@ -57,7 +57,7 @@ export async function getCurrentUser() {
     select: {
       id: true,
       name: true,
-      email: true,
+      phone: true,
       role: true,
     },
   })

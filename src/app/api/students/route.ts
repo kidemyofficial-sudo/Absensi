@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
     where,
     include: {
       parent: {
-        select: { id: true, name: true, email: true },
+        select: { id: true, name: true, phone: true },
       },
       classroomTeachers: {
         include: {

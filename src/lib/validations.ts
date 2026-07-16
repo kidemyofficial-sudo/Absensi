@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 export const registerSchema = z.object({
   name: z.string().min(2, 'Nama harus minimal 2 karakter'),
-  email: z.string().email('Email tidak valid'),
+  phone: z.string().min(10, 'Nomor telepon minimal 10 digit'),
   password: z.string().min(6, 'Password harus minimal 6 karakter'),
   role: z.enum(['GURU', 'ORANG_TUA'], {
     errorMap: () => ({ message: 'Role tidak valid. Hanya Guru dan Orang Tua yang bisa mendaftar.' }),
@@ -10,7 +10,7 @@ export const registerSchema = z.object({
 })
 
 export const loginSchema = z.object({
-  email: z.string().email('Email tidak valid'),
+  phone: z.string().min(10, 'Nomor telepon minimal 10 digit'),
   password: z.string().min(1, 'Password harus diisi'),
 })
 

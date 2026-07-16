@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react'
 interface Teacher {
   id: string
   name: string
-  email: string
+  phone: string
 }
 
 interface ClassroomTeacher {

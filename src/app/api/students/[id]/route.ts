@@ -19,7 +19,7 @@ export async function GET(
     where: { id },
     include: {
       parent: {
-        select: { id: true, name: true, email: true },
+        select: { id: true, name: true, phone: true },
       },
     },
   })
@@ -77,7 +77,7 @@ export async function PUT(
       data: validatedData,
       include: {
         parent: {
-          select: { id: true, name: true, email: true },
+          select: { id: true, name: true, phone: true },
         },
       },
     })

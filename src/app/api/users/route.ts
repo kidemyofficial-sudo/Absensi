@@ -5,7 +5,7 @@ import { z } from 'zod'
 
 const createUserSchema = z.object({
   name: z.string().min(2),
-  email: z.string().email(),
+  phone: z.string().min(10),
   password: z.string().min(6),
   role: z.enum(['GURU', 'ORANG_TUA', 'OWNER']),
 })
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     select: {
       id: true,
       name: true,
-      email: true,
+      phone: true,
       role: true,
       createdAt: true,
       classroomTeachers: {
@@ -56,27 +56,27 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validatedData = createUserSchema.parse(body)
 
-    // Check if email exists
+    // Check if phone exists
     const existing = await prisma.user.findUnique({
-      where: { email: validatedData.email },
+      where: { phone: validatedData.phone },
     })
 
     if (existing) {
-      return NextResponse.json({ error: 'Email sudah terdaftar' }, { status: 400 })
+      return NextResponse.json({ error: 'Nomor telepon sudah terdaftar' }, { status: 400 })
     }
 
     const hashedPassword = await hashPassword(validatedData.password)
     const newUser = await prisma.user.create({
       data: {
         name: validatedData.name,
-        email: validatedData.email,
+        phone: validatedData.phone,
         password: hashedPassword,
         role: validatedData.role,
       },
       select: {
         id: true,
         name: true,
-        email: true,
+        phone: true,
         role: true,
       },
     })

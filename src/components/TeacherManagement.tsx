@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react'
 interface Teacher {
   id: string
   name: string
-  email: string
+  phone: string
   createdAt: string
 }
 
@@ -15,7 +15,7 @@ export default function TeacherManagement() {
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
+    phone: '',
     password: '',
   })
   const [message, setMessage] = useState('')
@@ -49,7 +49,7 @@ export default function TeacherManagement() {
       }
 
       setMessage('Guru berhasil ditambahkan!')
-      setFormData({ name: '', email: '', password: '' })
+      setFormData({ name: '', phone: '', password: '' })
       setShowForm(false)
       fetchTeachers()
     } catch (err) {
@@ -111,14 +111,14 @@ export default function TeacherManagement() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nomor Telepon</label>
               <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-                placeholder="email@guru.com"
+                placeholder="08xxxxxxxxxx"
               />
             </div>
             <div>
@@ -153,7 +153,7 @@ export default function TeacherManagement() {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Telepon</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Terdaftar</th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Aksi</th>
               </tr>
@@ -162,7 +162,7 @@ export default function TeacherManagement() {
               {teachers.map((teacher) => (
                 <tr key={teacher.id}>
                   <td className="px-4 py-3">{teacher.name}</td>
-                  <td className="px-4 py-3">{teacher.email}</td>
+                  <td className="px-4 py-3">{teacher.phone}</td>
                   <td className="px-4 py-3">
                     {new Date(teacher.createdAt).toLocaleDateString('id-ID')}
                   </td>

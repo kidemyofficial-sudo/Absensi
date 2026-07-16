@@ -29,7 +29,7 @@ enum StudentStatus {
 model User {
   id        String   @id @default(cuid())
   name      String
-  email     String   @unique
+  phone     String   @unique
   password  String
   role      Role
   createdAt DateTime @default(now())

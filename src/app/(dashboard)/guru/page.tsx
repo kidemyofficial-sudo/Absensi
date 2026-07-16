@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react'
 interface Teacher {
   id: string
   name: string
-  email: string
+  phone: string
   createdAt: string
   classroomTeachers: {
     className: string
@@ -18,7 +18,7 @@ export default function GuruPage() {
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
+    phone: '',
     password: '',
   })
   const [message, setMessage] = useState('')
@@ -61,7 +61,7 @@ export default function GuruPage() {
       }
 
       setMessage('Guru berhasil ditambahkan!')
-      setFormData({ name: '', email: '', password: '' })
+      setFormData({ name: '', phone: '', password: '' })
       setShowForm(false)
       fetchTeachers()
     } catch (err) {
@@ -93,7 +93,7 @@ export default function GuruPage() {
         <button
           onClick={() => {
             setShowForm(!showForm)
-            setFormData({ name: '', email: '', password: '' })
+            setFormData({ name: '', phone: '', password: '' })
           }}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
@@ -129,14 +129,14 @@ export default function GuruPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nomor Telepon</label>
                 <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-                  placeholder="email@guru.com"
+                  placeholder="08xxxxxxxxxx"
                 />
               </div>
               <div>
@@ -166,7 +166,7 @@ export default function GuruPage() {
       <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
         <input
           type="text"
-          placeholder="Cari nama atau email guru..."
+          placeholder="Cari nama atau telepon guru..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full px-3 py-2 border rounded-md text-black"
@@ -185,7 +185,7 @@ export default function GuruPage() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Telepon</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kelas Diampu</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Terdaftar</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Aksi</th>
@@ -195,7 +195,7 @@ export default function GuruPage() {
                 {teachers.map((teacher) => (
                   <tr key={teacher.id}>
                     <td className="px-6 py-4 whitespace-nowrap">{teacher.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{teacher.email}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{teacher.phone}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {teacher.classroomTeachers && teacher.classroomTeachers.length > 0 ? (
                         <div className="flex flex-wrap gap-1">

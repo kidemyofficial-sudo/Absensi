@@ -8,14 +8,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validatedData = loginSchema.parse(body)
 
-    // Find user by email
+    // Find user by phone
     const user = await prisma.user.findUnique({
-      where: { email: validatedData.email },
+      where: { phone: validatedData.phone },
     })
 
     if (!user) {
       return NextResponse.json(
-        { error: 'Email atau password salah' },
+        { error: 'Nomor telepon atau password salah' },
         { status: 401 }
       )
     }
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
     if (!isValidPassword) {
       return NextResponse.json(
-        { error: 'Email atau password salah' },
+        { error: 'Nomor telepon atau password salah' },
         { status: 401 }
       )
     }
@@ -36,16 +36,16 @@ export async function POST(request: NextRequest) {
     // Create token and set cookie
     const token = await createToken({
       userId: user.id,
-      email: user.email,
+      phone: user.phone,
       role: user.role,
     })
-    await setTokenCookie(token)
+    setTokenCookie(token)
 
     return NextResponse.json({
       user: {
         id: user.id,
         name: user.name,
-        email: user.email,
+        phone: user.phone,
         role: user.role,
       },
     })
