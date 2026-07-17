@@ -36,10 +36,10 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Relations
-  students          Student[]          @relation("ParentStudents")
-  attendances       Attendance[]       @relation("TeacherAttendances")
-  notifications     Notification[]
-  classroomTeachers ClassroomTeacher[]
+  students       Student[]          @relation("ParentStudents")
+  attendances    Attendance[]       @relation("TeacherAttendances")
+  notifications  Notification[]
+  branchTeachers BranchTeacher[]
 }
 
 model Student {
@@ -48,16 +48,16 @@ model Student {
   ttl           String        @db.VarChar(255)
   domisili      String        @db.VarChar(500)
   asalSekolah   String        @db.VarChar(255)
-  class         String?
+  cabangDaerah  String?
   parentId      String
   status        StudentStatus @default(PENDING)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
   // Relations
-  parent              User               @relation("ParentStudents", fields: [parentId], references: [id])
-  attendances         Attendance[]
-  classroomTeachers   ClassroomTeacher[]
+  parent          User          @relation("ParentStudents", fields: [parentId], references: [id])
+  attendances     Attendance[]
+  branchTeachers  BranchTeacher[]
 }
 
 model Attendance {
@@ -87,14 +87,14 @@ model Notification {
   user User @relation(fields: [userId], references: [id])
 }
 
-model ClassroomTeacher {
-  id        String @id @default(cuid())
-  userId    String
-  className String
+model BranchTeacher {
+  id           String @id @default(cuid())
+  userId       String
+  cabangDaerah String
 
   // Relations
   user    User      @relation(fields: [userId], references: [id])
   student Student[]
 
-  @@unique([userId, className])
+  @@unique([userId, cabangDaerah])
 }

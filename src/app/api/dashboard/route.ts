@@ -32,10 +32,10 @@ export async function GET() {
   }
 
   if (user.role === 'GURU') {
-    const classes = await prisma.classroomTeacher.findMany({
+    const branchTeachers = await prisma.branchTeacher.findMany({
       where: { userId: user.id },
       select: {
-        className: true,
+        cabangDaerah: true,
         _count: {
           select: {
             student: true,
@@ -51,16 +51,16 @@ export async function GET() {
       },
       include: {
         student: {
-          select: { name: true, class: true },
+          select: { name: true, cabangDaerah: true },
         },
       },
     })
 
     return NextResponse.json({
       role: 'GURU',
-      classes: classes.map((c) => ({
-        name: c.className,
-        studentCount: c._count.student,
+      classes: branchTeachers.map((bt) => ({
+        name: bt.cabangDaerah,
+        studentCount: bt._count.student,
       })),
       todayAttendances: todayAttendances.length,
     })
@@ -75,7 +75,7 @@ export async function GET() {
         ttl: true,
         domisili: true,
         asalSekolah: true,
-        class: true,
+        cabangDaerah: true,
       },
     })
 

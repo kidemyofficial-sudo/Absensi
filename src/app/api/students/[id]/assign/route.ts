@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 
 const assignSchema = z.object({
-  class: z.string().min(1, 'Kelas harus diisi'),
+  cabangDaerah: z.string().min(1, 'Cabang Daerah harus diisi'),
   teacherId: z.string().optional(),
 })
 
@@ -39,10 +39,10 @@ export async function PATCH(
       )
     }
 
-    // Update student class
+    // Update student cabangDaerah
     const updated = await prisma.student.update({
       where: { id },
-      data: { class: validatedData.class },
+      data: { cabangDaerah: validatedData.cabangDaerah },
     })
 
     // Assign to teacher if provided
@@ -59,32 +59,32 @@ export async function PATCH(
         )
       }
 
-      // Find or create classroom teacher
-      let classroomTeacher = await prisma.classroomTeacher.findUnique({
+      // Find or create branch teacher
+      let branchTeacher = await prisma.branchTeacher.findUnique({
         where: {
-          userId_className: {
+          userId_cabangDaerah: {
             userId: validatedData.teacherId,
-            className: validatedData.class,
+            cabangDaerah: validatedData.cabangDaerah,
           },
         },
       })
 
-      if (!classroomTeacher) {
-        // Create new classroom teacher
-        classroomTeacher = await prisma.classroomTeacher.create({
+      if (!branchTeacher) {
+        // Create new branch teacher
+        branchTeacher = await prisma.branchTeacher.create({
           data: {
             userId: validatedData.teacherId,
-            className: validatedData.class,
+            cabangDaerah: validatedData.cabangDaerah,
           },
         })
       }
 
-      // Disconnect student from other classroom teachers first
+      // Disconnect student from other branch teachers first
       await prisma.student.update({
         where: { id },
         data: {
-          classroomTeachers: {
-            disconnect: await prisma.classroomTeacher.findMany({
+          branchTeachers: {
+            disconnect: await prisma.branchTeacher.findMany({
               where: {
                 student: { some: { id } },
               },
@@ -94,9 +94,9 @@ export async function PATCH(
         },
       })
 
-      // Connect student to classroom teacher
-      await prisma.classroomTeacher.update({
-        where: { id: classroomTeacher.id },
+      // Connect student to branch teacher
+      await prisma.branchTeacher.update({
+        where: { id: branchTeacher.id },
         data: {
           student: {
             connect: { id },
@@ -109,7 +109,7 @@ export async function PATCH(
     await prisma.notification.create({
       data: {
         userId: student.parentId,
-        message: `Siswa ${student.name} telah ditugaskan ke kelas ${validatedData.class}`,
+        message: `Siswa ${student.name} telah ditugaskan ke cabang daerah ${validatedData.cabangDaerah}`,
       },
     })
 

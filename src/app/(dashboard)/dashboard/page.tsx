@@ -50,7 +50,7 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Link href="/students" className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
             <h3 className="text-lg font-medium text-gray-900">Kelola Siswa</h3>
-            <p className="text-gray-500 mt-2">ACC pendaftaran, assign kelas & guru</p>
+            <p className="text-gray-500 mt-2">ACC pendaftaran, assign cabang daerah & guru</p>
           </Link>
           <Link href="/reports" className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
             <h3 className="text-lg font-medium text-gray-900">Laporan Absensi</h3>
@@ -63,10 +63,10 @@ export default async function DashboardPage() {
 
   // Guru dashboard
   if (user.role === 'GURU') {
-    const classes = await prisma.classroomTeacher.findMany({
+    const branchTeachers = await prisma.branchTeacher.findMany({
       where: { userId: user.id },
       select: {
-        className: true,
+        cabangDaerah: true,
         _count: {
           select: { student: true },
         },
@@ -85,15 +85,15 @@ export default async function DashboardPage() {
         <h2 className="text-2xl font-bold mb-6">Dashboard Guru</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Kelas Yang Diampu</h3>
-            {classes.length === 0 ? (
-              <p className="text-gray-500">Belum ada kelas yang ditugaskan</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Cabang Daerah Yang Diampu</h3>
+            {branchTeachers.length === 0 ? (
+              <p className="text-gray-500">Belum ada cabang daerah yang ditugaskan</p>
             ) : (
               <ul className="space-y-2">
-                {classes.map((c) => (
-                  <li key={c.className} className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                    <span>{c.className}</span>
-                    <span className="text-sm text-gray-500">{c._count.student} siswa</span>
+                {branchTeachers.map((bt) => (
+                  <li key={bt.cabangDaerah} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                    <span>{bt.cabangDaerah}</span>
+                    <span className="text-sm text-gray-500">{bt._count.student} siswa</span>
                   </li>
                 ))}
               </ul>
@@ -125,7 +125,7 @@ export default async function DashboardPage() {
         ttl: true,
         domisili: true,
         asalSekolah: true,
-        class: true,
+        cabangDaerah: true,
         status: true,
       },
     })
@@ -174,8 +174,8 @@ export default async function DashboardPage() {
                         <p className="text-sm">{child.ttl}</p>
                         <p className="text-sm">{child.domisili}</p>
                         <p className="text-sm">Asal: {child.asalSekolah}</p>
-                        {child.class && (
-                          <p className="text-sm text-gray-500">Kelas: {child.class}</p>
+                        {child.cabangDaerah && (
+                          <p className="text-sm text-gray-500">Cabang Daerah: {child.cabangDaerah}</p>
                         )}
                       </div>
                       <div className="text-right">

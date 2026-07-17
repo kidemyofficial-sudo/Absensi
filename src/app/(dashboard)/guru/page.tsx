@@ -7,8 +7,8 @@ interface Teacher {
   name: string
   phone: string
   createdAt: string
-  classroomTeachers: {
-    className: string
+  branchTeachers: {
+    cabangDaerah: string
   }[]
 }
 
@@ -186,7 +186,7 @@ export default function GuruPage() {
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Telepon</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kelas Diampu</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cabang Daerah Diampu</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Terdaftar</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Aksi</th>
                 </tr>
@@ -197,11 +197,11 @@ export default function GuruPage() {
                     <td className="px-6 py-4 whitespace-nowrap">{teacher.name}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{teacher.phone}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {teacher.classroomTeachers && teacher.classroomTeachers.length > 0 ? (
+                      {teacher.branchTeachers && teacher.branchTeachers.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
-                          {teacher.classroomTeachers.map((ct) => (
-                            <span key={ct.className} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
-                              {ct.className}
+                          {teacher.branchTeachers.map((bt) => (
+                            <span key={bt.cabangDaerah} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                              {bt.cabangDaerah}
                             </span>
                           ))}
                         </div>

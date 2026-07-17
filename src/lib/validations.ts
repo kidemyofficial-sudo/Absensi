@@ -19,7 +19,7 @@ export const studentSchema = z.object({
   ttl: z.string().min(1, 'Tempat tanggal lahir harus diisi'),
   domisili: z.string().min(1, 'Domisili harus diisi'),
   asalSekolah: z.string().min(1, 'Asal sekolah harus diisi'),
-  class: z.string().min(1, 'Kelas harus diisi'),
+  cabangDaerah: z.string().min(1, 'Cabang Daerah harus diisi'),
   parentId: z.string().cuid('ID orang tua tidak valid'),
 })
 

@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const startDate = searchParams.get('startDate')
   const endDate = searchParams.get('endDate')
-  const classFilter = searchParams.get('class')
+  const cabangFilter = searchParams.get('cabang')
   const studentId = searchParams.get('studentId')
 
   const where: Record<string, unknown> = {}
@@ -28,8 +28,8 @@ export async function GET(request: NextRequest) {
     where.date = { lte: new Date(endDate) }
   }
 
-  if (classFilter) {
-    where.student = { class: classFilter }
+  if (cabangFilter) {
+    where.student = { cabangDaerah: cabangFilter }
   }
 
   if (studentId) {
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     where,
     include: {
       student: {
-        select: { id: true, name: true, ttl: true, class: true },
+        select: { id: true, name: true, ttl: true, cabangDaerah: true },
       },
     },
     orderBy: [{ date: 'desc' }, { student: { name: 'asc' } }],
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
 
   // Group by student for summary
   interface StudentSummary {
-    student: { id: string; name: string; ttl: string; class: string | null }
+    student: { id: string; name: string; ttl: string; cabangDaerah: string | null }
     HADIR: number
     IZIN: number
     SAKIT: number

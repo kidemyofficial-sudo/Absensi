@@ -8,21 +8,21 @@ interface Teacher {
   phone: string
 }
 
-interface ClassroomTeacher {
+interface BranchTeacher {
   id: string
-  className: string
+  cabangDaerah: string
   user: Teacher
   student: { id: string; name: string }[]
 }
 
 export default function ClassManagement() {
-  const [classroomTeachers, setClassroomTeachers] = useState<ClassroomTeacher[]>([])
+  const [branchTeachers, setBranchTeachers] = useState<BranchTeacher[]>([])
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState({
     teacherId: '',
-    className: '',
+    cabangDaerah: '',
   })
   const [message, setMessage] = useState('')
 
@@ -31,13 +31,13 @@ export default function ClassManagement() {
   }, [])
 
   const fetchData = async () => {
-    const [ctRes, tRes] = await Promise.all([
-      fetch('/api/classroom-teachers'),
+    const [btRes, tRes] = await Promise.all([
+      fetch('/api/branch-teachers'),
       fetch('/api/users?role=GURU'),
     ])
-    const ctData = await ctRes.json()
+    const btData = await btRes.json()
     const tData = await tRes.json()
-    setClassroomTeachers(ctData.classroomTeachers || [])
+    setBranchTeachers(btData.branchTeachers || [])
     setTeachers(tData.users || [])
     setLoading(false)
   }
@@ -47,7 +47,7 @@ export default function ClassManagement() {
     setMessage('')
 
     try {
-      const res = await fetch('/api/classroom-teachers', {
+      const res = await fetch('/api/branch-teachers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -56,11 +56,11 @@ export default function ClassManagement() {
       const data = await res.json()
 
       if (!res.ok) {
-        throw new Error(data.error || 'Gagal tambah kelas')
+        throw new Error(data.error || 'Gagal tambah cabang daerah')
       }
 
-      setMessage('Kelas berhasil ditambahkan!')
-      setFormData({ teacherId: '', className: '' })
+      setMessage('Cabang Daerah berhasil ditambahkan!')
+      setFormData({ teacherId: '', cabangDaerah: '' })
       setShowForm(false)
       fetchData()
     } catch (err) {
@@ -69,10 +69,10 @@ export default function ClassManagement() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Yakin ingin menghapus mapping kelas ini?')) return
+    if (!confirm('Yakin ingin menghapus mapping cabang daerah ini?')) return
 
     try {
-      const res = await fetch(`/api/classroom-teachers/${id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/branch-teachers/${id}`, { method: 'DELETE' })
 
       if (!res.ok) {
         const data = await res.json()
@@ -85,14 +85,14 @@ export default function ClassManagement() {
     }
   }
 
-  // Group by class
-  const groupedByClass = classroomTeachers.reduce((acc, ct) => {
-    if (!acc[ct.className]) {
-      acc[ct.className] = []
+  // Group by cabangDaerah
+  const groupedByCabang = branchTeachers.reduce((acc, bt) => {
+    if (!acc[bt.cabangDaerah]) {
+      acc[bt.cabangDaerah] = []
     }
-    acc[ct.className].push(ct)
+    acc[bt.cabangDaerah].push(bt)
     return acc
-  }, {} as Record<string, ClassroomTeacher[]>)
+  }, {} as Record<string, BranchTeacher[]>)
 
   return (
     <>
@@ -108,13 +108,13 @@ export default function ClassManagement() {
 
       <div className="flex justify-between items-center mb-4">
         <p className="text-sm text-gray-500">
-          Total: {Object.keys(groupedByClass).length} kelas, {classroomTeachers.length} mapping guru
+          Total: {Object.keys(groupedByCabang).length} cabang daerah, {branchTeachers.length} mapping guru
         </p>
         <button
           onClick={() => setShowForm(!showForm)}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
-          {showForm ? 'Batal' : 'Tambah Kelas'}
+          {showForm ? 'Batal' : 'Tambah Cabang Daerah'}
         </button>
       </div>
 
@@ -122,14 +122,14 @@ export default function ClassManagement() {
         <form onSubmit={handleSubmit} className="bg-gray-50 p-4 rounded-lg mb-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nama Kelas</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nama Cabang Daerah</label>
               <input
                 type="text"
-                value={formData.className}
-                onChange={(e) => setFormData({ ...formData, className: e.target.value })}
+                value={formData.cabangDaerah}
+                onChange={(e) => setFormData({ ...formData, cabangDaerah: e.target.value })}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-                placeholder="contoh: 1A, 2B, 3A"
+                placeholder="contoh: Jakarta Pusat, Bandung Utara"
               />
             </div>
             <div>
@@ -158,26 +158,26 @@ export default function ClassManagement() {
 
       {loading ? (
         <p className="text-gray-500">Loading...</p>
-      ) : Object.keys(groupedByClass).length === 0 ? (
-        <p className="text-gray-500">Belum ada kelas yang dibuat</p>
+      ) : Object.keys(groupedByCabang).length === 0 ? (
+        <p className="text-gray-500">Belum ada cabang daerah yang dibuat</p>
       ) : (
         <div className="space-y-4">
-          {Object.entries(groupedByClass).map(([className, cts]) => (
-            <div key={className} className="border rounded-lg p-4">
+          {Object.entries(groupedByCabang).map(([cabangDaerah, bts]) => (
+            <div key={cabangDaerah} className="border rounded-lg p-4">
               <div className="flex justify-between items-center mb-2">
-                <h4 className="font-medium text-lg">Kelas {className}</h4>
+                <h4 className="font-medium text-lg">Cabang Daerah {cabangDaerah}</h4>
               </div>
               <div className="space-y-2">
-                {cts.map((ct) => (
-                  <div key={ct.id} className="flex justify-between items-center bg-gray-50 p-3 rounded">
+                {bts.map((bt) => (
+                  <div key={bt.id} className="flex justify-between items-center bg-gray-50 p-3 rounded">
                     <div>
-                      <p className="font-medium">{ct.user.name}</p>
+                      <p className="font-medium">{bt.user.name}</p>
                       <p className="text-sm text-gray-500">
-                        {ct.student.length} siswa terdaftar
+                        {bt.student.length} siswa terdaftar
                       </p>
                     </div>
                     <button
-                      onClick={() => handleDelete(ct.id)}
+                      onClick={() => handleDelete(bt.id)}
                       className="text-red-600 hover:text-red-900 text-sm"
                     >
                       Hapus

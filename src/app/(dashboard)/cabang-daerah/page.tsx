@@ -8,20 +8,20 @@ interface Teacher {
   phone: string
 }
 
-interface ClassroomTeacher {
+interface BranchTeacher {
   id: string
-  className: string
+  cabangDaerah: string
   user: Teacher
   student: { id: string; name: string }[]
 }
 
-export default function KelasPage() {
-  const [classroomTeachers, setClassroomTeachers] = useState<ClassroomTeacher[]>([])
+export default function CabangDaerahPage() {
+  const [branchTeachers, setBranchTeachers] = useState<BranchTeacher[]>([])
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState({
-    className: '',
+    cabangDaerah: '',
     teacherId: '',
   })
   const [message, setMessage] = useState('')
@@ -37,13 +37,13 @@ export default function KelasPage() {
 
   const fetchData = async () => {
     setLoading(true)
-    const [ctRes, tRes] = await Promise.all([
-      fetch('/api/classroom-teachers'),
+    const [btRes, tRes] = await Promise.all([
+      fetch('/api/branch-teachers'),
       fetch('/api/users?role=GURU'),
     ])
-    const ctData = await ctRes.json()
+    const btData = await btRes.json()
     const tData = await tRes.json()
-    setClassroomTeachers(ctData.classroomTeachers || [])
+    setBranchTeachers(btData.branchTeachers || [])
     setTeachers(tData.users || [])
     setLoading(false)
   }
@@ -53,7 +53,7 @@ export default function KelasPage() {
     setMessage('')
 
     try {
-      const res = await fetch('/api/classroom-teachers', {
+      const res = await fetch('/api/branch-teachers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -62,11 +62,11 @@ export default function KelasPage() {
       const data = await res.json()
 
       if (!res.ok) {
-        throw new Error(data.error || 'Gagal tambah kelas')
+        throw new Error(data.error || 'Gagal tambah cabang daerah')
       }
 
-      setMessage('Kelas berhasil ditambahkan!')
-      setFormData({ className: '', teacherId: '' })
+      setMessage('Cabang Daerah berhasil ditambahkan!')
+      setFormData({ cabangDaerah: '', teacherId: '' })
       setShowForm(false)
       fetchData()
     } catch (err) {
@@ -75,10 +75,10 @@ export default function KelasPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Yakin ingin menghapus mapping kelas ini?')) return
+    if (!confirm('Yakin ingin menghapus mapping cabang daerah ini?')) return
 
     try {
-      const res = await fetch(`/api/classroom-teachers/${id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/branch-teachers/${id}`, { method: 'DELETE' })
 
       if (!res.ok) {
         const data = await res.json()
@@ -91,32 +91,32 @@ export default function KelasPage() {
     }
   }
 
-  // Group by class
-  const groupedByClass = classroomTeachers.reduce((acc, ct) => {
-    if (!acc[ct.className]) {
-      acc[ct.className] = []
+  // Group by cabangDaerah
+  const groupedByCabang = branchTeachers.reduce((acc, bt) => {
+    if (!acc[bt.cabangDaerah]) {
+      acc[bt.cabangDaerah] = []
     }
-    acc[ct.className].push(ct)
+    acc[bt.cabangDaerah].push(bt)
     return acc
-  }, {} as Record<string, ClassroomTeacher[]>)
+  }, {} as Record<string, BranchTeacher[]>)
 
   // Filter by search
-  const filteredClasses = Object.entries(groupedByClass).filter(([className]) =>
-    className.toLowerCase().includes(search.toLowerCase())
+  const filteredCabangs = Object.entries(groupedByCabang).filter(([cabangDaerah]) =>
+    cabangDaerah.toLowerCase().includes(search.toLowerCase())
   )
 
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-        <h2 className="text-2xl font-bold">Kelola Kelas</h2>
+        <h2 className="text-2xl font-bold">Kelola Cabang Daerah</h2>
         <button
           onClick={() => {
             setShowForm(!showForm)
-            setFormData({ className: '', teacherId: '' })
+            setFormData({ cabangDaerah: '', teacherId: '' })
           }}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
-          {showForm ? 'Batal' : 'Tambah Kelas'}
+          {showForm ? 'Batal' : 'Tambah Cabang Daerah'}
         </button>
       </div>
 
@@ -130,21 +130,21 @@ export default function KelasPage() {
         </div>
       )}
 
-      {/* Form Tambah Kelas */}
+      {/* Form Tambah Cabang Daerah */}
       {showForm && (
         <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Tambah Kelas Baru</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Tambah Cabang Daerah Baru</h3>
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nama Kelas</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nama Cabang Daerah</label>
                 <input
                   type="text"
-                  value={formData.className}
-                  onChange={(e) => setFormData({ ...formData, className: e.target.value })}
+                  value={formData.cabangDaerah}
+                  onChange={(e) => setFormData({ ...formData, cabangDaerah: e.target.value })}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-                  placeholder="contoh: 1A, 2B, 3A"
+                  placeholder="contoh: Jakarta Pusat, Bandung Utara"
                 />
               </div>
               <div>
@@ -176,35 +176,35 @@ export default function KelasPage() {
       <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
         <input
           type="text"
-          placeholder="Cari nama kelas..."
+          placeholder="Cari nama cabang daerah..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full px-3 py-2 border rounded-md text-black"
         />
       </div>
 
-      {/* Daftar Kelas */}
+      {/* Daftar Cabang Daerah */}
       <div className="space-y-4">
         {loading ? (
           <div className="bg-white p-8 text-center text-gray-500 rounded-lg shadow-sm">Loading...</div>
-        ) : filteredClasses.length === 0 ? (
-          <div className="bg-white p-8 text-center text-gray-500 rounded-lg shadow-sm">Tidak ada kelas ditemukan</div>
+        ) : filteredCabangs.length === 0 ? (
+          <div className="bg-white p-8 text-center text-gray-500 rounded-lg shadow-sm">Tidak ada cabang daerah ditemukan</div>
         ) : (
-          filteredClasses.map(([className, cts]) => (
-            <div key={className} className="bg-white rounded-lg shadow-sm p-4">
+          filteredCabangs.map(([cabangDaerah, bts]) => (
+            <div key={cabangDaerah} className="bg-white rounded-lg shadow-sm p-4">
               <div className="flex justify-between items-center mb-3">
-                <h4 className="text-lg font-medium">Kelas {className}</h4>
-                <span className="text-sm">{cts.length} guru</span>
+                <h4 className="text-lg font-medium">Cabang Daerah {cabangDaerah}</h4>
+                <span className="text-sm">{bts.length} guru</span>
               </div>
               <div className="space-y-2">
-                {cts.map((ct) => (
-                  <div key={ct.id} className="flex justify-between items-center bg-gray-50 p-3 rounded">
+                {bts.map((bt) => (
+                  <div key={bt.id} className="flex justify-between items-center bg-gray-50 p-3 rounded">
                     <div>
-                      <p className="font-medium">{ct.user.name}</p>
-                      <p className="text-sm">{ct.student.length} siswa terdaftar</p>
+                      <p className="font-medium">{bt.user.name}</p>
+                      <p className="text-sm">{bt.student.length} siswa terdaftar</p>
                     </div>
                     <button
-                      onClick={() => handleDelete(ct.id)}
+                      onClick={() => handleDelete(bt.id)}
                       className="text-red-600 hover:text-red-900 text-sm"
                     >
                       Hapus

@@ -14,8 +14,8 @@ const parentRegisterSchema = z.object({
 // Schema untuk Owner approve dan assign
 const ownerAssignSchema = z.object({
   studentId: z.string().cuid(),
-  class: z.string().min(1, 'Kelas harus diisi'),
-  classroomTeacherId: z.string().cuid().optional(),
+  cabangDaerah: z.string().min(1, 'Cabang Daerah harus diisi'),
+  branchTeacherId: z.string().cuid().optional(),
 })
 
 export async function GET(request: NextRequest) {
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url)
   const status = searchParams.get('status')
-  const classFilter = searchParams.get('class')
+  const cabangFilter = searchParams.get('cabang')
   const search = searchParams.get('search')
 
   const where: Record<string, unknown> = {}
@@ -39,8 +39,8 @@ export async function GET(request: NextRequest) {
     where.status = status
   }
 
-  if (classFilter) {
-    where.class = classFilter
+  if (cabangFilter) {
+    where.cabangDaerah = cabangFilter
   }
 
   if (search) {
@@ -56,9 +56,9 @@ export async function GET(request: NextRequest) {
     where.parentId = user.id
   }
 
-  // Guru hanya bisa lihat siswa di kelasnya
+  // Guru hanya bisa lihat siswa di cabangnya
   if (user.role === 'GURU') {
-    where.classroomTeachers = {
+    where.branchTeachers = {
       some: { userId: user.id },
     }
   }
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
       parent: {
         select: { id: true, name: true, phone: true },
       },
-      classroomTeachers: {
+      branchTeachers: {
         include: {
           user: {
             select: { id: true, name: true },

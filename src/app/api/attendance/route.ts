@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url)
   const date = searchParams.get('date')
-  const classFilter = searchParams.get('class')
+  const cabangFilter = searchParams.get('cabang')
   const studentId = searchParams.get('studentId')
 
   const where: Record<string, unknown> = {}
@@ -21,8 +21,8 @@ export async function GET(request: NextRequest) {
     where.date = new Date(date)
   }
 
-  if (classFilter) {
-    where.student = { class: classFilter }
+  if (cabangFilter) {
+    where.student = { cabangDaerah: cabangFilter }
   }
 
   if (studentId) {
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
     where,
     include: {
       student: {
-        select: { id: true, name: true, ttl: true, class: true },
+        select: { id: true, name: true, ttl: true, cabangDaerah: true },
       },
       teacher: {
         select: { id: true, name: true },
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
       where: {
         id: { in: studentIds },
         status: 'APPROVED',
-        classroomTeachers: {
+        branchTeachers: {
           some: { userId: user.id },
         },
       },

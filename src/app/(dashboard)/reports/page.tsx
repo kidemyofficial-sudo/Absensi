@@ -6,7 +6,7 @@ interface Student {
   id: string
   name: string
   nis: string
-  class: string
+  cabangDaerah: string
 }
 
 interface Attendance {
@@ -33,7 +33,7 @@ export default function ReportsPage() {
 
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
-  const [classFilter, setClassFilter] = useState('')
+  const [cabangFilter, setCabangFilter] = useState('')
   const [view, setView] = useState<'detail' | 'summary'>('summary')
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export default function ReportsPage() {
     const params = new URLSearchParams()
     if (startDate) params.set('startDate', startDate)
     if (endDate) params.set('endDate', endDate)
-    if (classFilter) params.set('class', classFilter)
+    if (cabangFilter) params.set('cabang', cabangFilter)
 
     const res = await fetch(`/api/reports?${params.toString()}`)
     const data = await res.json()
@@ -60,12 +60,12 @@ export default function ReportsPage() {
   }
 
   const exportCSV = () => {
-    const headers = ['Tanggal', 'Nama', 'NIS', 'Kelas', 'Status', 'Catatan']
+    const headers = ['Tanggal', 'Nama', 'NIS', 'Cabang Daerah', 'Status', 'Catatan']
     const rows = attendances.map((a) => [
       new Date(a.date).toLocaleDateString('id-ID'),
       a.student.name,
       a.student.nis,
-      a.student.class,
+      a.student.cabangDaerah,
       a.status,
       a.note || '',
     ])
@@ -79,7 +79,7 @@ export default function ReportsPage() {
     a.click()
   }
 
-  const classes = [...new Set(attendances.map((a) => a.student.class))].sort()
+  const cabangs = [...new Set(attendances.map((a) => a.student.cabangDaerah))].sort()
 
   return (
     <div>
@@ -117,14 +117,14 @@ export default function ReportsPage() {
             />
           </div>
           <div className="w-full sm:w-auto">
-            <label className="block text-sm font-medium mb-1">Kelas</label>
+            <label className="block text-sm font-medium mb-1">Cabang Daerah</label>
             <select
-              value={classFilter}
-              onChange={(e) => setClassFilter(e.target.value)}
+              value={cabangFilter}
+              onChange={(e) => setCabangFilter(e.target.value)}
               className="w-full sm:w-auto px-3 py-2 border rounded-md"
             >
-              <option value="">Semua Kelas</option>
-              {classes.map((c) => (
+              <option value="">Semua Cabang Daerah</option>
+              {cabangs.map((c) => (
                 <option key={c} value={c}>{c}</option>
               ))}
             </select>
@@ -177,7 +177,7 @@ export default function ReportsPage() {
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">NIS</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kelas</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cabang Daerah</th>
                     <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Hadir</th>
                     <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Izin</th>
                     <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Sakit</th>
@@ -189,7 +189,7 @@ export default function ReportsPage() {
                     <tr key={item.student.id}>
                       <td className="px-6 py-4">{item.student.name}</td>
                       <td className="px-6 py-4">{item.student.nis}</td>
-                      <td className="px-6 py-4">{item.student.class}</td>
+                      <td className="px-6 py-4">{item.student.cabangDaerah}</td>
                       <td className="px-6 py-4 text-center">
                         <span className="text-green-600 font-medium">{item.HADIR}</span>
                       </td>
@@ -219,7 +219,7 @@ export default function ReportsPage() {
               summary.map((item) => (
                 <div key={item.student.id} className="bg-white p-4 rounded-lg shadow-sm">
                   <h4 className="font-medium">{item.student.name}</h4>
-                  <p className="text-sm text-gray-500">NIS: {item.student.nis} | Kelas: {item.student.class}</p>
+                  <p className="text-sm text-gray-500">NIS: {item.student.nis} | Cabang Daerah: {item.student.cabangDaerah}</p>
                   <div className="grid grid-cols-4 gap-2 mt-3">
                     <div className="text-center">
                       <p className="text-lg font-bold text-green-600">{item.HADIR}</p>
@@ -255,7 +255,7 @@ export default function ReportsPage() {
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kelas</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cabang Daerah</th>
                     <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Status</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Catatan</th>
                   </tr>
@@ -267,7 +267,7 @@ export default function ReportsPage() {
                         {new Date(a.date).toLocaleDateString('id-ID')}
                       </td>
                       <td className="px-6 py-4">{a.student.name}</td>
-                      <td className="px-6 py-4">{a.student.class}</td>
+                      <td className="px-6 py-4">{a.student.cabangDaerah}</td>
                       <td className="px-6 py-4 text-center">
                         <span
                           className={`px-2 py-1 rounded text-xs font-medium ${
@@ -303,7 +303,7 @@ export default function ReportsPage() {
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="font-medium">{a.student.name}</p>
-                      <p className="text-sm text-gray-500">Kelas: {a.student.class}</p>
+                      <p className="text-sm text-gray-500">Cabang Daerah: {a.student.cabangDaerah}</p>
                       <p className="text-sm text-gray-500">
                         {new Date(a.date).toLocaleDateString('id-ID')}
                       </p>

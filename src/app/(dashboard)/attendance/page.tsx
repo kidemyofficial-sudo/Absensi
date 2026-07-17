@@ -6,11 +6,11 @@ interface Student {
   id: string
   name: string
   nis: string
-  class: string
+  cabangDaerah: string
 }
 
-interface ClassTeacher {
-  className: string
+interface BranchTeacher {
+  cabangDaerah: string
 }
 
 interface AttendanceRecord {
@@ -20,8 +20,8 @@ interface AttendanceRecord {
 }
 
 export default function AttendancePage() {
-  const [classes, setClasses] = useState<ClassTeacher[]>([])
-  const [selectedClass, setSelectedClass] = useState('')
+  const [branchTeachers, setBranchTeachers] = useState<BranchTeacher[]>([])
+  const [selectedCabang, setSelectedCabang] = useState('')
   const [students, setStudents] = useState<Student[]>([])
   const [attendances, setAttendances] = useState<Record<string, AttendanceRecord>>({})
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
@@ -32,14 +32,14 @@ export default function AttendancePage() {
 
   useEffect(() => {
     fetchUser()
-    fetchClasses()
+    fetchBranchTeachers()
   }, [])
 
   useEffect(() => {
-    if (selectedClass) {
-      fetchStudents(selectedClass)
+    if (selectedCabang) {
+      fetchStudents(selectedCabang)
     }
-  }, [selectedClass])
+  }, [selectedCabang])
 
   const fetchUser = async () => {
     const res = await fetch('/api/auth/me')
@@ -47,17 +47,17 @@ export default function AttendancePage() {
     setUserRole(data.user?.role || '')
   }
 
-  const fetchClasses = async () => {
+  const fetchBranchTeachers = async () => {
     const res = await fetch('/api/dashboard')
     const data = await res.json()
     if (data.classes) {
-      setClasses(data.classes)
+      setBranchTeachers(data.classes.map((c: { name: string }) => ({ cabangDaerah: c.name })))
     }
   }
 
-  const fetchStudents = async (className: string) => {
+  const fetchStudents = async (cabangDaerah: string) => {
     setLoading(true)
-    const res = await fetch(`/api/students?class=${encodeURIComponent(className)}`)
+    const res = await fetch(`/api/students?cabang=${encodeURIComponent(cabangDaerah)}`)
     const data = await res.json()
     setStudents(data.students || [])
 
@@ -161,21 +161,21 @@ export default function AttendancePage() {
             />
           </div>
           <div className="w-full sm:w-auto">
-            <label className="block text-sm font-medium mb-1">Kelas</label>
+            <label className="block text-sm font-medium mb-1">Cabang Daerah</label>
             <select
-              value={selectedClass}
-              onChange={(e) => setSelectedClass(e.target.value)}
+              value={selectedCabang}
+              onChange={(e) => setSelectedCabang(e.target.value)}
               className="w-full sm:w-auto px-3 py-2 border rounded-md"
             >
-              <option value="">Pilih Kelas</option>
-              {classes.map((c) => (
-                <option key={c.className} value={c.className}>
-                  {c.className}
+              <option value="">Pilih Cabang Daerah</option>
+              {branchTeachers.map((bt) => (
+                <option key={bt.cabangDaerah} value={bt.cabangDaerah}>
+                  {bt.cabangDaerah}
                 </option>
               ))}
             </select>
           </div>
-          {selectedClass && students.length > 0 && (
+          {selectedCabang && students.length > 0 && (
             <div className="flex gap-2 w-full sm:w-auto">
               <button
                 onClick={() => markAll('HADIR')}
@@ -208,14 +208,14 @@ export default function AttendancePage() {
       )}
 
       {/* Attendance Table - Desktop */}
-      {selectedClass && (
+      {selectedCabang && (
         <>
           <div className="hidden sm:block bg-white rounded-lg shadow-sm overflow-hidden">
             {loading ? (
               <div className="p-8 text-center text-gray-500">Loading...</div>
             ) : students.length === 0 ? (
               <div className="p-8 text-center text-gray-500">
-                Tidak ada siswa di kelas ini
+                Tidak ada siswa di cabang daerah ini
               </div>
             ) : (
               <>
@@ -302,7 +302,7 @@ export default function AttendancePage() {
               </div>
             ) : students.length === 0 ? (
               <div className="bg-white p-8 text-center text-gray-500 rounded-lg shadow-sm">
-                Tidak ada siswa di kelas ini
+                Tidak ada siswa di cabang daerah ini
               </div>
             ) : (
               <>

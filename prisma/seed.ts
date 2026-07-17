@@ -9,7 +9,7 @@ async function main() {
   await prisma.attendance.deleteMany()
   await prisma.notification.deleteMany()
   await prisma.student.deleteMany()
-  await prisma.classroomTeacher.deleteMany()
+  await prisma.branchTeacher.deleteMany()
   await prisma.user.deleteMany()
   console.log('Semua data berhasil dihapus.')
 

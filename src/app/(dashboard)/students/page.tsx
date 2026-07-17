@@ -8,14 +8,14 @@ interface Student {
   ttl: string
   domisili: string
   asalSekolah: string
-  class: string | null
+  cabangDaerah: string | null
   status: string
   parent: {
     id: string
     name: string
     phone: string
   } | null
-  classroomTeachers: {
+  branchTeachers: {
     user: { name: string }
   }[]
 }
@@ -26,9 +26,9 @@ interface User {
   role: string
 }
 
-interface ClassroomTeacher {
+interface BranchTeacher {
   id: string
-  className: string
+  cabangDaerah: string
   user: { name: string }
 }
 
@@ -44,24 +44,24 @@ export default function StudentsPage() {
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState('')
   const [search, setSearch] = useState('')
-  const [classFilter, setClassFilter] = useState('')
-  const [classroomTeachers, setClassroomTeachers] = useState<ClassroomTeacher[]>([])
+  const [cabangFilter, setCabangFilter] = useState('')
+  const [branchTeachers, setBranchTeachers] = useState<BranchTeacher[]>([])
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [assignModal, setAssignModal] = useState<Student | null>(null)
-  const [assignData, setAssignData] = useState({ class: '', teacherId: '' })
+  const [assignData, setAssignData] = useState({ cabangDaerah: '', teacherId: '' })
 
   useEffect(() => {
     fetchUser()
     fetchStudents()
     if (user?.role === 'OWNER') {
-      fetchClassroomTeachers()
+      fetchBranchTeachers()
       fetchTeachers()
     }
   }, [user?.role])
 
   useEffect(() => {
     fetchStudents()
-  }, [statusFilter, search, classFilter])
+  }, [statusFilter, search, cabangFilter])
 
   const fetchUser = async () => {
     const res = await fetch('/api/auth/me')
@@ -74,7 +74,7 @@ export default function StudentsPage() {
     const params = new URLSearchParams()
     if (statusFilter) params.set('status', statusFilter)
     if (search) params.set('search', search)
-    if (classFilter) params.set('class', classFilter)
+    if (cabangFilter) params.set('cabang', cabangFilter)
 
     const res = await fetch(`/api/students?${params.toString()}`)
     const data = await res.json()
@@ -82,10 +82,10 @@ export default function StudentsPage() {
     setLoading(false)
   }
 
-  const fetchClassroomTeachers = async () => {
-    const res = await fetch('/api/classroom-teachers')
+  const fetchBranchTeachers = async () => {
+    const res = await fetch('/api/branch-teachers')
     const data = await res.json()
-    setClassroomTeachers(data.classroomTeachers || [])
+    setBranchTeachers(data.branchTeachers || [])
   }
 
   const fetchTeachers = async () => {
@@ -117,12 +117,12 @@ export default function StudentsPage() {
 
     if (res.ok) {
       setAssignModal(null)
-      setAssignData({ class: '', teacherId: '' })
+      setAssignData({ cabangDaerah: '', teacherId: '' })
       fetchStudents()
     }
   }
 
-  const classes = [...new Set(students.filter((s) => s.class).map((s) => s.class))].sort()
+  const cabangs = [...new Set(students.filter((s) => s.cabangDaerah).map((s) => s.cabangDaerah))].sort()
 
   return (
     <div>
@@ -151,12 +151,12 @@ export default function StudentsPage() {
             </select>
           )}
           <select
-            value={classFilter}
-            onChange={(e) => setClassFilter(e.target.value)}
+            value={cabangFilter}
+            onChange={(e) => setCabangFilter(e.target.value)}
             className="px-3 py-2 border rounded-md text-black"
           >
-            <option value="">Semua Kelas</option>
-            {classes.map((c) => (
+            <option value="">Semua Cabang Daerah</option>
+            {cabangs.map((c) => (
               <option key={c} value={c!}>{c}</option>
             ))}
           </select>
@@ -168,17 +168,17 @@ export default function StudentsPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white p-6 rounded-lg w-full max-w-md">
             <h3 className="text-lg font-bold mb-4">
-              Assign Kelas - {assignModal.name}
+              Assign Cabang Daerah - {assignModal.name}
             </h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Kelas</label>
+                <label className="block text-sm font-medium mb-1">Cabang Daerah</label>
                 <input
                   type="text"
-                  value={assignData.class}
-                  onChange={(e) => setAssignData({ ...assignData, class: e.target.value, teacherId: '' })}
+                  value={assignData.cabangDaerah}
+                  onChange={(e) => setAssignData({ ...assignData, cabangDaerah: e.target.value, teacherId: '' })}
                   className="w-full px-3 py-2 border rounded-md text-black"
-                  placeholder="contoh: 1A"
+                  placeholder="contoh: Jakarta Pusat"
                 />
               </div>
               <div>
@@ -226,7 +226,7 @@ export default function StudentsPage() {
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">TTL</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kelas</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cabang Daerah</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Orang Tua</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Guru</th>
@@ -240,7 +240,7 @@ export default function StudentsPage() {
                   <tr key={student.id}>
                     <td className="px-4 py-3">{student.name}</td>
                     <td className="px-4 py-3">{student.ttl}</td>
-                    <td className="px-4 py-3">{student.class || '-'}</td>
+                    <td className="px-4 py-3">{student.cabangDaerah || '-'}</td>
                     <td className="px-4 py-3">{student.parent?.name || '-'}</td>
                     <td className="px-4 py-3">
                       <span
@@ -260,8 +260,8 @@ export default function StudentsPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      {student.classroomTeachers.length > 0
-                        ? student.classroomTeachers.map((ct) => ct.user.name).join(', ')
+                      {student.branchTeachers.length > 0
+                        ? student.branchTeachers.map((bt) => bt.user.name).join(', ')
                         : '-'}
                     </td>
                     {user?.role === 'OWNER' && (
@@ -286,11 +286,11 @@ export default function StudentsPage() {
                           <button
                             onClick={() => {
                               setAssignModal(student)
-                              setAssignData({ class: student.class || '', teacherId: '' })
+                              setAssignData({ cabangDaerah: student.cabangDaerah || '', teacherId: '' })
                             }}
                             className="text-blue-600 hover:text-blue-900"
                           >
-                            {student.class ? 'Edit' : 'Assign'}
+                            {student.cabangDaerah ? 'Edit' : 'Assign'}
                           </button>
                         )}
                       </td>

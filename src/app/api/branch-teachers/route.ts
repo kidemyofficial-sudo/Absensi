@@ -9,7 +9,7 @@ export async function GET() {
     return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 })
   }
 
-  const classroomTeachers = await prisma.classroomTeacher.findMany({
+  const branchTeachers = await prisma.branchTeacher.findMany({
     include: {
       user: {
         select: { id: true, name: true, phone: true },
@@ -18,24 +18,24 @@ export async function GET() {
         select: { id: true, name: true },
       },
     },
-    orderBy: { className: 'asc' },
+    orderBy: { cabangDaerah: 'asc' },
   })
 
-  return NextResponse.json({ classroomTeachers })
+  return NextResponse.json({ branchTeachers })
 }
 
 export async function POST(request: NextRequest) {
   const user = await getCurrentUser()
 
   if (!user || user.role !== 'OWNER') {
-    return NextResponse.json({ error: 'Hanya Owner yang bisa menambah guru kelas' }, { status: 403 })
+    return NextResponse.json({ error: 'Hanya Owner yang bisa menambah guru cabang daerah' }, { status: 403 })
   }
 
   try {
     const body = await request.json()
-    const { teacherId, className } = body
+    const { teacherId, cabangDaerah } = body
 
-    if (!teacherId || !className) {
+    if (!teacherId || !cabangDaerah) {
       return NextResponse.json({ error: 'Data tidak lengkap' }, { status: 400 })
     }
 
@@ -48,24 +48,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Guru tidak ditemukan' }, { status: 404 })
     }
 
-    // Check if already assigned to this class
-    const existing = await prisma.classroomTeacher.findUnique({
+    // Check if already assigned to this branch
+    const existing = await prisma.branchTeacher.findUnique({
       where: {
-        userId_className: {
+        userId_cabangDaerah: {
           userId: teacherId,
-          className,
+          cabangDaerah,
         },
       },
     })
 
     if (existing) {
-      return NextResponse.json({ error: 'Guru sudah mengampu kelas ini' }, { status: 400 })
+      return NextResponse.json({ error: 'Guru sudah mengampu cabang daerah ini' }, { status: 400 })
     }
 
-    const classroomTeacher = await prisma.classroomTeacher.create({
+    const branchTeacher = await prisma.branchTeacher.create({
       data: {
         userId: teacherId,
-        className,
+        cabangDaerah,
       },
       include: {
         user: {
@@ -74,9 +74,9 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    return NextResponse.json({ classroomTeacher }, { status: 201 })
+    return NextResponse.json({ branchTeacher }, { status: 201 })
   } catch (error) {
-    console.error('Create classroom teacher error:', error)
+    console.error('Create branch teacher error:', error)
     return NextResponse.json(
       { error: 'Terjadi kesalahan server' },
       { status: 500 }

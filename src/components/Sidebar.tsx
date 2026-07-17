@@ -20,7 +20,7 @@ const navItems = {
     { href: '/dashboard', label: 'Dashboard', icon: '📊' },
     { href: '/students', label: 'Siswa', icon: '👤' },
     { href: '/guru', label: 'Guru', icon: '👨‍🏫' },
-    { href: '/kelas', label: 'Kelas', icon: '🏫' },
+    { href: '/cabang-daerah', label: 'Cabang Daerah', icon: '🏫' },
     { href: '/attendance', label: 'Absensi', icon: '📝' },
     { href: '/reports', label: 'Laporan', icon: '📈' },
     { href: '/settings', label: 'Pengaturan', icon: '⚙️' },

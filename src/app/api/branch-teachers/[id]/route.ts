@@ -14,27 +14,27 @@ export async function DELETE(
 
   const { id } = await params
 
-  const classroomTeacher = await prisma.classroomTeacher.findUnique({
+  const branchTeacher = await prisma.branchTeacher.findUnique({
     where: { id },
     include: { student: { select: { id: true } } },
   })
 
-  if (!classroomTeacher) {
+  if (!branchTeacher) {
     return NextResponse.json({ error: 'Data tidak ditemukan' }, { status: 404 })
   }
 
   // Disconnect all students first
-  await prisma.classroomTeacher.update({
+  await prisma.branchTeacher.update({
     where: { id },
     data: {
       student: {
-        disconnect: classroomTeacher.student.map((s) => ({ id: s.id })),
+        disconnect: branchTeacher.student.map((s) => ({ id: s.id })),
       },
     },
   })
 
-  // Delete the classroom teacher
-  await prisma.classroomTeacher.delete({ where: { id } })
+  // Delete the branch teacher
+  await prisma.branchTeacher.delete({ where: { id } })
 
   return NextResponse.json({ message: 'Berhasil dihapus' })
 }

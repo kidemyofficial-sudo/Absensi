@@ -33,9 +33,9 @@ export async function GET(request: NextRequest) {
       phone: true,
       role: true,
       createdAt: true,
-      classroomTeachers: {
+      branchTeachers: {
         select: {
-          className: true,
+          cabangDaerah: true,
         },
       },
     },
