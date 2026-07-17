@@ -18,7 +18,6 @@ export default function NotificationBell() {
 
   useEffect(() => {
     fetchNotifications()
-    // Poll setiap 30 detik
     const interval = setInterval(fetchNotifications, 30000)
     return () => clearInterval(interval)
   }, [])
@@ -89,38 +88,27 @@ export default function NotificationBell() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full"
+        className="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-          />
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
         </svg>
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+          <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full h-4.5 w-4.5 flex items-center justify-center min-w-[18px] h-[18px]">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border z-50">
-          <div className="p-3 border-b flex justify-between items-center">
-            <h3 className="font-semibold">Notifikasi</h3>
+        <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden">
+          <div className="p-4 border-b border-gray-100 flex justify-between items-center">
+            <h3 className="text-sm font-semibold text-gray-900">Notifikasi</h3>
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
                 disabled={loading}
-                className="text-sm text-blue-600 hover:text-blue-800 disabled:opacity-50"
+                className="text-xs text-blue-600 hover:text-blue-800 disabled:opacity-50 font-medium"
               >
                 {loading ? 'Loading...' : 'Tandai semua dibaca'}
               </button>
@@ -128,7 +116,7 @@ export default function NotificationBell() {
           </div>
           <div className="max-h-96 overflow-y-auto">
             {notifications.length === 0 ? (
-              <div className="p-4 text-center text-gray-500">
+              <div className="p-6 text-center text-gray-400 text-sm">
                 Tidak ada notifikasi
               </div>
             ) : (
@@ -136,12 +124,12 @@ export default function NotificationBell() {
                 <div
                   key={notification.id}
                   onClick={() => !notification.isRead && markAsRead(notification.id)}
-                  className={`p-3 border-b cursor-pointer hover:bg-gray-50 ${
-                    !notification.isRead ? 'bg-blue-50' : ''
+                  className={`px-4 py-3 border-b border-gray-50 cursor-pointer transition-colors ${
+                    !notification.isRead ? 'bg-blue-50/50 hover:bg-blue-50' : 'hover:bg-gray-50'
                   }`}
                 >
-                  <p className="text-sm">{notification.message}</p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-sm text-gray-700 leading-relaxed">{notification.message}</p>
+                  <p className="text-xs text-gray-400 mt-1">
                     {formatTime(notification.createdAt)}
                   </p>
                 </div>

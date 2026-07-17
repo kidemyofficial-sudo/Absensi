@@ -19,20 +19,23 @@ export default async function DashboardLayout({
     <div className="min-h-screen bg-gray-50 flex">
       <Sidebar user={user} />
       <div className="flex-1 flex flex-col min-h-screen">
-        <header className="bg-white shadow-sm h-16 flex items-center justify-between px-4 sm:px-6">
+        <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-30">
           <div className="sm:hidden">
             <Sidebar user={user} mobile />
           </div>
           <div className="hidden sm:block"></div>
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-3">
             {user.role === 'ORANG_TUA' && <NotificationBell />}
-            <span className="text-sm text-gray-600 hidden sm:inline">
-              {user.name}
-            </span>
+            <div className="flex items-center gap-2.5 pl-3 border-l border-gray-200">
+              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                <span className="text-sm font-medium text-blue-700">{user.name.charAt(0).toUpperCase()}</span>
+              </div>
+              <span className="text-sm font-medium text-gray-700 hidden sm:inline">{user.name}</span>
+            </div>
             <LogoutButton />
           </div>
         </header>
-        <main className="flex-1 p-4 sm:p-6 overflow-auto">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
           {children}
         </main>
       </div>

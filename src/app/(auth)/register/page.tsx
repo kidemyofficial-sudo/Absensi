@@ -25,13 +25,8 @@ export default function RegisterPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, phone, password, role }),
       })
-
       const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Registrasi gagal')
-      }
-
+      if (!response.ok) throw new Error(data.error || 'Registrasi gagal')
       router.push('/dashboard')
       router.refresh()
     } catch (err) {
@@ -43,68 +38,60 @@ export default function RegisterPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-center mb-6">Daftar Akun</h1>
+      <h2 className="text-lg font-semibold text-gray-900 text-center mb-6">Buat Akun Baru</h2>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md text-sm">
+        <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-xl text-sm font-medium border border-red-200">
           {error}
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-            Nama Lengkap
-          </label>
+          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1.5">Nama Lengkap</label>
           <input
             id="name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+            className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white transition-all"
             required
           />
         </div>
 
         <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-            Nomor Telepon
-          </label>
+          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1.5">Nomor Telepon</label>
           <input
             id="phone"
             type="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+            className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white transition-all"
             placeholder="08xxxxxxxxxx"
             required
           />
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-            Password
-          </label>
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
           <input
             id="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+            className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white transition-all"
             minLength={6}
             required
           />
         </div>
 
         <div>
-          <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
-            Daftar sebagai
-          </label>
+          <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1.5">Daftar sebagai</label>
           <select
             id="role"
             value={role}
             onChange={(e) => setRole(e.target.value as 'GURU' | 'ORANG_TUA')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+            className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white transition-all"
           >
             <option value="GURU">Guru</option>
             <option value="ORANG_TUA">Orang Tua</option>
@@ -114,15 +101,15 @@ export default function RegisterPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-blue-600 text-white py-2.5 rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors"
         >
           {loading ? 'Mendaftar...' : 'Daftar'}
         </button>
       </form>
 
-      <p className="mt-4 text-center text-sm text-gray-600">
+      <p className="mt-5 text-center text-sm text-gray-500">
         Sudah punya akun?{' '}
-        <Link href="/login" className="text-blue-600 hover:underline">
+        <Link href="/login" className="text-blue-600 hover:text-blue-800 font-medium">
           Masuk
         </Link>
       </p>

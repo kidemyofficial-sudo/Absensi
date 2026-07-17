@@ -47,52 +47,52 @@ export default function ProfileForm({ user }: { user: User }) {
   return (
     <>
       {message && (
-        <div className={`mb-4 p-3 rounded text-sm ${
+        <div className={`mb-4 p-3 rounded-lg text-sm font-medium ${
           message.includes('berhasil')
-            ? 'bg-green-100 text-green-700'
-            : 'bg-red-100 text-red-700'
+            ? 'bg-green-50 text-green-700 border border-green-200'
+            : 'bg-red-50 text-red-700 border border-red-200'
         }`}>
           {message}
         </div>
       )}
 
       <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nama</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Nama</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+              className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white transition-all"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nomor Telepon</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Nomor Telepon</label>
             <input
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+              className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white transition-all"
               placeholder="08xxxxxxxxxx"
             />
           </div>
         </div>
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Role</label>
           <input
             type="text"
             value={user.role}
             disabled
-            className="w-full px-3 py-2 border border-gray-200 rounded-md bg-gray-50 text-gray-500"
+            className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-gray-500"
           />
         </div>
         <button
           type="submit"
           disabled={loading}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+          className="mt-5 bg-blue-600 text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 disabled:opacity-50 text-sm font-medium transition-colors"
         >
           {loading ? 'Menyimpan...' : 'Simpan Perubahan'}
         </button>

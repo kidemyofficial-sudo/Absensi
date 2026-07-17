@@ -1,8 +1,22 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #000000;
+  --background: #f3f4f6;
+  --foreground: #111827;
+  --sidebar-bg: #ffffff;
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
+  --accent: #2563eb;
+  --accent-light: #eff6ff;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --border: #e5e7eb;
+  --input-border: #d1d5db;
+  --hover-bg: #f9fafb;
+  --success: #059669;
+  --warning: #d97706;
+  --danger: #dc2626;
 }
 
 @theme inline {
@@ -14,26 +28,28 @@
 
 body {
   background: var(--background);
-  color: #000000;
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--foreground);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Semua teks jadi hitam */
+/* All text black */
 * {
   color: #000000 !important;
 }
 
-/* Kecuali placeholder */
+/* Except placeholder */
 input::placeholder, textarea::placeholder, [placeholder] {
-  color: #6b7280 !important;
+  color: #9ca3af !important;
 }
 
-/* Kecuali teks di button putih */
+/* Except white text on colored buttons */
 button.text-white, a.text-white, span.text-white, p.text-white, h1.text-white, h2.text-white, h3.text-white, h4.text-white, h5.text-white, h6.text-white {
   color: #ffffff !important;
 }
 
-/* Kecuali badge status */
+/* Except badge status */
 .bg-green-100 *, .bg-yellow-100 *, .bg-red-100 *, .bg-orange-100 *, .bg-blue-100 * {
   color: inherit !important;
 }
@@ -43,3 +59,29 @@ button.text-white, a.text-white, span.text-white, p.text-white, h1.text-white, h
 .bg-red-100 { color: #991b1b !important; }
 .bg-orange-100 { color: #9a3412 !important; }
 .bg-blue-100 { color: #1e40af !important; }
+
+/* Sidebar active state text override */
+.sidebar-active-link, .sidebar-active-link span {
+  color: #2563eb !important;
+}
+
+/* Smooth scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Focus ring utility */
+.focus-ring:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #2563eb;
+}

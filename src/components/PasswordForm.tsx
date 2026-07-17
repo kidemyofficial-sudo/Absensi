@@ -53,10 +53,10 @@ export default function PasswordForm() {
   return (
     <>
       {message && (
-        <div className={`mb-4 p-3 rounded text-sm ${
+        <div className={`mb-4 p-3 rounded-lg text-sm font-medium ${
           message.includes('berhasil')
-            ? 'bg-green-100 text-green-700'
-            : 'bg-red-100 text-red-700'
+            ? 'bg-green-50 text-green-700 border border-green-200'
+            : 'bg-red-50 text-red-700 border border-red-200'
         }`}>
           {message}
         </div>
@@ -65,41 +65,41 @@ export default function PasswordForm() {
       <form onSubmit={handleSubmit}>
         <div className="space-y-4 max-w-md">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password Saat Ini</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Password Saat Ini</label>
             <input
               type="password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+              className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white transition-all"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password Baru</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Password Baru</label>
             <input
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               required
               minLength={6}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+              className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white transition-all"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Konfirmasi Password Baru</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Konfirmasi Password Baru</label>
             <input
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
               minLength={6}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+              className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white transition-all"
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+            className="bg-blue-600 text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 disabled:opacity-50 text-sm font-medium transition-colors"
           >
             {loading ? 'Mengubah...' : 'Ubah Password'}
           </button>
