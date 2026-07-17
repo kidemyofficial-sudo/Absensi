@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { provinsiList, kotaKabupatenByProvinsi, type Provinsi } from '@/data/indonesia'
 
 interface Teacher {
   id: string
@@ -11,6 +12,8 @@ interface Teacher {
 interface BranchTeacher {
   id: string
   cabangDaerah: string
+  provinsi: string
+  kotaKabupaten: string
   user: Teacher
   student: { id: string; name: string }[]
 }
@@ -21,11 +24,16 @@ export default function CabangDaerahPage() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState({
-    cabangDaerah: '',
+    provinsi: '',
+    kotaKabupaten: '',
     teacherId: '',
   })
   const [message, setMessage] = useState('')
   const [search, setSearch] = useState('')
+
+  const kotaList = formData.provinsi
+    ? kotaKabupatenByProvinsi[formData.provinsi as Provinsi] || []
+    : []
 
   useEffect(() => {
     fetchData()
@@ -52,11 +60,18 @@ export default function CabangDaerahPage() {
     e.preventDefault()
     setMessage('')
 
+    const cabangDaerah = `${formData.kotaKabupaten}, ${formData.provinsi}`
+
     try {
       const res = await fetch('/api/branch-teachers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          cabangDaerah,
+          provinsi: formData.provinsi,
+          kotaKabupaten: formData.kotaKabupaten,
+          teacherId: formData.teacherId,
+        }),
       })
 
       const data = await res.json()
@@ -66,7 +81,7 @@ export default function CabangDaerahPage() {
       }
 
       setMessage('Cabang Daerah berhasil ditambahkan!')
-      setFormData({ cabangDaerah: '', teacherId: '' })
+      setFormData({ provinsi: '', kotaKabupaten: '', teacherId: '' })
       setShowForm(false)
       fetchData()
     } catch (err) {
@@ -101,8 +116,10 @@ export default function CabangDaerahPage() {
   }, {} as Record<string, BranchTeacher[]>)
 
   // Filter by search
-  const filteredCabangs = Object.entries(groupedByCabang).filter(([cabangDaerah]) =>
-    cabangDaerah.toLowerCase().includes(search.toLowerCase())
+  const filteredCabangs = Object.entries(groupedByCabang).filter(([cabangDaerah, bts]) =>
+    cabangDaerah.toLowerCase().includes(search.toLowerCase()) ||
+    bts.some(bt => bt.provinsi.toLowerCase().includes(search.toLowerCase()) ||
+      bt.kotaKabupaten.toLowerCase().includes(search.toLowerCase()))
   )
 
   return (
@@ -112,7 +129,7 @@ export default function CabangDaerahPage() {
         <button
           onClick={() => {
             setShowForm(!showForm)
-            setFormData({ cabangDaerah: '', teacherId: '' })
+            setFormData({ provinsi: '', kotaKabupaten: '', teacherId: '' })
           }}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
@@ -135,17 +152,35 @@ export default function CabangDaerahPage() {
         <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Tambah Cabang Daerah Baru</h3>
           <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nama Cabang Daerah</label>
-                <input
-                  type="text"
-                  value={formData.cabangDaerah}
-                  onChange={(e) => setFormData({ ...formData, cabangDaerah: e.target.value })}
+                <label className="block text-sm font-medium text-gray-700 mb-1">Provinsi</label>
+                <select
+                  value={formData.provinsi}
+                  onChange={(e) => setFormData({ ...formData, provinsi: e.target.value, kotaKabupaten: '' })}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-                  placeholder="contoh: Jakarta Pusat, Bandung Utara"
-                />
+                >
+                  <option value="">Pilih Provinsi</option>
+                  {provinsiList.map((p) => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Kota / Kabupaten</label>
+                <select
+                  value={formData.kotaKabupaten}
+                  onChange={(e) => setFormData({ ...formData, kotaKabupaten: e.target.value })}
+                  required
+                  disabled={!formData.provinsi}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black disabled:bg-gray-100"
+                >
+                  <option value="">Pilih Kota/Kabupaten</option>
+                  {kotaList.map((k) => (
+                    <option key={k} value={k}>{k}</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Guru Pengampu</label>
@@ -162,6 +197,11 @@ export default function CabangDaerahPage() {
                 </select>
               </div>
             </div>
+            {formData.kotaKabupaten && formData.provinsi && (
+              <p className="text-sm text-gray-500 mb-4">
+                Cabang Daerah: <span className="font-medium text-black">{formData.kotaKabupaten}, {formData.provinsi}</span>
+              </p>
+            )}
             <button
               type="submit"
               className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
@@ -176,7 +216,7 @@ export default function CabangDaerahPage() {
       <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
         <input
           type="text"
-          placeholder="Cari nama cabang daerah..."
+          placeholder="Cari nama cabang daerah, provinsi, atau kota..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full px-3 py-2 border rounded-md text-black"
@@ -193,7 +233,10 @@ export default function CabangDaerahPage() {
           filteredCabangs.map(([cabangDaerah, bts]) => (
             <div key={cabangDaerah} className="bg-white rounded-lg shadow-sm p-4">
               <div className="flex justify-between items-center mb-3">
-                <h4 className="text-lg font-medium">Cabang Daerah {cabangDaerah}</h4>
+                <div>
+                  <h4 className="text-lg font-medium">Cabang Daerah {cabangDaerah}</h4>
+                  <p className="text-sm text-gray-500">{bts[0]?.provinsi} — {bts[0]?.kotaKabupaten}</p>
+                </div>
                 <span className="text-sm">{bts.length} guru</span>
               </div>
               <div className="space-y-2">

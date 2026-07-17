@@ -88,9 +88,11 @@ model Notification {
 }
 
 model BranchTeacher {
-  id           String @id @default(cuid())
-  userId       String
-  cabangDaerah String
+  id             String  @id @default(cuid())
+  userId         String
+  cabangDaerah   String
+  provinsi       String
+  kotaKabupaten  String
 
   // Relations
   user    User      @relation(fields: [userId], references: [id])

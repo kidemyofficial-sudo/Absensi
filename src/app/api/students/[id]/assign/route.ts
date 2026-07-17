@@ -5,6 +5,8 @@ import { z } from 'zod'
 
 const assignSchema = z.object({
   cabangDaerah: z.string().min(1, 'Cabang Daerah harus diisi'),
+  provinsi: z.string().min(1, 'Provinsi harus diisi'),
+  kotaKabupaten: z.string().min(1, 'Kota/Kabupaten harus diisi'),
   teacherId: z.string().optional(),
 })
 
@@ -75,6 +77,8 @@ export async function PATCH(
           data: {
             userId: validatedData.teacherId,
             cabangDaerah: validatedData.cabangDaerah,
+            provinsi: validatedData.provinsi,
+            kotaKabupaten: validatedData.kotaKabupaten,
           },
         })
       }

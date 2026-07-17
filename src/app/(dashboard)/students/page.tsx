@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { provinsiList, kotaKabupatenByProvinsi, type Provinsi } from '@/data/indonesia'
 
 interface Student {
   id: string
@@ -48,7 +49,7 @@ export default function StudentsPage() {
   const [branchTeachers, setBranchTeachers] = useState<BranchTeacher[]>([])
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [assignModal, setAssignModal] = useState<Student | null>(null)
-  const [assignData, setAssignData] = useState({ cabangDaerah: '', teacherId: '' })
+  const [assignData, setAssignData] = useState({ provinsi: '', kotaKabupaten: '', teacherId: '' })
 
   useEffect(() => {
     fetchUser()
@@ -109,15 +110,22 @@ export default function StudentsPage() {
   const handleAssign = async () => {
     if (!assignModal) return
 
+    const cabangDaerah = `${assignData.kotaKabupaten}, ${assignData.provinsi}`
+
     const res = await fetch(`/api/students/${assignModal.id}/assign`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(assignData),
+      body: JSON.stringify({
+        cabangDaerah,
+        provinsi: assignData.provinsi,
+        kotaKabupaten: assignData.kotaKabupaten,
+        teacherId: assignData.teacherId,
+      }),
     })
 
     if (res.ok) {
       setAssignModal(null)
-      setAssignData({ cabangDaerah: '', teacherId: '' })
+      setAssignData({ provinsi: '', kotaKabupaten: '', teacherId: '' })
       fetchStudents()
     }
   }
@@ -172,14 +180,31 @@ export default function StudentsPage() {
             </h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Cabang Daerah</label>
-                <input
-                  type="text"
-                  value={assignData.cabangDaerah}
-                  onChange={(e) => setAssignData({ ...assignData, cabangDaerah: e.target.value, teacherId: '' })}
+                <label className="block text-sm font-medium mb-1">Provinsi</label>
+                <select
+                  value={assignData.provinsi}
+                  onChange={(e) => setAssignData({ ...assignData, provinsi: e.target.value, kotaKabupaten: '' })}
                   className="w-full px-3 py-2 border rounded-md text-black"
-                  placeholder="contoh: Jakarta Pusat"
-                />
+                >
+                  <option value="">Pilih Provinsi</option>
+                  {provinsiList.map((p) => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Kota / Kabupaten</label>
+                <select
+                  value={assignData.kotaKabupaten}
+                  onChange={(e) => setAssignData({ ...assignData, kotaKabupaten: e.target.value })}
+                  disabled={!assignData.provinsi}
+                  className="w-full px-3 py-2 border rounded-md text-black disabled:bg-gray-100"
+                >
+                  <option value="">Pilih Kota/Kabupaten</option>
+                  {(assignData.provinsi ? kotaKabupatenByProvinsi[assignData.provinsi as Provinsi] || [] : []).map((k) => (
+                    <option key={k} value={k}>{k}</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Guru Pengampu (opsional)</label>
@@ -286,7 +311,7 @@ export default function StudentsPage() {
                           <button
                             onClick={() => {
                               setAssignModal(student)
-                              setAssignData({ cabangDaerah: student.cabangDaerah || '', teacherId: '' })
+                              setAssignData({ provinsi: '', kotaKabupaten: '', teacherId: '' })
                             }}
                             className="text-blue-600 hover:text-blue-900"
                           >
