@@ -193,7 +193,7 @@ function SidebarContent({ user, pathname, onNavigate }: { user: User; pathname: 
       {/* Logo */}
       <div className="px-5 py-5 border-b border-gray-100">
         <div className="flex items-center gap-3">
-          <img src="/image/kidemy.webp" alt="Kidemy" className="w-10 h-10 rounded-xl object-cover" />
+          <img src="/image/kidemy.webp" alt="Kidemy" className="w-12 h-12 rounded-xl object-cover" />
           <div>
             <h1 className="text-base font-bold text-gray-900">Sistem Absensi</h1>
             <p className="text-xs font-semibold text-gray-500 uppercase">{user.role}</p>
@@ -233,10 +233,10 @@ function SidebarContent({ user, pathname, onNavigate }: { user: User; pathname: 
                     <Link
                       href={item.href}
                       onClick={onNavigate}
-                      className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
+                      className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ease-in-out ${
                         active
-                          ? 'bg-blue-50 text-blue-700 sidebar-active-link'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          ? 'bg-blue-50 text-blue-700 shadow-sm sidebar-active-link'
+                          : 'text-gray-600 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 hover:text-blue-700 hover:shadow-sm hover:scale-[1.02] hover:pl-4'
                       }`}
                     >
                       {item.icon({ active })}
@@ -297,7 +297,7 @@ export default function Sidebar({ user, mobile }: SidebarProps) {
             <div className="fixed inset-y-0 left-0 w-72 bg-white shadow-2xl z-50 flex flex-col">
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                 <div className="flex items-center gap-2">
-                  <img src="/image/kidemy.webp" alt="Kidemy" className="w-9 h-9 rounded-xl object-cover" />
+                  <img src="/image/kidemy.webp" alt="Kidemy" className="w-10 h-10 rounded-xl object-cover" />
                   <div>
                     <h1 className="text-base font-bold text-gray-900">Sistem Absensi</h1>
                     <p className="text-xs font-semibold text-gray-500 uppercase">{user.role}</p>
