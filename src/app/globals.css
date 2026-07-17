@@ -34,8 +34,13 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* All text black */
-* {
+/* All text black — override semua text-gray-* Tailwind classes */
+*, *::before, *::after {
+  color: #000000 !important;
+}
+
+/* Khusus: pastikan text di semua elemen juga hitam */
+h1, h2, h3, h4, h5, h6, p, span, td, th, label, option, li, a {
   color: #000000 !important;
 }
 

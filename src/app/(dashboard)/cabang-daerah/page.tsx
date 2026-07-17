@@ -43,7 +43,7 @@ export default function CabangDaerahPage() {
     'Matematika', 'Bahasa Indonesia', 'Bahasa Inggris', 'IPA', 'IPS',
     'PPKN', 'Seni Budaya', 'Penjaskes', 'Prakarya', 'Komputer',
     'Pendidikan Agama', 'Sejarah', 'Geografi', 'Ekonomi', 'Sosiologi',
-    'Fisika', 'Kimia', 'Biologi',
+    'Fisika', 'Kimia', 'Biologi', 'Umum', 'Lainnya',
   ]
 
   useEffect(() => { fetchData() }, [])

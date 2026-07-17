@@ -12,7 +12,7 @@ interface UserInfo {
 const JENIS_PEMBELAJARAN = [
   'Matematika', 'Bahasa Indonesia', 'Bahasa Inggris', 'IPA', 'IPS',
   'PPKN', 'Seni Budaya', 'Penjaskes', 'Prakarya', 'Komputer',
-  'Bimbingan Belajar', 'Mengaji', 'Bahasa Arab', 'Tahfidz', 'Lainnya',
+  'Bimbingan Belajar', 'Mengaji', 'Bahasa Arab', 'Tahfidz', 'Umum', 'Lainnya',
 ]
 
 const LOKASI_MENGAJAR = [
