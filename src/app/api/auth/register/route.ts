@@ -2,8 +2,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { hashPassword, createToken, setTokenCookie } from '@/lib/auth'
 import { registerSchema } from '@/lib/validations'
+import { authRatelimit, getClientIp } from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
+  // Rate limiting
+  const ip = getClientIp(request)
+  const { success, remaining, reset } = await authRatelimit.limit(ip)
+
+  if (!success) {
+    return NextResponse.json(
+      { error: `Terlalu banyak percobaan. Coba lagi dalam ${Math.ceil((reset - Date.now()) / 60000)} menit.` },
+      { status: 429 }
+    )
+  }
+
   try {
     const body = await request.json()
     const validatedData = registerSchema.parse(body)
@@ -49,7 +61,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof Error && error.name === 'ZodError') {
       return NextResponse.json(
-        { error: 'Data tidak valid', details: error.message },
+        { error: 'Data tidak valid' },
         { status: 400 }
       )
     }
