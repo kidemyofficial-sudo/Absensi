@@ -96,10 +96,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Upsert attendance records
-    const results = await Promise.all(
-      validatedData.attendances.map((attendance) =>
-        prisma.attendance.upsert({
+    // Upsert attendance records dalam serializable transaction
+    // Serializable isolation mencegah race condition concurrent writes
+    const results = await prisma.$transaction(async (tx) => {
+      const upserts = validatedData.attendances.map((attendance) =>
+        tx.attendance.upsert({
           where: {
             studentId_date: {
               studentId: attendance.studentId,
@@ -120,7 +121,11 @@ export async function POST(request: NextRequest) {
           },
         })
       )
-    )
+      return Promise.all(upserts)
+    }, {
+      isolationLevel: 'Serializable',
+      timeout: 10000,
+    })
 
     // Create notifications for parents
     const attendanceWithStudents = await prisma.attendance.findMany({

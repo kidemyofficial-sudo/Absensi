@@ -110,7 +110,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Jumlah murid tidak valid' }, { status: 400 })
     }
 
-    // Create lesson and revenue in a transaction
+    // Create lesson and revenue in a serializable transaction
+    // Serializable isolation mencegah race condition (double insert, inconsistent reads)
     const result = await prisma.$transaction(async (tx) => {
       const lesson = await tx.lesson.create({
         data: {
@@ -160,6 +161,9 @@ export async function POST(request: NextRequest) {
       })
 
       return { lesson, revenue: lessonRevenue }
+    }, {
+      isolationLevel: 'Serializable', // Level tertinggi — cegah semua race condition
+      timeout: 10000, // 10 detik timeout
     })
 
     // Audit log

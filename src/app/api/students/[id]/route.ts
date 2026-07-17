@@ -3,6 +3,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { studentSchema } from '@/lib/validations'
 import { logAudit, getIp } from '@/lib/audit'
+import { sanitize } from '@/lib/sanitize'
 
 export async function GET(
   request: NextRequest,
@@ -62,9 +63,16 @@ export async function PUT(
       return NextResponse.json({ error: 'Siswa tidak ditemukan' }, { status: 404 })
     }
 
+    // Sanitize string fields
+    const sanitizedData: Record<string, unknown> = { ...validatedData }
+    if (sanitizedData.name) sanitizedData.name = sanitize(sanitizedData.name as string)
+    if (sanitizedData.ttl) sanitizedData.ttl = sanitize(sanitizedData.ttl as string)
+    if (sanitizedData.domisili) sanitizedData.domisili = sanitize(sanitizedData.domisili as string)
+    if (sanitizedData.asalSekolah) sanitizedData.asalSekolah = sanitize(sanitizedData.asalSekolah as string)
+
     const student = await prisma.student.update({
       where: { id },
-      data: validatedData,
+      data: sanitizedData,
       include: {
         parent: {
           select: { id: true, name: true, phone: true },

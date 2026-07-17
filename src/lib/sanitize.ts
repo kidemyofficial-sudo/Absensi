@@ -1,35 +1,39 @@
-/**
- * Sanitize string input untuk mencegah XSS
- * Server-side implementation tanpa DOMPurify dependency
- */
+import DOMPurify from 'dompurify'
+import { JSDOM } from 'jsdom'
 
-// Regex-based sanitization untuk server-side
-const HTML_TAG_REGEX = /<[^>]*>/g
-const HTML_ENTITY_REGEX = /[&<>"']/g
+// Inisialisasi DOMPurify untuk server-side
+// jsdom menyediakan window object yang dibutuhkan DOMPurify
+const window = new JSDOM('').window
+const purify = DOMPurify(window)
 
-const HTML_ENTITIES: Record<string, string> = {
-  '&': '&amp;',
-  '<': '&lt;',
-  '>': '&gt;',
-  '"': '&quot;',
-  "'": '&#x27;',
+// Konfigurasi: tidak izinkan HTML tags sama sekali
+// Hanya izinkan text plain — paling aman untuk input form
+const SANITIZE_CONFIG = {
+  ALLOWED_TAGS: [] as string[],
+  ALLOWED_ATTR: [] as string[],
+  ALLOW_DATA_ATTR: false,
 }
 
 /**
- * Sanitize string input untuk mencegah XSS
- * Menghapus semua HTML tags dan escape special characters
+ * Sanitize string input menggunakan DOMPurify
+ * Melindungi dari XSS: script injection, event handlers, svg injection, dll
+ *
+ * Bukan regex biasa — DOMPurify parse HTML secara proper dan handle:
+ * - <script>alert(1)</script>
+ * - <img src=x onerror=alert(1)>
+ * - <svg onload=alert(1)>
+ * - <iframe src=javascript:alert(1)>
+ * - Unicode bypass tricks
+ * - Null byte injection
  */
 export function sanitize(input: string): string {
   if (typeof input !== 'string') return ''
-
-  return input
-    .replace(HTML_TAG_REGEX, '') // Hapus semua HTML tags
-    .replace(HTML_ENTITY_REGEX, (char) => HTML_ENTITIES[char] || char) // Escape special chars
-    .trim()
+  return purify.sanitize(input, SANITIZE_CONFIG).trim()
 }
 
 /**
  * Sanitize object values secara rekursif
+ * Hanya sanitize string values, biarkan number/boolean/null
  */
 export function sanitizeObject(obj: Record<string, unknown>): Record<string, unknown> {
   const sanitized = { ...obj }
@@ -39,4 +43,11 @@ export function sanitizeObject(obj: Record<string, unknown>): Record<string, unk
     }
   }
   return sanitized
+}
+
+/**
+ * Sanitize array of strings
+ */
+export function sanitizeArray(arr: string[]): string[] {
+  return arr.map(sanitize)
 }
