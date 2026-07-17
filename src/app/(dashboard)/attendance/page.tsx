@@ -45,6 +45,7 @@ export default function AttendancePage() {
   const [jamSelesai, setJamSelesai] = useState('')
   const [namaWaliMurid, setNamaWaliMurid] = useState('')
   const [whatsappWaliMurid, setWhatsappWaliMurid] = useState('')
+  const [biayaPerSiswa, setBiayaPerSiswa] = useState('')
 
   useEffect(() => { fetchUser() }, [])
 
@@ -67,6 +68,7 @@ export default function AttendancePage() {
         body: JSON.stringify({
           tanggalLes, jenisPembelajaran, lokasiMengajar, kelasMurid, jumlahMurid,
           namaMurid, catatanMateri, fotoUrl, jamMulai, jamSelesai, namaWaliMurid, whatsappWaliMurid,
+          biayaPerSiswa: Number(biayaPerSiswa),
         }),
       })
       const data = await res.json()
@@ -76,7 +78,7 @@ export default function AttendancePage() {
         setJenisPembelajaran(''); setLokasiMengajar(''); setKelasMurid('')
         setJumlahMurid(''); setNamaMurid(''); setCatatanMateri('')
         setFotoUrl(''); setJamMulai(''); setJamSelesai('')
-        setNamaWaliMurid(''); setWhatsappWaliMurid('')
+        setNamaWaliMurid(''); setWhatsappWaliMurid(''); setBiayaPerSiswa('')
       } else {
         setMessage({ type: 'error', text: data.error || 'Gagal menyimpan data' })
       }
@@ -179,7 +181,7 @@ export default function AttendancePage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Kelas Murid <span className="text-red-500">*</span></label>
               <select value={kelasMurid} onChange={(e) => setKelasMurid(e.target.value)} required className={selectClass}>
@@ -193,6 +195,12 @@ export default function AttendancePage() {
                 <option value="">Pilih Jumlah Murid</option>
                 {JUMLAH_MURID.map((j) => (<option key={j} value={j}>{j}</option>))}
               </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Biaya per Siswa (Rp) <span className="text-red-500">*</span></label>
+              <input type="number" value={biayaPerSiswa} onChange={(e) => setBiayaPerSiswa(e.target.value)}
+                placeholder="contoh: 70000" min="10000" required className={inputClass} />
+              <p className="text-xs text-gray-500 mt-1">Setiap murid bisa beda biaya</p>
             </div>
           </div>
 

@@ -113,7 +113,8 @@ model Lesson {
   id                String   @id @default(cuid())
   tanggalLes        DateTime @db.Date
   guruId            String
-  studentId         String?  // Relasi ke student (opsional, untuk filtering orang tua)
+  studentId         String?
+  biayaPerSiswa     Int      // Biaya per siswa untuk les ini (bervariasi per murid)
   namaGuru          String
   whatsappGuru      String
   jenisPembelajaran String

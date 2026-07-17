@@ -118,6 +118,7 @@ export async function POST(request: NextRequest) {
           tanggalLes: new Date(validatedData.tanggalLes),
           guruId: user.id,
           studentId: validatedData.studentId || null,
+          biayaPerSiswa: validatedData.biayaPerSiswa,
           namaGuru: user.name,
           whatsappGuru: user.phone,
           jenisPembelajaran: validatedData.jenisPembelajaran,
@@ -134,23 +135,23 @@ export async function POST(request: NextRequest) {
         },
       })
 
-      // Find BranchTeacher for this guru
+      // Ambil persentase dari BranchTeacher (atau default)
       const branchTeacher = await tx.branchTeacher.findFirst({
         where: { userId: user.id },
       })
 
-      const biayaPerSesi = branchTeacher?.biayaPerSesi ?? 50000
       const persentaseOwner = branchTeacher?.persentaseOwner ?? 40
       const persentaseGuru = branchTeacher?.persentaseGuru ?? 60
 
-      const biayaTotal = validatedData.jumlahMurid * biayaPerSesi
+      // Hitung revenue: biayaPerSiswa × jumlahMurid
+      const biayaTotal = validatedData.biayaPerSiswa * validatedData.jumlahMurid
       const pendapatanOwner = Math.floor(biayaTotal * persentaseOwner / 100)
       const pendapatanGuru = Math.floor(biayaTotal * persentaseGuru / 100)
 
       const lessonRevenue = await tx.lessonRevenue.create({
         data: {
           lessonId: lesson.id,
-          biayaPerSesi,
+          biayaPerSesi: validatedData.biayaPerSiswa,
           jumlahMurid: validatedData.jumlahMurid,
           biayaTotal,
           persentaseOwner,
