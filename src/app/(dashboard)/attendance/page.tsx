@@ -2,142 +2,170 @@
 
 import { useState, useEffect } from 'react'
 
-interface Student {
+interface UserInfo {
   id: string
   name: string
-  nis: string
-  cabangDaerah: string
+  phone: string
+  role: string
 }
 
-interface BranchTeacher {
-  cabangDaerah: string
-}
+const JENIS_PEMBELAJARAN = [
+  'Matematika',
+  'Bahasa Indonesia',
+  'Bahasa Inggris',
+  'IPA',
+  'IPS',
+  'PPKN',
+  'Seni Budaya',
+  'Penjaskes',
+  'Prakarya',
+  'Komputer',
+  'Bimbingan Belajar',
+  'Mengaji',
+  'Bahasa Arab',
+  'Tahfidz',
+  'Lainnya',
+]
 
-interface AttendanceRecord {
-  studentId: string
-  status: 'HADIR' | 'IZIN' | 'SAKIT' | 'ALPA'
-  note: string
-}
+const LOKASI_MENGAJAR = [
+  'Rumah Siswa',
+  'Rumah Tutor',
+  'Online (Zoom/Meet)',
+  'Tempat Les',
+  'Kantor',
+  'Lainnya',
+]
+
+const KELAS_MURID = [
+  'Kelas 1 SD',
+  'Kelas 2 SD',
+  'Kelas 3 SD',
+  'Kelas 4 SD',
+  'Kelas 5 SD',
+  'Kelas 6 SD',
+  'Kelas 7 SMP',
+  'Kelas 8 SMP',
+  'Kelas 9 SMP',
+  'Kelas 10 SMA',
+  'Kelas 11 SMA',
+  'Kelas 12 SMA',
+  'Umum',
+]
+
+const JUMLAH_MURID = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10+']
 
 export default function AttendancePage() {
-  const [branchTeachers, setBranchTeachers] = useState<BranchTeacher[]>([])
-  const [selectedCabang, setSelectedCabang] = useState('')
-  const [students, setStudents] = useState<Student[]>([])
-  const [attendances, setAttendances] = useState<Record<string, AttendanceRecord>>({})
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
-  const [loading, setLoading] = useState(false)
+  const [user, setUser] = useState<UserInfo | null>(null)
+  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState({ type: '', text: '' })
-  const [userRole, setUserRole] = useState('')
+
+  const [tanggalLes, setTanggalLes] = useState(
+    new Date().toISOString().split('T')[0]
+  )
+  const [jenisPembelajaran, setJenisPembelajaran] = useState('')
+  const [lokasiMengajar, setLokasiMengajar] = useState('')
+  const [kelasMurid, setKelasMurid] = useState('')
+  const [jumlahMurid, setJumlahMurid] = useState('')
+  const [namaMurid, setNamaMurid] = useState('')
+  const [catatanMateri, setCatatanMateri] = useState('')
+  const [fotoUrl, setFotoUrl] = useState('')
+  const [jamMulai, setJamMulai] = useState('')
+  const [jamSelesai, setJamSelesai] = useState('')
+  const [namaWaliMurid, setNamaWaliMurid] = useState('')
+  const [whatsappWaliMurid, setWhatsappWaliMurid] = useState('')
 
   useEffect(() => {
     fetchUser()
-    fetchBranchTeachers()
   }, [])
-
-  useEffect(() => {
-    if (selectedCabang) {
-      fetchStudents(selectedCabang)
-    }
-  }, [selectedCabang])
 
   const fetchUser = async () => {
     const res = await fetch('/api/auth/me')
     const data = await res.json()
-    setUserRole(data.user?.role || '')
-  }
-
-  const fetchBranchTeachers = async () => {
-    const res = await fetch('/api/dashboard')
-    const data = await res.json()
-    if (data.classes) {
-      setBranchTeachers(data.classes.map((c: { name: string }) => ({ cabangDaerah: c.name })))
-    }
-  }
-
-  const fetchStudents = async (cabangDaerah: string) => {
-    setLoading(true)
-    const res = await fetch(`/api/students?cabang=${encodeURIComponent(cabangDaerah)}`)
-    const data = await res.json()
-    setStudents(data.students || [])
-
-    // Initialize attendance records
-    const initial: Record<string, AttendanceRecord> = {}
-    data.students?.forEach((s: Student) => {
-      initial[s.id] = {
-        studentId: s.id,
-        status: 'ALPA',
-        note: '',
-      }
-    })
-    setAttendances(initial)
+    setUser(data.user || null)
     setLoading(false)
   }
 
-  const handleStatusChange = (studentId: string, status: AttendanceRecord['status']) => {
-    setAttendances((prev) => ({
-      ...prev,
-      [studentId]: {
-        ...prev[studentId],
-        status,
-      },
-    }))
-  }
-
-  const handleNoteChange = (studentId: string, note: string) => {
-    setAttendances((prev) => ({
-      ...prev,
-      [studentId]: {
-        ...prev[studentId],
-        note,
-      },
-    }))
-  }
-
-  const handleSave = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
     setSaving(true)
     setMessage({ type: '', text: '' })
 
-    const attendanceList = Object.values(attendances)
+    try {
+      const res = await fetch('/api/lessons', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tanggalLes,
+          jenisPembelajaran,
+          lokasiMengajar,
+          kelasMurid,
+          jumlahMurid,
+          namaMurid,
+          catatanMateri,
+          fotoUrl,
+          jamMulai,
+          jamSelesai,
+          namaWaliMurid,
+          whatsappWaliMurid,
+        }),
+      })
 
-    const res = await fetch('/api/attendance', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        date,
-        attendances: attendanceList,
-      }),
-    })
+      const data = await res.json()
 
-    const data = await res.json()
-
-    if (res.ok) {
-      setMessage({ type: 'success', text: 'Absensi berhasil disimpan!' })
-    } else {
-      setMessage({ type: 'error', text: data.error || 'Gagal menyimpan absensi' })
+      if (res.ok) {
+        setMessage({ type: 'success', text: 'Data les berhasil disimpan!' })
+        // Reset form
+        setTanggalLes(new Date().toISOString().split('T')[0])
+        setJenisPembelajaran('')
+        setLokasiMengajar('')
+        setKelasMurid('')
+        setJumlahMurid('')
+        setNamaMurid('')
+        setCatatanMateri('')
+        setFotoUrl('')
+        setJamMulai('')
+        setJamSelesai('')
+        setNamaWaliMurid('')
+        setWhatsappWaliMurid('')
+      } else {
+        setMessage({ type: 'error', text: data.error || 'Gagal menyimpan data' })
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'Terjadi kesalahan jaringan' })
     }
 
     setSaving(false)
   }
 
-  const markAll = (status: AttendanceRecord['status']) => {
-    const updated: Record<string, AttendanceRecord> = {}
-    Object.keys(attendances).forEach((id) => {
-      updated[id] = {
-        ...attendances[id],
-        status,
-      }
-    })
-    setAttendances(updated)
+  if (loading) {
+    return (
+      <div className="bg-white p-8 rounded-lg shadow-sm text-center text-gray-500">
+        Loading...
+      </div>
+    )
   }
 
-  if (userRole === 'ORANG_TUA') {
+  if (user?.role === 'ORANG_TUA') {
     return (
       <div>
-        <h2 className="text-2xl font-bold mb-6">Input Absensi</h2>
+        <h2 className="text-2xl font-bold mb-6">Input Absensi Les</h2>
         <div className="bg-white p-6 rounded-lg shadow-sm">
           <p className="text-gray-600">
-            Orang tua tidak dapat menginput absensi. Silakan melihat laporan di halaman Laporan.
+            Orang tua tidak dapat menginput absensi les. Silakan melihat laporan di halaman Laporan.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  if (user?.role === 'OWNER') {
+    return (
+      <div>
+        <h2 className="text-2xl font-bold mb-6">Input Absensi Les</h2>
+        <div className="bg-white p-6 rounded-lg shadow-sm">
+          <p className="text-gray-600">
+            Owner tidak menginput absensi les. Silakan melihat rekap di halaman Laporan.
           </p>
         </div>
       </div>
@@ -146,52 +174,11 @@ export default function AttendancePage() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-6">Input Absensi</h2>
+      <h2 className="text-2xl font-bold mb-6">Input Absensi Les</h2>
 
-      {/* Controls */}
-      <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
-          <div className="w-full sm:w-auto">
-            <label className="block text-sm font-medium mb-1">Tanggal</label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full sm:w-auto px-3 py-2 border rounded-md"
-            />
-          </div>
-          <div className="w-full sm:w-auto">
-            <label className="block text-sm font-medium mb-1">Cabang Daerah</label>
-            <select
-              value={selectedCabang}
-              onChange={(e) => setSelectedCabang(e.target.value)}
-              className="w-full sm:w-auto px-3 py-2 border rounded-md"
-            >
-              <option value="">Pilih Cabang Daerah</option>
-              {branchTeachers.map((bt) => (
-                <option key={bt.cabangDaerah} value={bt.cabangDaerah}>
-                  {bt.cabangDaerah}
-                </option>
-              ))}
-            </select>
-          </div>
-          {selectedCabang && students.length > 0 && (
-            <div className="flex gap-2 w-full sm:w-auto">
-              <button
-                onClick={() => markAll('HADIR')}
-                className="flex-1 sm:flex-none px-3 py-2 bg-green-100 text-green-700 rounded hover:bg-green-200 text-sm"
-              >
-                Semua Hadir
-              </button>
-              <button
-                onClick={() => markAll('ALPA')}
-                className="flex-1 sm:flex-none px-3 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200 text-sm"
-              >
-                Semua Alpa
-              </button>
-            </div>
-          )}
-        </div>
+      {/* Info Banner */}
+      <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg mb-6 text-sm">
+        <strong>Perhatian:</strong> Jika terjadi kendala, harap segera konfirmasi ke admin dan catat manual.
       </div>
 
       {/* Message */}
@@ -207,155 +194,233 @@ export default function AttendancePage() {
         </div>
       )}
 
-      {/* Attendance Table - Desktop */}
-      {selectedCabang && (
-        <>
-          <div className="hidden sm:block bg-white rounded-lg shadow-sm overflow-hidden">
-            {loading ? (
-              <div className="p-8 text-center text-gray-500">Loading...</div>
-            ) : students.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
-                Tidak ada siswa di cabang daerah ini
-              </div>
-            ) : (
-              <>
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        No
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        Nama
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        NIS
-                      </th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
-                        Status
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        Catatan
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {students.map((student, index) => (
-                      <tr key={student.id}>
-                        <td className="px-6 py-4">{index + 1}</td>
-                        <td className="px-6 py-4">{student.name}</td>
-                        <td className="px-6 py-4">{student.nis}</td>
-                        <td className="px-6 py-4">
-                          <div className="flex justify-center gap-1">
-                            {(['HADIR', 'IZIN', 'SAKIT', 'ALPA'] as const).map((status) => (
-                              <button
-                                key={status}
-                                onClick={() => handleStatusChange(student.id, status)}
-                                className={`px-2 py-1 text-xs rounded ${
-                                  attendances[student.id]?.status === status
-                                    ? status === 'HADIR'
-                                      ? 'bg-green-500 text-white'
-                                      : status === 'IZIN'
-                                      ? 'bg-yellow-500 text-white'
-                                      : status === 'SAKIT'
-                                      ? 'bg-orange-500 text-white'
-                                      : 'bg-red-500 text-white'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }`}
-                              >
-                                {status.charAt(0)}
-                              </button>
-                            ))}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <input
-                            type="text"
-                            value={attendances[student.id]?.note || ''}
-                            onChange={(e) => handleNoteChange(student.id, e.target.value)}
-                            placeholder="Catatan..."
-                            className="w-full px-2 py-1 border rounded text-sm"
-                          />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                <div className="p-4 border-t">
-                  <button
-                    onClick={handleSave}
-                    disabled={saving}
-                    className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    {saving ? 'Menyimpan...' : 'Simpan Absensi'}
-                  </button>
-                </div>
-              </>
-            )}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="bg-white p-6 rounded-lg shadow-sm space-y-4">
+          {/* Row 1: Tanggal Les + Jam Mulai + Jam Selesai */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Tanggal Les <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                value={tanggalLes}
+                onChange={(e) => setTanggalLes(e.target.value)}
+                required
+                className="w-full px-3 py-2 border rounded-md"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Jam Mulai <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="time"
+                value={jamMulai}
+                onChange={(e) => setJamMulai(e.target.value)}
+                required
+                className="w-full px-3 py-2 border rounded-md"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Jam Selesai <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="time"
+                value={jamSelesai}
+                onChange={(e) => setJamSelesai(e.target.value)}
+                required
+                className="w-full px-3 py-2 border rounded-md"
+              />
+            </div>
           </div>
 
-          {/* Attendance Cards - Mobile */}
-          <div className="sm:hidden space-y-4">
-            {loading ? (
-              <div className="bg-white p-8 text-center text-gray-500 rounded-lg shadow-sm">
-                Loading...
-              </div>
-            ) : students.length === 0 ? (
-              <div className="bg-white p-8 text-center text-gray-500 rounded-lg shadow-sm">
-                Tidak ada siswa di cabang daerah ini
-              </div>
-            ) : (
-              <>
-                {students.map((student, index) => (
-                  <div key={student.id} className="bg-white p-4 rounded-lg shadow-sm">
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <p className="font-medium">{index + 1}. {student.name}</p>
-                        <p className="text-sm text-gray-500">NIS: {student.nis}</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-1 mb-3">
-                      {(['HADIR', 'IZIN', 'SAKIT', 'ALPA'] as const).map((status) => (
-                        <button
-                          key={status}
-                          onClick={() => handleStatusChange(student.id, status)}
-                          className={`flex-1 px-2 py-2 text-xs rounded ${
-                            attendances[student.id]?.status === status
-                              ? status === 'HADIR'
-                                ? 'bg-green-500 text-white'
-                                : status === 'IZIN'
-                                ? 'bg-yellow-500 text-white'
-                                : status === 'SAKIT'
-                                ? 'bg-orange-500 text-white'
-                                : 'bg-red-500 text-white'
-                              : 'bg-gray-100 text-gray-600'
-                          }`}
-                        >
-                          {status}
-                        </button>
-                      ))}
-                    </div>
-                    <input
-                      type="text"
-                      value={attendances[student.id]?.note || ''}
-                      onChange={(e) => handleNoteChange(student.id, e.target.value)}
-                      placeholder="Catatan..."
-                      className="w-full px-2 py-1 border rounded text-sm"
-                    />
-                  </div>
-                ))}
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="w-full bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 disabled:opacity-50"
-                >
-                  {saving ? 'Menyimpan...' : 'Simpan Absensi'}
-                </button>
-              </>
-            )}
+          {/* Row 2: Nama Tutor + WhatsApp Tutor (read-only) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Nama Lengkap Tutor <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={user?.name || ''}
+                readOnly
+                className="w-full px-3 py-2 border rounded-md bg-gray-50"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Nomor WhatsApp Tutor <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={user?.phone || ''}
+                readOnly
+                className="w-full px-3 py-2 border rounded-md bg-gray-50"
+              />
+            </div>
           </div>
-        </>
-      )}
+
+          {/* Row 3: Jenis Pembelajaran + Lokasi Mengajar */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Jenis Pembelajaran <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={jenisPembelajaran}
+                onChange={(e) => setJenisPembelajaran(e.target.value)}
+                required
+                className="w-full px-3 py-2 border rounded-md"
+              >
+                <option value="">Pilih Jenis Pembelajaran</option>
+                {JENIS_PEMBELAJARAN.map((j) => (
+                  <option key={j} value={j}>{j}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Lokasi Mengajar <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={lokasiMengajar}
+                onChange={(e) => setLokasiMengajar(e.target.value)}
+                required
+                className="w-full px-3 py-2 border rounded-md"
+              >
+                <option value="">Pilih Lokasi Mengajar</option>
+                {LOKASI_MENGAJAR.map((l) => (
+                  <option key={l} value={l}>{l}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Row 4: Kelas Murid + Jumlah Murid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Kelas Murid <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={kelasMurid}
+                onChange={(e) => setKelasMurid(e.target.value)}
+                required
+                className="w-full px-3 py-2 border rounded-md"
+              >
+                <option value="">Pilih Kelas Murid</option>
+                {KELAS_MURID.map((k) => (
+                  <option key={k} value={k}>{k}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Jumlah Murid <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={jumlahMurid}
+                onChange={(e) => setJumlahMurid(e.target.value)}
+                required
+                className="w-full px-3 py-2 border rounded-md"
+              >
+                <option value="">Pilih Jumlah Murid</option>
+                {JUMLAH_MURID.map((j) => (
+                  <option key={j} value={j}>{j}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Row 5: Nama Murid */}
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Nama Lengkap Murid yang Diajar <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={namaMurid}
+              onChange={(e) => setNamaMurid(e.target.value)}
+              required
+              placeholder="Contoh: Ahmad Rizki, Siti Aminah"
+              className="w-full px-3 py-2 border rounded-md"
+            />
+          </div>
+
+          {/* Row 6: Catatan / Materi */}
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Catatan / Materi <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              value={catatanMateri}
+              onChange={(e) => setCatatanMateri(e.target.value)}
+              required
+              rows={4}
+              placeholder="Jelaskan materi yang diajarkan dan catatan perkembangan murid."
+              className="w-full px-3 py-2 border rounded-md"
+            />
+          </div>
+
+          {/* Row 7: Upload Foto */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Upload Foto</label>
+            <input
+              type="text"
+              value={fotoUrl}
+              onChange={(e) => setFotoUrl(e.target.value)}
+              placeholder="URL atau nama file foto (opsional)"
+              className="w-full px-3 py-2 border rounded-md"
+            />
+          </div>
+
+          {/* Row 8: Nama Wali Murid + WhatsApp Wali Murid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Nama Lengkap Wali Murid <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={namaWaliMurid}
+                onChange={(e) => setNamaWaliMurid(e.target.value)}
+                required
+                placeholder="Nama lengkap wali murid"
+                className="w-full px-3 py-2 border rounded-md"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Nomor WhatsApp Wali Murid</label>
+              <input
+                type="text"
+                value={whatsappWaliMurid}
+                onChange={(e) => setWhatsappWaliMurid(e.target.value)}
+                placeholder="Nomor WhatsApp wali murid (opsional)"
+                className="w-full px-3 py-2 border rounded-md"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Buttons */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button
+            type="submit"
+            disabled={saving}
+            className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:opacity-50 font-medium"
+          >
+            {saving ? 'Menyimpan...' : 'Submit'}
+          </button>
+          <a
+            href="/reports"
+            className="bg-gray-200 text-gray-700 px-6 py-2 rounded hover:bg-gray-300 font-medium text-center"
+          >
+            Lihat Rekap Absensi
+          </a>
+        </div>
+      </form>
     </div>
   )
 }

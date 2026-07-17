@@ -2,72 +2,105 @@
 
 import { useState, useEffect } from 'react'
 
-interface Student {
+interface UserInfo {
   id: string
   name: string
-  nis: string
-  cabangDaerah: string
+  phone: string
+  role: string
 }
 
-interface Attendance {
+interface Lesson {
   id: string
-  date: string
-  status: string
-  note: string | null
-  student: Student
-}
-
-interface Summary {
-  student: Student
-  HADIR: number
-  IZIN: number
-  SAKIT: number
-  ALPA: number
-  total: number
+  tanggalLes: string
+  namaGuru: string
+  whatsappGuru: string
+  jenisPembelajaran: string
+  lokasiMengajar: string
+  kelasMurid: string | null
+  jumlahMurid: number
+  namaMurid: string
+  catatanMateri: string
+  fotoUrl: string | null
+  jamMulai: string
+  jamSelesai: string
+  namaWaliMurid: string
+  whatsappWaliMurid: string | null
 }
 
 export default function ReportsPage() {
-  const [attendances, setAttendances] = useState<Attendance[]>([])
-  const [summary, setSummary] = useState<Summary[]>([])
-  const [loading, setLoading] = useState(false)
-
+  const [user, setUser] = useState<UserInfo | null>(null)
+  const [lessons, setLessons] = useState<Lesson[]>([])
+  const [loading, setLoading] = useState(true)
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
-  const [cabangFilter, setCabangFilter] = useState('')
-  const [view, setView] = useState<'detail' | 'summary'>('summary')
+  const [guruFilter, setGuruFilter] = useState('')
+  const [jenisFilter, setJenisFilter] = useState('')
+  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null)
 
   useEffect(() => {
-    fetchReports()
+    fetchUser()
   }, [])
 
-  const fetchReports = async () => {
+  useEffect(() => {
+    if (user) {
+      fetchLessons()
+    }
+  }, [user])
+
+  const fetchUser = async () => {
+    const res = await fetch('/api/auth/me')
+    const data = await res.json()
+    setUser(data.user || null)
+  }
+
+  const fetchLessons = async () => {
     setLoading(true)
     const params = new URLSearchParams()
     if (startDate) params.set('startDate', startDate)
     if (endDate) params.set('endDate', endDate)
-    if (cabangFilter) params.set('cabang', cabangFilter)
+    if (guruFilter) params.set('guru', guruFilter)
+    if (jenisFilter) params.set('jenis', jenisFilter)
 
-    const res = await fetch(`/api/reports?${params.toString()}`)
+    const res = await fetch(`/api/lessons?${params.toString()}`)
     const data = await res.json()
-
-    setAttendances(data.attendances || [])
-    setSummary(data.summary || [])
+    setLessons(data.lessons || [])
     setLoading(false)
   }
 
   const handleSearch = () => {
-    fetchReports()
+    fetchLessons()
   }
 
   const exportCSV = () => {
-    const headers = ['Tanggal', 'Nama', 'NIS', 'Cabang Daerah', 'Status', 'Catatan']
-    const rows = attendances.map((a) => [
-      new Date(a.date).toLocaleDateString('id-ID'),
-      a.student.name,
-      a.student.nis,
-      a.student.cabangDaerah,
-      a.status,
-      a.note || '',
+    const headers = [
+      'Tanggal',
+      'Nama Guru',
+      'WA Guru',
+      'Jenis Pembelajaran',
+      'Lokasi',
+      'Kelas',
+      'Jumlah Murid',
+      'Nama Murid',
+      'Catatan',
+      'Jam Mulai',
+      'Jam Selesai',
+      'Wali Murid',
+      'WA Wali',
+    ]
+    const rows = lessons.map((l) => [
+      new Date(l.tanggalLes).toLocaleDateString('id-ID'),
+      l.namaGuru,
+      l.whatsappGuru,
+      l.jenisPembelajaran,
+      l.lokasiMengajar,
+      l.kelasMurid || '-',
+      String(l.jumlahMurid),
+      l.namaMurid,
+      l.catatanMateri,
+      l.jamMulai,
+      l.jamSelesai,
+      l.namaWaliMurid,
+      l.whatsappWaliMurid || '-',
     ])
 
     const csv = [headers, ...rows].map((row) => row.join(',')).join('\n')
@@ -75,17 +108,26 @@ export default function ReportsPage() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `laporan-absensi-${new Date().toISOString().split('T')[0]}.csv`
+    a.download = `rekap-les-${new Date().toISOString().split('T')[0]}.csv`
     a.click()
   }
 
-  const cabangs = [...new Set(attendances.map((a) => a.student.cabangDaerah))].sort()
+  const guruNames = [...new Set(lessons.map((l) => l.namaGuru))].sort()
+  const jenisList = [...new Set(lessons.map((l) => l.jenisPembelajaran))].sort()
+
+  if (!user) {
+    return (
+      <div className="bg-white p-8 rounded-lg shadow-sm text-center text-gray-500">
+        Loading...
+      </div>
+    )
+  }
 
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-        <h2 className="text-2xl font-bold">Laporan Absensi</h2>
-        {attendances.length > 0 && (
+        <h2 className="text-2xl font-bold">Rekap Absensi Les</h2>
+        {lessons.length > 0 && (
           <button
             onClick={exportCSV}
             className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
@@ -95,241 +137,248 @@ export default function ReportsPage() {
         )}
       </div>
 
-      {/* Filters */}
-      <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
-          <div className="w-full sm:w-auto">
-            <label className="block text-sm font-medium mb-1">Dari Tanggal</label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="w-full sm:w-auto px-3 py-2 border rounded-md"
-            />
-          </div>
-          <div className="w-full sm:w-auto">
-            <label className="block text-sm font-medium mb-1">Sampai Tanggal</label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="w-full sm:w-auto px-3 py-2 border rounded-md"
-            />
-          </div>
-          <div className="w-full sm:w-auto">
-            <label className="block text-sm font-medium mb-1">Cabang Daerah</label>
-            <select
-              value={cabangFilter}
-              onChange={(e) => setCabangFilter(e.target.value)}
-              className="w-full sm:w-auto px-3 py-2 border rounded-md"
+      {/* Filters - OWNER only */}
+      {user.role === 'OWNER' && (
+        <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
+            <div className="w-full sm:w-auto">
+              <label className="block text-sm font-medium mb-1">Dari Tanggal</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full sm:w-auto px-3 py-2 border rounded-md"
+              />
+            </div>
+            <div className="w-full sm:w-auto">
+              <label className="block text-sm font-medium mb-1">Sampai Tanggal</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full sm:w-auto px-3 py-2 border rounded-md"
+              />
+            </div>
+            <div className="w-full sm:w-auto">
+              <label className="block text-sm font-medium mb-1">Guru</label>
+              <select
+                value={guruFilter}
+                onChange={(e) => setGuruFilter(e.target.value)}
+                className="w-full sm:w-auto px-3 py-2 border rounded-md"
+              >
+                <option value="">Semua Guru</option>
+                {guruNames.map((g) => (
+                  <option key={g} value={g}>{g}</option>
+                ))}
+              </select>
+            </div>
+            <div className="w-full sm:w-auto">
+              <label className="block text-sm font-medium mb-1">Jenis Pembelajaran</label>
+              <select
+                value={jenisFilter}
+                onChange={(e) => setJenisFilter(e.target.value)}
+                className="w-full sm:w-auto px-3 py-2 border rounded-md"
+              >
+                <option value="">Semua Jenis</option>
+                {jenisList.map((j) => (
+                  <option key={j} value={j}>{j}</option>
+                ))}
+              </select>
+            </div>
+            <button
+              onClick={handleSearch}
+              className="w-full sm:w-auto bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
             >
-              <option value="">Semua Cabang Daerah</option>
-              {cabangs.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
+              Cari
+            </button>
           </div>
-          <button
-            onClick={handleSearch}
-            className="w-full sm:w-auto bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Cari
-          </button>
         </div>
-        <div className="mt-4 flex gap-2">
-          <button
-            onClick={() => setView('summary')}
-            className={`px-3 py-1 rounded text-sm ${
-              view === 'summary'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            Ringkasan
-          </button>
-          <button
-            onClick={() => setView('detail')}
-            className={`px-3 py-1 rounded text-sm ${
-              view === 'detail'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            Detail
-          </button>
-        </div>
-      </div>
+      )}
 
       {/* Content */}
       {loading ? (
         <div className="bg-white p-8 rounded-lg shadow-sm text-center text-gray-500">
           Loading...
         </div>
-      ) : view === 'summary' ? (
-        <>
-          {/* Summary Table - Desktop */}
-          <div className="hidden sm:block bg-white rounded-lg shadow-sm overflow-hidden">
-            {summary.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">Tidak ada data</div>
-            ) : (
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">NIS</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cabang Daerah</th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Hadir</th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Izin</th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Sakit</th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Alpa</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {summary.map((item) => (
-                    <tr key={item.student.id}>
-                      <td className="px-6 py-4">{item.student.name}</td>
-                      <td className="px-6 py-4">{item.student.nis}</td>
-                      <td className="px-6 py-4">{item.student.cabangDaerah}</td>
-                      <td className="px-6 py-4 text-center">
-                        <span className="text-green-600 font-medium">{item.HADIR}</span>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <span className="text-yellow-600 font-medium">{item.IZIN}</span>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <span className="text-orange-600 font-medium">{item.SAKIT}</span>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <span className="text-red-600 font-medium">{item.ALPA}</span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-
-          {/* Summary Cards - Mobile */}
-          <div className="sm:hidden space-y-4">
-            {summary.length === 0 ? (
-              <div className="bg-white p-8 text-center text-gray-500 rounded-lg shadow-sm">
-                Tidak ada data
-              </div>
-            ) : (
-              summary.map((item) => (
-                <div key={item.student.id} className="bg-white p-4 rounded-lg shadow-sm">
-                  <h4 className="font-medium">{item.student.name}</h4>
-                  <p className="text-sm text-gray-500">NIS: {item.student.nis} | Cabang Daerah: {item.student.cabangDaerah}</p>
-                  <div className="grid grid-cols-4 gap-2 mt-3">
-                    <div className="text-center">
-                      <p className="text-lg font-bold text-green-600">{item.HADIR}</p>
-                      <p className="text-xs text-gray-500">Hadir</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-lg font-bold text-yellow-600">{item.IZIN}</p>
-                      <p className="text-xs text-gray-500">Izin</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-lg font-bold text-orange-600">{item.SAKIT}</p>
-                      <p className="text-xs text-gray-500">Sakit</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-lg font-bold text-red-600">{item.ALPA}</p>
-                      <p className="text-xs text-gray-500">Alpa</p>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </>
+      ) : lessons.length === 0 ? (
+        <div className="bg-white p-8 rounded-lg shadow-sm text-center text-gray-500">
+          Tidak ada data les
+        </div>
       ) : (
         <>
-          {/* Detail Table - Desktop */}
-          <div className="hidden sm:block bg-white rounded-lg shadow-sm overflow-hidden">
-            {attendances.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">Tidak ada data</div>
-            ) : (
-              <table className="w-full">
+          {/* Desktop Table */}
+          <div className="hidden lg:block bg-white rounded-lg shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[1200px]">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cabang Daerah</th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Catatan</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Guru</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jenis</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Lokasi</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kelas</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Murid</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Murid</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jam</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Wali Murid</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Catatan</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {attendances.map((a) => (
-                    <tr key={a.id}>
-                      <td className="px-6 py-4">
-                        {new Date(a.date).toLocaleDateString('id-ID')}
+                  {lessons.map((lesson) => (
+                    <tr
+                      key={lesson.id}
+                      className="hover:bg-gray-50 cursor-pointer"
+                      onClick={() => setSelectedLesson(lesson)}
+                    >
+                      <td className="px-4 py-3 text-sm whitespace-nowrap">
+                        {new Date(lesson.tanggalLes).toLocaleDateString('id-ID')}
                       </td>
-                      <td className="px-6 py-4">{a.student.name}</td>
-                      <td className="px-6 py-4">{a.student.cabangDaerah}</td>
-                      <td className="px-6 py-4 text-center">
-                        <span
-                          className={`px-2 py-1 rounded text-xs font-medium ${
-                            a.status === 'HADIR'
-                              ? 'bg-green-100 text-green-800'
-                              : a.status === 'IZIN'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : a.status === 'SAKIT'
-                              ? 'bg-orange-100 text-orange-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}
-                        >
-                          {a.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">{a.note || '-'}</td>
+                      <td className="px-4 py-3 text-sm">{lesson.namaGuru}</td>
+                      <td className="px-4 py-3 text-sm">{lesson.jenisPembelajaran}</td>
+                      <td className="px-4 py-3 text-sm">{lesson.lokasiMengajar}</td>
+                      <td className="px-4 py-3 text-sm">{lesson.kelasMurid || '-'}</td>
+                      <td className="px-4 py-3 text-sm text-center">{lesson.jumlahMurid}</td>
+                      <td className="px-4 py-3 text-sm">{lesson.namaMurid}</td>
+                      <td className="px-4 py-3 text-sm whitespace-nowrap">{lesson.jamMulai} - {lesson.jamSelesai}</td>
+                      <td className="px-4 py-3 text-sm">{lesson.namaWaliMurid}</td>
+                      <td className="px-4 py-3 text-sm max-w-[200px] truncate">{lesson.catatanMateri}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            )}
+            </div>
           </div>
 
-          {/* Detail Cards - Mobile */}
-          <div className="sm:hidden space-y-4">
-            {attendances.length === 0 ? (
-              <div className="bg-white p-8 text-center text-gray-500 rounded-lg shadow-sm">
-                Tidak ada data
-              </div>
-            ) : (
-              attendances.map((a) => (
-                <div key={a.id} className="bg-white p-4 rounded-lg shadow-sm">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="font-medium">{a.student.name}</p>
-                      <p className="text-sm text-gray-500">Cabang Daerah: {a.student.cabangDaerah}</p>
-                      <p className="text-sm text-gray-500">
-                        {new Date(a.date).toLocaleDateString('id-ID')}
-                      </p>
-                    </div>
-                    <span
-                      className={`px-2 py-1 rounded text-xs font-medium ${
-                        a.status === 'HADIR'
-                          ? 'bg-green-100 text-green-800'
-                          : a.status === 'IZIN'
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : a.status === 'SAKIT'
-                          ? 'bg-orange-100 text-orange-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}
-                    >
-                      {a.status}
-                    </span>
+          {/* Mobile Cards */}
+          <div className="lg:hidden space-y-4">
+            {lessons.map((lesson) => (
+              <div
+                key={lesson.id}
+                className="bg-white p-4 rounded-lg shadow-sm"
+                onClick={() => setSelectedLesson(lesson)}
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <p className="font-medium">{lesson.namaMurid}</p>
+                    <p className="text-sm text-gray-500">{lesson.namaGuru}</p>
                   </div>
-                  {a.note && (
-                    <p className="text-sm text-gray-600 mt-2">Catatan: {a.note}</p>
-                  )}
+                  <span className="text-sm text-gray-500">
+                    {new Date(lesson.tanggalLes).toLocaleDateString('id-ID')}
+                  </span>
                 </div>
-              ))
-            )}
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-gray-500">Jenis:</span> {lesson.jenisPembelajaran}
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Lokasi:</span> {lesson.lokasiMengajar}
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Jam:</span> {lesson.jamMulai} - {lesson.jamSelesai}
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Murid:</span> {lesson.jumlahMurid} orang
+                  </div>
+                </div>
+                {lesson.catatanMateri && (
+                  <p className="text-sm text-gray-600 mt-2 line-clamp-2">{lesson.catatanMateri}</p>
+                )}
+              </div>
+            ))}
           </div>
         </>
+      )}
+
+      {/* Detail Modal */}
+      {selectedLesson && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-lg max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="text-lg font-bold">Detail Les</h3>
+                <button
+                  onClick={() => setSelectedLesson(null)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="space-y-3 text-sm">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <span className="text-gray-500">Tanggal:</span>
+                    <p className="font-medium">{new Date(selectedLesson.tanggalLes).toLocaleDateString('id-ID')}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Jam:</span>
+                    <p className="font-medium">{selectedLesson.jamMulai} - {selectedLesson.jamSelesai}</p>
+                  </div>
+                </div>
+                <div>
+                  <span className="text-gray-500">Nama Guru:</span>
+                  <p className="font-medium">{selectedLesson.namaGuru}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500">WhatsApp Guru:</span>
+                  <p className="font-medium">{selectedLesson.whatsappGuru}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500">Jenis Pembelajaran:</span>
+                  <p className="font-medium">{selectedLesson.jenisPembelajaran}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500">Lokasi Mengajar:</span>
+                  <p className="font-medium">{selectedLesson.lokasiMengajar}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <span className="text-gray-500">Kelas Murid:</span>
+                    <p className="font-medium">{selectedLesson.kelasMurid || '-'}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Jumlah Murid:</span>
+                    <p className="font-medium">{selectedLesson.jumlahMurid}</p>
+                  </div>
+                </div>
+                <div>
+                  <span className="text-gray-500">Nama Murid:</span>
+                  <p className="font-medium">{selectedLesson.namaMurid}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500">Catatan / Materi:</span>
+                  <p className="font-medium whitespace-pre-wrap">{selectedLesson.catatanMateri}</p>
+                </div>
+                {selectedLesson.fotoUrl && (
+                  <div>
+                    <span className="text-gray-500">Foto:</span>
+                    <p className="font-medium">{selectedLesson.fotoUrl}</p>
+                  </div>
+                )}
+                <div>
+                  <span className="text-gray-500">Wali Murid:</span>
+                  <p className="font-medium">{selectedLesson.namaWaliMurid}</p>
+                </div>
+                {selectedLesson.whatsappWaliMurid && (
+                  <div>
+                    <span className="text-gray-500">WhatsApp Wali Murid:</span>
+                    <p className="font-medium">{selectedLesson.whatsappWaliMurid}</p>
+                  </div>
+                )}
+              </div>
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={() => setSelectedLesson(null)}
+                  className="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300"
+                >
+                  Tutup
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

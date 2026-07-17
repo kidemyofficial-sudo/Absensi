@@ -38,6 +38,7 @@ model User {
   // Relations
   students       Student[]          @relation("ParentStudents")
   attendances    Attendance[]       @relation("TeacherAttendances")
+  lessons        Lesson[]
   notifications  Notification[]
   branchTeachers BranchTeacher[]
 }
@@ -100,4 +101,27 @@ model BranchTeacher {
   student Student[]
 
   @@unique([userId, cabangDaerah])
+}
+
+model Lesson {
+  id                String   @id @default(cuid())
+  tanggalLes        DateTime @db.Date
+  guruId            String
+  namaGuru          String
+  whatsappGuru      String
+  jenisPembelajaran String
+  lokasiMengajar    String
+  kelasMurid        String?
+  jumlahMurid       Int
+  namaMurid         String
+  catatanMateri     String
+  fotoUrl           String?
+  jamMulai          String
+  jamSelesai        String
+  namaWaliMurid     String
+  whatsappWaliMurid String?
+  createdAt         DateTime @default(now())
+
+  // Relations
+  guru User @relation(fields: [guruId], references: [id])
 }

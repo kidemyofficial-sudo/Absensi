@@ -6,6 +6,7 @@ const prisma = new PrismaClient()
 async function main() {
   // Reset all data
   console.log('Menghapus semua data...')
+  await prisma.lesson.deleteMany()
   await prisma.attendance.deleteMany()
   await prisma.notification.deleteMany()
   await prisma.student.deleteMany()
