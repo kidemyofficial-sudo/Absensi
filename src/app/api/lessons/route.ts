@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { lessonSchema } from '@/lib/validations'
 import { apiRatelimit, getClientIp } from '@/lib/rate-limit'
 import { logAudit, getIp } from '@/lib/audit'
+import { sanitize } from '@/lib/sanitize'
 
 export async function GET(request: NextRequest) {
   const user = await getCurrentUser()
@@ -122,12 +123,12 @@ export async function POST(request: NextRequest) {
           lokasiMengajar: validatedData.lokasiMengajar,
           kelasMurid: validatedData.kelasMurid || null,
           jumlahMurid: validatedData.jumlahMurid,
-          namaMurid: validatedData.namaMurid,
-          catatanMateri: validatedData.catatanMateri,
+          namaMurid: sanitize(validatedData.namaMurid),
+          catatanMateri: sanitize(validatedData.catatanMateri),
           fotoUrl: validatedData.fotoUrl || null,
           jamMulai: validatedData.jamMulai,
           jamSelesai: validatedData.jamSelesai,
-          namaWaliMurid: validatedData.namaWaliMurid,
+          namaWaliMurid: sanitize(validatedData.namaWaliMurid),
           whatsappWaliMurid: validatedData.whatsappWaliMurid || null,
         },
       })

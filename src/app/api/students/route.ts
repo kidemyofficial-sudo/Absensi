@@ -3,6 +3,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { logAudit, getIp } from '@/lib/audit'
+import { sanitize } from '@/lib/sanitize'
 
 // Schema untuk Orang Tua mendaftarkan siswa
 const parentRegisterSchema = z.object({
@@ -106,10 +107,10 @@ export async function POST(request: NextRequest) {
     // Create student with PENDING status
     const student = await prisma.student.create({
       data: {
-        name: validatedData.name,
-        ttl: validatedData.ttl,
-        domisili: validatedData.domisili,
-        asalSekolah: validatedData.asalSekolah,
+        name: sanitize(validatedData.name),
+        ttl: sanitize(validatedData.ttl),
+        domisili: sanitize(validatedData.domisili),
+        asalSekolah: sanitize(validatedData.asalSekolah),
         parentId: user.id,
         status: 'PENDING',
       },

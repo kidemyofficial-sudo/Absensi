@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { studentSchema } from '@/lib/validations'
+import { logAudit, getIp } from '@/lib/audit'
 
 export async function GET(
   request: NextRequest,
@@ -71,11 +72,22 @@ export async function PUT(
       },
     })
 
+    // Audit log
+    await logAudit({
+      userId: user.id,
+      action: 'UPDATE',
+      entity: 'Student',
+      entityId: id,
+      oldData: { name: existingStudent.name, cabangDaerah: existingStudent.cabangDaerah },
+      newData: validatedData as Record<string, unknown>,
+      ip: getIp(request),
+    })
+
     return NextResponse.json({ student })
   } catch (error) {
     if (error instanceof Error && error.name === 'ZodError') {
       return NextResponse.json(
-        { error: 'Data tidak valid', details: error.message },
+        { error: 'Data tidak valid' },
         { status: 400 }
       )
     }
@@ -106,6 +118,16 @@ export async function DELETE(
   if (!existingStudent) {
     return NextResponse.json({ error: 'Siswa tidak ditemukan' }, { status: 404 })
   }
+
+  // Audit log sebelum delete
+  await logAudit({
+    userId: user.id,
+    action: 'DELETE',
+    entity: 'Student',
+    entityId: id,
+    oldData: { name: existingStudent.name, cabangDaerah: existingStudent.cabangDaerah },
+    ip: getIp(request),
+  })
 
   await prisma.student.delete({
     where: { id },

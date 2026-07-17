@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { verifyPassword, createToken, setTokenCookie } from '@/lib/auth'
 import { loginSchema } from '@/lib/validations'
 import { authRatelimit, getAuthKey } from '@/lib/rate-limit'
+import { logAudit, getIp } from '@/lib/audit'
 
 const MAX_ATTEMPTS = 5
 const LOCKOUT_MINUTES = 15
@@ -63,6 +64,16 @@ export async function POST(request: NextRequest) {
         data: { failedLoginAttempts: attempts, lockedUntil: lockUntil },
       })
 
+      // Audit log: login gagal
+      await logAudit({
+        userId: user.id,
+        action: 'UPDATE',
+        entity: 'User',
+        entityId: user.id,
+        newData: { event: 'login_failed', attempts, locked: !!lockUntil },
+        ip: getIp(request),
+      })
+
       if (lockUntil) {
         return NextResponse.json(
           { error: `Terlalu banyak percobaan gagal. Akun terkunci selama ${LOCKOUT_MINUTES} menit.` },
@@ -80,6 +91,16 @@ export async function POST(request: NextRequest) {
     await prisma.user.update({
       where: { id: user.id },
       data: { failedLoginAttempts: 0, lockedUntil: null },
+    })
+
+    // Audit log: login berhasil
+    await logAudit({
+      userId: user.id,
+      action: 'UPDATE',
+      entity: 'User',
+      entityId: user.id,
+      newData: { event: 'login_success' },
+      ip: getIp(request),
     })
 
     // Create token and set cookie
