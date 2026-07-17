@@ -193,10 +193,10 @@ function SidebarContent({ user, pathname, onNavigate }: { user: User; pathname: 
       {/* Logo */}
       <div className="px-5 py-5 border-b border-gray-100">
         <div className="flex items-center gap-3">
-          <img src="/image/kidemy.webp" alt="Kidemy" className="w-8 h-8 rounded-lg object-cover" />
+          <img src="/image/kidemy.webp" alt="Kidemy" className="w-10 h-10 rounded-xl object-cover" />
           <div>
-            <h1 className="text-sm font-semibold text-gray-900">Sistem Absensi</h1>
-            <p className="text-xs text-gray-400">{user.role}</p>
+            <h1 className="text-base font-bold text-gray-900">Sistem Absensi</h1>
+            <p className="text-xs font-semibold text-gray-500 uppercase">{user.role}</p>
           </div>
         </div>
       </div>
@@ -297,8 +297,11 @@ export default function Sidebar({ user, mobile }: SidebarProps) {
             <div className="fixed inset-y-0 left-0 w-72 bg-white shadow-2xl z-50 flex flex-col">
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                 <div className="flex items-center gap-2">
-                  <img src="/image/kidemy.webp" alt="Kidemy" className="w-7 h-7 rounded-lg object-cover" />
-                  <h1 className="text-sm font-semibold text-gray-900">Sistem Absensi</h1>
+                  <img src="/image/kidemy.webp" alt="Kidemy" className="w-9 h-9 rounded-xl object-cover" />
+                  <div>
+                    <h1 className="text-base font-bold text-gray-900">Sistem Absensi</h1>
+                    <p className="text-xs font-semibold text-gray-500 uppercase">{user.role}</p>
+                  </div>
                 </div>
                 <button
                   onClick={() => setIsOpen(false)}
