@@ -13,12 +13,58 @@ export default async function DashboardPage() {
 
   // Owner dashboard
   if (user.role === 'OWNER') {
-    const [totalStudents, totalTeachers, pendingStudents, todayAttendance] = await Promise.all([
+    const now = new Date()
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+
+    const [totalStudents, totalTeachers, pendingStudents, todayAttendance, monthlyRevenue] = await Promise.all([
       prisma.student.count({ where: { status: 'APPROVED' } }),
       prisma.user.count({ where: { role: 'GURU' } }),
       prisma.student.count({ where: { status: 'PENDING' } }),
       prisma.attendance.count({ where: { date: today } }),
+      prisma.lessonRevenue.findMany({
+        where: {
+          lesson: {
+            tanggalLes: { gte: startOfMonth, lte: endOfMonth },
+          },
+        },
+        include: {
+          lesson: {
+            select: { namaGuru: true },
+          },
+        },
+      }),
     ])
+
+    const totalPendapatanOwner = monthlyRevenue.reduce((sum, r) => sum + r.pendapatanOwner, 0)
+    const totalPendapatanGuru = monthlyRevenue.reduce((sum, r) => sum + r.pendapatanGuru, 0)
+    const totalLes = monthlyRevenue.length
+
+    // Group by guru
+    const guruRevenueMap = new Map<string, { namaGuru: string; total: number; count: number }>()
+    for (const rev of monthlyRevenue) {
+      const existing = guruRevenueMap.get(rev.lesson.namaGuru)
+      if (existing) {
+        existing.total += rev.pendapatanGuru
+        existing.count += 1
+      } else {
+        guruRevenueMap.set(rev.lesson.namaGuru, {
+          namaGuru: rev.lesson.namaGuru,
+          total: rev.pendapatanGuru,
+          count: 1,
+        })
+      }
+    }
+    const guruRevenues = Array.from(guruRevenueMap.values()).sort((a, b) => b.total - a.total)
+
+    const formatRupiah = (amount: number) => {
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(amount)
+    }
 
     return (
       <div>
@@ -47,6 +93,49 @@ export default async function DashboardPage() {
           </div>
         </div>
 
+        {/* Revenue Summary */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <h3 className="text-lg font-medium text-gray-900">Pendapatan Owner Bulan Ini</h3>
+            <p className="mt-2 text-3xl font-bold text-blue-600">{formatRupiah(totalPendapatanOwner)}</p>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <h3 className="text-lg font-medium text-gray-900">Total Bagi Guru Bulan Ini</h3>
+            <p className="mt-2 text-3xl font-bold text-green-600">{formatRupiah(totalPendapatanGuru)}</p>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <h3 className="text-lg font-medium text-gray-900">Total Les Bulan Ini</h3>
+            <p className="mt-2 text-3xl font-bold text-purple-600">{totalLes}</p>
+          </div>
+        </div>
+
+        {/* Revenue per Guru */}
+        {guruRevenues.length > 0 && (
+          <div className="bg-white p-6 rounded-lg shadow-sm mb-8">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Pendapatan Per Guru Bulan Ini</h3>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Guru</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jumlah Les</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Bagi Hasil</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {guruRevenues.map((g) => (
+                    <tr key={g.namaGuru}>
+                      <td className="px-4 py-3 text-sm text-gray-900">{g.namaGuru}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">{g.count}</td>
+                      <td className="px-4 py-3 text-sm font-medium text-green-600">{formatRupiah(g.total)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Link href="/students" className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
             <h3 className="text-lg font-medium text-gray-900">Kelola Siswa</h3>
@@ -63,22 +152,56 @@ export default async function DashboardPage() {
 
   // Guru dashboard
   if (user.role === 'GURU') {
-    const branchTeachers = await prisma.branchTeacher.findMany({
-      where: { userId: user.id },
-      select: {
-        cabangDaerah: true,
-        _count: {
-          select: { student: true },
-        },
-      },
-    })
+    const now = new Date()
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
 
-    const todayAttendances = await prisma.attendance.count({
-      where: {
-        teacherId: user.id,
-        date: today,
-      },
-    })
+    const [branchTeachers, todayAttendances, monthlyRevenues] = await Promise.all([
+      prisma.branchTeacher.findMany({
+        where: { userId: user.id },
+        select: {
+          cabangDaerah: true,
+          _count: {
+            select: { student: true },
+          },
+        },
+      }),
+      prisma.attendance.count({
+        where: {
+          teacherId: user.id,
+          date: today,
+        },
+      }),
+      prisma.lessonRevenue.findMany({
+        where: {
+          lesson: {
+            guruId: user.id,
+            tanggalLes: { gte: startOfMonth, lte: endOfMonth },
+          },
+        },
+        include: {
+          lesson: {
+            select: {
+              tanggalLes: true,
+              jumlahMurid: true,
+              namaMurid: true,
+              jenisPembelajaran: true,
+            },
+          },
+        },
+      }),
+    ])
+
+    const totalPendapatanGuru = monthlyRevenues.reduce((sum, r) => sum + r.pendapatanGuru, 0)
+
+    const formatRupiah = (amount: number) => {
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(amount)
+    }
 
     return (
       <div>
@@ -110,6 +233,16 @@ export default async function DashboardPage() {
               Input Absensi
             </Link>
           </div>
+        </div>
+
+        {/* Guru Revenue Summary */}
+        <div className="bg-white p-6 rounded-lg shadow-sm mb-8">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Estimasi Pendapatan Bulan Ini</h3>
+          <p className="text-3xl font-bold text-green-600 mb-2">{formatRupiah(totalPendapatanGuru)}</p>
+          <p className="text-sm text-gray-500">Pembayaran dilakukan langsung ke rekening Anda.</p>
+          <Link href="/pendapatan" className="mt-4 inline-block text-blue-600 hover:underline">
+            Lihat Detail Pendapatan →
+          </Link>
         </div>
       </div>
     )

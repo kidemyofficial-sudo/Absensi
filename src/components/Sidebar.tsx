@@ -23,12 +23,14 @@ const navItems = {
     { href: '/cabang-daerah', label: 'Cabang Daerah', icon: '🏫' },
     { href: '/attendance', label: 'Absensi', icon: '📝' },
     { href: '/reports', label: 'Laporan', icon: '📈' },
+    { href: '/pendapatan', label: 'Pendapatan', icon: '💰' },
     { href: '/settings', label: 'Pengaturan', icon: '⚙️' },
   ],
   GURU: [
     { href: '/dashboard', label: 'Dashboard', icon: '📊' },
     { href: '/attendance', label: 'Input Absensi', icon: '📝' },
     { href: '/reports', label: 'Laporan', icon: '📈' },
+    { href: '/pendapatan', label: 'Pendapatan', icon: '💰' },
     { href: '/settings', label: 'Pengaturan', icon: '⚙️' },
   ],
   ORANG_TUA: [

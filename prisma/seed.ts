@@ -6,12 +6,14 @@ const prisma = new PrismaClient()
 async function main() {
   // Reset all data
   console.log('Menghapus semua data...')
+  await prisma.lessonRevenue.deleteMany()
   await prisma.lesson.deleteMany()
   await prisma.attendance.deleteMany()
   await prisma.notification.deleteMany()
   await prisma.student.deleteMany()
   await prisma.branchTeacher.deleteMany()
   await prisma.user.deleteMany()
+  await prisma.revenueSetting.deleteMany()
   console.log('Semua data berhasil dihapus.')
 
   // Create owner account
@@ -25,6 +27,15 @@ async function main() {
       phone: ownerPhone,
       password: hashedPassword,
       role: 'OWNER',
+    },
+  })
+
+  // Create default revenue settings
+  await prisma.revenueSetting.create({
+    data: {
+      biayaPerSiswaPerSesi: 50000,
+      persentaseOwner: 40,
+      persentaseGuru: 60,
     },
   })
 

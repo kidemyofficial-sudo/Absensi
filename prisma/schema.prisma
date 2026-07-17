@@ -123,5 +123,27 @@ model Lesson {
   createdAt         DateTime @default(now())
 
   // Relations
-  guru User @relation(fields: [guruId], references: [id])
+  guru     User            @relation(fields: [guruId], references: [id])
+  revenue  LessonRevenue?
+}
+
+model RevenueSetting {
+  id                   String   @id @default(cuid())
+  biayaPerSiswaPerSesi Int      @default(50000)
+  persentaseOwner      Int      @default(40)
+  persentaseGuru       Int      @default(60)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model LessonRevenue {
+  id              String   @id @default(cuid())
+  lessonId        String   @unique
+  biayaTotal      Int
+  pendapatanOwner Int
+  pendapatanGuru  Int
+  createdAt       DateTime @default(now())
+
+  // Relations
+  lesson Lesson @relation(fields: [lessonId], references: [id])
 }

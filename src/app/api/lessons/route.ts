@@ -114,7 +114,32 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    return NextResponse.json({ lesson }, { status: 201 })
+    // Auto-calculate revenue
+    let revenueSetting = await prisma.revenueSetting.findFirst()
+    if (!revenueSetting) {
+      revenueSetting = await prisma.revenueSetting.create({
+        data: {
+          biayaPerSiswaPerSesi: 50000,
+          persentaseOwner: 40,
+          persentaseGuru: 60,
+        },
+      })
+    }
+
+    const biayaTotal = Number(jumlahMurid) * revenueSetting.biayaPerSiswaPerSesi
+    const pendapatanOwner = Math.floor(biayaTotal * revenueSetting.persentaseOwner / 100)
+    const pendapatanGuru = Math.floor(biayaTotal * revenueSetting.persentaseGuru / 100)
+
+    const lessonRevenue = await prisma.lessonRevenue.create({
+      data: {
+        lessonId: lesson.id,
+        biayaTotal,
+        pendapatanOwner,
+        pendapatanGuru,
+      },
+    })
+
+    return NextResponse.json({ lesson, revenue: lessonRevenue }, { status: 201 })
   } catch (error) {
     console.error('Create lesson error:', error)
     return NextResponse.json(
