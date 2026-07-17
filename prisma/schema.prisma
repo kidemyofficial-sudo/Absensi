@@ -27,13 +27,15 @@ enum StudentStatus {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  phone     String   @unique
-  password  String
-  role      Role
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                 String    @id @default(cuid())
+  name               String
+  phone              String    @unique
+  password           String
+  role               Role
+  failedLoginAttempts Int      @default(0)
+  lockedUntil        DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   // Relations
   students       Student[]          @relation("ParentStudents")
@@ -131,6 +133,22 @@ model Lesson {
   guru     User            @relation(fields: [guruId], references: [id])
   student  Student?        @relation(fields: [studentId], references: [id])
   revenue  LessonRevenue?
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String   // CREATE, UPDATE, DELETE
+  entity    String   // Student, Lesson, User, BranchTeacher
+  entityId  String
+  oldData   Json?
+  newData   Json?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([entity, entityId])
+  @@index([createdAt])
 }
 
 model LessonRevenue {

@@ -3,6 +3,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { lessonSchema } from '@/lib/validations'
 import { apiRatelimit, getClientIp } from '@/lib/rate-limit'
+import { logAudit, getIp } from '@/lib/audit'
 
 export async function GET(request: NextRequest) {
   const user = await getCurrentUser()
@@ -158,6 +159,16 @@ export async function POST(request: NextRequest) {
       })
 
       return { lesson, revenue: lessonRevenue }
+    })
+
+    // Audit log
+    await logAudit({
+      userId: user.id,
+      action: 'CREATE',
+      entity: 'Lesson',
+      entityId: result.lesson.id,
+      newData: { namaMurid: validatedData.namaMurid, jumlahMurid: validatedData.jumlahMurid },
+      ip: getIp(request),
     })
 
     return NextResponse.json(result, { status: 201 })

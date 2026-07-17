@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { logAudit, getIp } from '@/lib/audit'
 
 // Schema untuk Orang Tua mendaftarkan siswa
 const parentRegisterSchema = z.object({
@@ -136,11 +137,21 @@ export async function POST(request: NextRequest) {
       )
     )
 
+    // Audit log
+    await logAudit({
+      userId: user.id,
+      action: 'CREATE',
+      entity: 'Student',
+      entityId: student.id,
+      newData: { name: student.name, status: 'PENDING' },
+      ip: getIp(request),
+    })
+
     return NextResponse.json({ student }, { status: 201 })
   } catch (error) {
     if (error instanceof Error && error.name === 'ZodError') {
       return NextResponse.json(
-        { error: 'Data tidak valid', details: error.message },
+        { error: 'Data tidak valid' },
         { status: 400 }
       )
     }
