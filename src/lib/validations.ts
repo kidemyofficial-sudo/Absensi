@@ -53,6 +53,7 @@ export type BulkAttendanceInput = z.infer<typeof bulkAttendanceSchema>
 
 export const lessonSchema = z.object({
   tanggalLes: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal harus YYYY-MM-DD'),
+  studentId: z.string().cuid().optional().nullable(), // Relasi ke student
   jenisPembelajaran: z.string().min(1, 'Jenis pembelajaran harus diisi').max(100),
   lokasiMengajar: z.string().min(1, 'Lokasi mengajar harus diisi').max(100),
   kelasMurid: z.string().max(50).optional().nullable(),

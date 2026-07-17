@@ -54,12 +54,13 @@ export async function GET(request: NextRequest) {
   if (user.role === 'ORANG_TUA') {
     const children = await prisma.student.findMany({
       where: { parentId: user.id },
-      select: { name: true },
+      select: { id: true },
     })
     if (children.length > 0) {
-      where.namaMurid = { in: children.map((c) => c.name) }
+      // Gunakan studentId untuk filtering (bukan nama)
+      where.studentId = { in: children.map((c) => c.id) }
     } else {
-      where.namaMurid = '__NONE__'
+      where.studentId = '__NONE__'
     }
   }
 
@@ -113,6 +114,7 @@ export async function POST(request: NextRequest) {
         data: {
           tanggalLes: new Date(validatedData.tanggalLes),
           guruId: user.id,
+          studentId: validatedData.studentId || null,
           namaGuru: user.name,
           whatsappGuru: user.phone,
           jenisPembelajaran: validatedData.jenisPembelajaran,

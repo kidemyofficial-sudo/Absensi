@@ -26,13 +26,21 @@ export async function createToken(payload: JWTPayload): Promise<string> {
   return new SignJWT(payload as unknown as Record<string, unknown>)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
-    .setExpirationTime('7d')
+    .setExpirationTime('2h') // Dikurangi dari 7 hari ke 2 jam
     .sign(secretKey)
 }
 
 export async function verifyToken(token: string): Promise<JWTPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, secretKey)
+    const { payload } = await jwtVerify(token, secretKey, {
+      algorithms: ['HS256'], // Enforce algorithm
+    })
+
+    // Validate expiry explicitly
+    if (!payload.exp) {
+      return null
+    }
+
     return payload as unknown as JWTPayload
   } catch {
     return null
@@ -75,9 +83,9 @@ export async function setTokenCookie(token: string) {
   const cookieStore = await cookies()
   cookieStore.set('token', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 7, // 7 days
+    secure: true, // Selalu true — tidak conditional
+    sameSite: 'strict', // Ubah dari 'lax' ke 'strict'
+    maxAge: 60 * 60 * 2, // 2 jam (dikurangi dari 7 hari)
     path: '/',
   })
 }
@@ -86,8 +94,8 @@ export async function clearTokenCookie() {
   const cookieStore = await cookies()
   cookieStore.set('token', '', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: true, // Selalu true
+    sameSite: 'strict',
     maxAge: 0,
     path: '/',
   })

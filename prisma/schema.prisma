@@ -59,6 +59,7 @@ model Student {
   parent          User          @relation("ParentStudents", fields: [parentId], references: [id])
   attendances     Attendance[]
   branchTeachers  BranchTeacher[]
+  lessons         Lesson[]
 }
 
 model Attendance {
@@ -110,6 +111,7 @@ model Lesson {
   id                String   @id @default(cuid())
   tanggalLes        DateTime @db.Date
   guruId            String
+  studentId         String?  // Relasi ke student (opsional, untuk filtering orang tua)
   namaGuru          String
   whatsappGuru      String
   jenisPembelajaran String
@@ -127,6 +129,7 @@ model Lesson {
 
   // Relations
   guru     User            @relation(fields: [guruId], references: [id])
+  student  Student?        @relation(fields: [studentId], references: [id])
   revenue  LessonRevenue?
 }
 
