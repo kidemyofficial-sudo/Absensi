@@ -62,6 +62,12 @@ export async function getCurrentUser() {
     },
   })
 
+  // User not found in DB (e.g. after DB reset) — clear stale cookie
+  if (!user) {
+    await clearTokenCookie()
+    return null
+  }
+
   return user
 }
 

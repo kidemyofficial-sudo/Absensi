@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server'
 import { verifyToken } from '@/lib/auth'
 
 // Routes that require authentication
-const protectedRoutes = ['/dashboard', '/students', '/attendance', '/reports']
+const protectedRoutes = ['/dashboard', '/students', '/attendance', '/reports', '/cabang-daerah', '/guru', '/settings']
 
 // Routes that are only for unauthenticated users
 const authRoutes = ['/login', '/register']
