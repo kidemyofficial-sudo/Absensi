@@ -49,7 +49,28 @@ export default function StudentsPage() {
   const [branchTeachers, setBranchTeachers] = useState<BranchTeacher[]>([])
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [assignModal, setAssignModal] = useState<Student | null>(null)
-  const [assignData, setAssignData] = useState({ provinsi: '', kotaKabupaten: '', teacherId: '' })
+  const [assignData, setAssignData] = useState({ provinsi: '', kotaKabupaten: '', teacherId: '', mataPelajaran: '' })
+
+  const mataPelajaranList = [
+    'Matematika',
+    'Bahasa Indonesia',
+    'Bahasa Inggris',
+    'IPA',
+    'IPS',
+    'PPKN',
+    'Seni Budaya',
+    'Penjaskes',
+    'Prakarya',
+    'Komputer',
+    'Pendidikan Agama',
+    'Sejarah',
+    'Geografi',
+    'Ekonomi',
+    'Sosiologi',
+    'Fisika',
+    'Kimia',
+    'Biologi',
+  ]
 
   useEffect(() => {
     fetchUser()
@@ -120,12 +141,13 @@ export default function StudentsPage() {
         provinsi: assignData.provinsi,
         kotaKabupaten: assignData.kotaKabupaten,
         teacherId: assignData.teacherId,
+        mataPelajaran: assignData.mataPelajaran,
       }),
     })
 
     if (res.ok) {
       setAssignModal(null)
-      setAssignData({ provinsi: '', kotaKabupaten: '', teacherId: '' })
+      setAssignData({ provinsi: '', kotaKabupaten: '', teacherId: '', mataPelajaran: '' })
       fetchStudents()
     }
   }
@@ -216,6 +238,19 @@ export default function StudentsPage() {
                   <option value="">Pilih Guru</option>
                   {teachers.map((teacher) => (
                     <option key={teacher.id} value={teacher.id}>{teacher.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Mata Pelajaran (opsional)</label>
+                <select
+                  value={assignData.mataPelajaran}
+                  onChange={(e) => setAssignData({ ...assignData, mataPelajaran: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-md text-black"
+                >
+                  <option value="">Pilih Mata Pelajaran</option>
+                  {mataPelajaranList.map((mp) => (
+                    <option key={mp} value={mp}>{mp}</option>
                   ))}
                 </select>
               </div>
@@ -311,7 +346,7 @@ export default function StudentsPage() {
                           <button
                             onClick={() => {
                               setAssignModal(student)
-                              setAssignData({ provinsi: '', kotaKabupaten: '', teacherId: '' })
+                              setAssignData({ provinsi: '', kotaKabupaten: '', teacherId: '', mataPelajaran: '' })
                             }}
                             className="text-blue-600 hover:text-blue-900"
                           >

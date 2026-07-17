@@ -8,6 +8,7 @@ const assignSchema = z.object({
   provinsi: z.string().min(1, 'Provinsi harus diisi'),
   kotaKabupaten: z.string().min(1, 'Kota/Kabupaten harus diisi'),
   teacherId: z.string().optional(),
+  mataPelajaran: z.string().optional(),
 })
 
 export async function PATCH(
@@ -79,6 +80,7 @@ export async function PATCH(
             cabangDaerah: validatedData.cabangDaerah,
             provinsi: validatedData.provinsi,
             kotaKabupaten: validatedData.kotaKabupaten,
+            mataPelajaran: validatedData.mataPelajaran || 'Umum',
           },
         })
       }

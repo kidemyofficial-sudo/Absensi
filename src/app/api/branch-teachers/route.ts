@@ -33,9 +33,9 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { teacherId, cabangDaerah, provinsi, kotaKabupaten } = body
+    const { teacherId, cabangDaerah, provinsi, kotaKabupaten, mataPelajaran } = body
 
-    if (!teacherId || !cabangDaerah || !provinsi || !kotaKabupaten) {
+    if (!teacherId || !cabangDaerah || !provinsi || !kotaKabupaten || !mataPelajaran) {
       return NextResponse.json({ error: 'Data tidak lengkap' }, { status: 400 })
     }
 
@@ -68,6 +68,7 @@ export async function POST(request: NextRequest) {
         cabangDaerah,
         provinsi,
         kotaKabupaten,
+        mataPelajaran,
       },
       include: {
         user: {

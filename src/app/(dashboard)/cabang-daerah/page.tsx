@@ -14,6 +14,7 @@ interface BranchTeacher {
   cabangDaerah: string
   provinsi: string
   kotaKabupaten: string
+  mataPelajaran: string
   user: Teacher
   student: { id: string; name: string }[]
 }
@@ -27,13 +28,37 @@ export default function CabangDaerahPage() {
     provinsi: '',
     kotaKabupaten: '',
     teacherId: '',
+    mataPelajaran: '',
   })
   const [message, setMessage] = useState('')
   const [search, setSearch] = useState('')
+  const [expandedCabang, setExpandedCabang] = useState<string | null>(null)
+  const [expandedGuru, setExpandedGuru] = useState<string | null>(null)
 
   const kotaList = formData.provinsi
     ? kotaKabupatenByProvinsi[formData.provinsi as Provinsi] || []
     : []
+
+  const mataPelajaranList = [
+    'Matematika',
+    'Bahasa Indonesia',
+    'Bahasa Inggris',
+    'IPA',
+    'IPS',
+    'PPKN',
+    'Seni Budaya',
+    'Penjaskes',
+    'Prakarya',
+    'Komputer',
+    'Pendidikan Agama',
+    'Sejarah',
+    'Geografi',
+    'Ekonomi',
+    'Sosiologi',
+    'Fisika',
+    'Kimia',
+    'Biologi',
+  ]
 
   useEffect(() => {
     fetchData()
@@ -71,6 +96,7 @@ export default function CabangDaerahPage() {
           provinsi: formData.provinsi,
           kotaKabupaten: formData.kotaKabupaten,
           teacherId: formData.teacherId,
+          mataPelajaran: formData.mataPelajaran,
         }),
       })
 
@@ -81,7 +107,7 @@ export default function CabangDaerahPage() {
       }
 
       setMessage('Cabang Daerah berhasil ditambahkan!')
-      setFormData({ provinsi: '', kotaKabupaten: '', teacherId: '' })
+      setFormData({ provinsi: '', kotaKabupaten: '', teacherId: '', mataPelajaran: '' })
       setShowForm(false)
       fetchData()
     } catch (err) {
@@ -119,7 +145,9 @@ export default function CabangDaerahPage() {
   const filteredCabangs = Object.entries(groupedByCabang).filter(([cabangDaerah, bts]) =>
     cabangDaerah.toLowerCase().includes(search.toLowerCase()) ||
     bts.some(bt => bt.provinsi.toLowerCase().includes(search.toLowerCase()) ||
-      bt.kotaKabupaten.toLowerCase().includes(search.toLowerCase()))
+      bt.kotaKabupaten.toLowerCase().includes(search.toLowerCase()) ||
+      bt.user.name.toLowerCase().includes(search.toLowerCase()) ||
+      bt.mataPelajaran.toLowerCase().includes(search.toLowerCase()))
   )
 
   return (
@@ -129,7 +157,7 @@ export default function CabangDaerahPage() {
         <button
           onClick={() => {
             setShowForm(!showForm)
-            setFormData({ provinsi: '', kotaKabupaten: '', teacherId: '' })
+            setFormData({ provinsi: '', kotaKabupaten: '', teacherId: '', mataPelajaran: '' })
           }}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
@@ -152,7 +180,7 @@ export default function CabangDaerahPage() {
         <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Tambah Cabang Daerah Baru</h3>
           <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Provinsi</label>
                 <select
@@ -196,6 +224,20 @@ export default function CabangDaerahPage() {
                   ))}
                 </select>
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Mata Pelajaran</label>
+                <select
+                  value={formData.mataPelajaran}
+                  onChange={(e) => setFormData({ ...formData, mataPelajaran: e.target.value })}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                >
+                  <option value="">Pilih Mata Pelajaran</option>
+                  {mataPelajaranList.map((mp) => (
+                    <option key={mp} value={mp}>{mp}</option>
+                  ))}
+                </select>
+              </div>
             </div>
             {formData.kotaKabupaten && formData.provinsi && (
               <p className="text-sm text-gray-500 mb-4">
@@ -216,7 +258,7 @@ export default function CabangDaerahPage() {
       <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
         <input
           type="text"
-          placeholder="Cari nama cabang daerah, provinsi, atau kota..."
+          placeholder="Cari nama cabang, guru, mata pelajaran..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full px-3 py-2 border rounded-md text-black"
@@ -230,33 +272,106 @@ export default function CabangDaerahPage() {
         ) : filteredCabangs.length === 0 ? (
           <div className="bg-white p-8 text-center text-gray-500 rounded-lg shadow-sm">Tidak ada cabang daerah ditemukan</div>
         ) : (
-          filteredCabangs.map(([cabangDaerah, bts]) => (
-            <div key={cabangDaerah} className="bg-white rounded-lg shadow-sm p-4">
-              <div className="flex justify-between items-center mb-3">
-                <div>
-                  <h4 className="text-lg font-medium">Cabang Daerah {cabangDaerah}</h4>
-                  <p className="text-sm text-gray-500">{bts[0]?.provinsi} — {bts[0]?.kotaKabupaten}</p>
-                </div>
-                <span className="text-sm">{bts.length} guru</span>
-              </div>
-              <div className="space-y-2">
-                {bts.map((bt) => (
-                  <div key={bt.id} className="flex justify-between items-center bg-gray-50 p-3 rounded">
+          filteredCabangs.map(([cabangDaerah, bts]) => {
+            const totalMurid = bts.reduce((sum, bt) => sum + bt.student.length, 0)
+            const isExpanded = expandedCabang === cabangDaerah
+
+            return (
+              <div key={cabangDaerah} className="bg-white rounded-lg shadow-sm">
+                {/* Level 1 - Cabang Daerah Card */}
+                <div
+                  className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={() => {
+                    setExpandedCabang(isExpanded ? null : cabangDaerah)
+                    setExpandedGuru(null)
+                  }}
+                >
+                  <div className="flex justify-between items-center">
                     <div>
-                      <p className="font-medium">{bt.user.name}</p>
-                      <p className="text-sm">{bt.student.length} siswa terdaftar</p>
+                      <h4 className="text-lg font-medium text-black">{cabangDaerah}</h4>
+                      <p className="text-sm text-gray-500">{bts[0]?.provinsi} — {bts[0]?.kotaKabupaten}</p>
                     </div>
-                    <button
-                      onClick={() => handleDelete(bt.id)}
-                      className="text-red-600 hover:text-red-900 text-sm"
-                    >
-                      Hapus
-                    </button>
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <p className="text-sm text-gray-600">{bts.length} guru</p>
+                        <p className="text-sm text-gray-600">{totalMurid} murid</p>
+                      </div>
+                      <span className={`text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
+                        ▼
+                      </span>
+                    </div>
                   </div>
-                ))}
+                </div>
+
+                {/* Level 2 - Daftar Guru */}
+                {isExpanded && (
+                  <div className="border-t border-gray-200 p-4">
+                    <h5 className="text-sm font-medium text-gray-700 mb-3">Daftar Guru</h5>
+                    <div className="space-y-2">
+                      {bts.map((bt) => {
+                        const isGuruExpanded = expandedGuru === bt.id
+
+                        return (
+                          <div key={bt.id} className="bg-gray-50 rounded-lg">
+                            {/* Guru Card */}
+                            <div
+                              className="p-3 cursor-pointer hover:bg-gray-100 transition-colors rounded-lg"
+                              onClick={() => setExpandedGuru(isGuruExpanded ? null : bt.id)}
+                            >
+                              <div className="flex justify-between items-center">
+                                <div className="flex items-center gap-3">
+                                  <span className="text-gray-400 text-sm">▶</span>
+                                  <div>
+                                    <p className="font-medium text-black">{bt.user.name}</p>
+                                    <p className="text-sm text-gray-500">{bt.mataPelajaran}</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <span className="text-sm text-gray-600">{bt.student.length} siswa</span>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      handleDelete(bt.id)
+                                    }}
+                                    className="text-red-600 hover:text-red-900 text-sm"
+                                  >
+                                    Hapus
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Level 3 - Daftar Siswa */}
+                            {isGuruExpanded && (
+                              <div className="px-3 pb-3">
+                                <div className="bg-white rounded-lg p-3">
+                                  <p className="text-xs text-gray-500 mb-2">
+                                    Mata Pelajaran: <span className="font-medium text-black">{bt.mataPelajaran}</span>
+                                  </p>
+                                  {bt.student.length === 0 ? (
+                                    <p className="text-sm text-gray-400 italic">Belum ada siswa terdaftar</p>
+                                  ) : (
+                                    <ul className="space-y-1">
+                                      {bt.student.map((s) => (
+                                        <li key={s.id} className="flex items-center gap-2 text-sm text-black">
+                                          <span className="text-gray-300">•</span>
+                                          {s.name}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          ))
+            )
+          })
         )}
       </div>
     </div>

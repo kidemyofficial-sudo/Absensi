@@ -93,6 +93,7 @@ model BranchTeacher {
   cabangDaerah   String
   provinsi       String
   kotaKabupaten  String
+  mataPelajaran  String
 
   // Relations
   user    User      @relation(fields: [userId], references: [id])
