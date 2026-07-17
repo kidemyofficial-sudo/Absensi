@@ -2,7 +2,6 @@ import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import ProfileForm from '@/components/ProfileForm'
 import PasswordForm from '@/components/PasswordForm'
-import RevenueSettingsForm from '@/components/RevenueSettingsForm'
 
 export default async function SettingsPage() {
   const user = await getCurrentUser()
@@ -51,23 +50,6 @@ export default async function SettingsPage() {
           </div>
           <PasswordForm />
         </div>
-
-        {user.role === 'OWNER' && (
-          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="text-base font-semibold text-gray-900">Pengaturan Bagi Hasil</h3>
-                <p className="text-xs text-gray-500">Atur persentase pembagian hasil</p>
-              </div>
-            </div>
-            <RevenueSettingsForm />
-          </div>
-        )}
       </div>
     </div>
   )

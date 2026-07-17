@@ -5,23 +5,20 @@ import { prisma } from '@/lib/prisma'
 export async function GET() {
   const user = await getCurrentUser()
 
-  if (!user) {
-    return NextResponse.json({ error: 'Tidak terautentikasi' }, { status: 401 })
+  if (!user || user.role !== 'OWNER') {
+    return NextResponse.json({ error: 'Hanya owner yang dapat mengakses' }, { status: 403 })
   }
 
-  let setting = await prisma.revenueSetting.findFirst()
-
-  if (!setting) {
-    setting = await prisma.revenueSetting.create({
-      data: {
-        biayaPerSiswaPerSesi: 50000,
-        persentaseOwner: 40,
-        persentaseGuru: 60,
+  const branchTeachers = await prisma.branchTeacher.findMany({
+    include: {
+      user: {
+        select: { id: true, name: true, phone: true },
       },
-    })
-  }
+    },
+    orderBy: { user: { name: 'asc' } },
+  })
 
-  return NextResponse.json({ setting })
+  return NextResponse.json({ branchTeachers })
 }
 
 export async function PUT(request: NextRequest) {
@@ -33,9 +30,9 @@ export async function PUT(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { biayaPerSiswaPerSesi, persentaseOwner, persentaseGuru } = body
+    const { branchTeacherId, biayaPerSesi, persentaseOwner, persentaseGuru } = body
 
-    if (biayaPerSiswaPerSesi === undefined || persentaseOwner === undefined || persentaseGuru === undefined) {
+    if (!branchTeacherId || biayaPerSesi === undefined || persentaseOwner === undefined || persentaseGuru === undefined) {
       return NextResponse.json(
         { error: 'Semua field wajib harus diisi' },
         { status: 400 }
@@ -49,28 +46,21 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    let setting = await prisma.revenueSetting.findFirst()
-
-    if (setting) {
-      setting = await prisma.revenueSetting.update({
-        where: { id: setting.id },
-        data: {
-          biayaPerSiswaPerSesi: Number(biayaPerSiswaPerSesi),
-          persentaseOwner: Number(persentaseOwner),
-          persentaseGuru: Number(persentaseGuru),
+    const updated = await prisma.branchTeacher.update({
+      where: { id: branchTeacherId },
+      data: {
+        biayaPerSesi: Number(biayaPerSesi),
+        persentaseOwner: Number(persentaseOwner),
+        persentaseGuru: Number(persentaseGuru),
+      },
+      include: {
+        user: {
+          select: { id: true, name: true, phone: true },
         },
-      })
-    } else {
-      setting = await prisma.revenueSetting.create({
-        data: {
-          biayaPerSiswaPerSesi: Number(biayaPerSiswaPerSesi),
-          persentaseOwner: Number(persentaseOwner),
-          persentaseGuru: Number(persentaseGuru),
-        },
-      })
-    }
+      },
+    })
 
-    return NextResponse.json({ setting })
+    return NextResponse.json({ branchTeacher: updated })
   } catch (error) {
     console.error('Update revenue settings error:', error)
     return NextResponse.json(

@@ -111,6 +111,7 @@ const ownerNav = {
         { href: '/attendance', label: 'Absensi', icon: AttendanceIcon },
         { href: '/reports', label: 'Laporan', icon: ReportIcon },
         { href: '/pendapatan', label: 'Pendapatan', icon: MoneyIcon },
+        { href: '/pengaturan-bagi-hasil', label: 'Pengaturan Bagi Hasil', icon: MoneyIcon },
       ] as NavItem[],
     },
     {

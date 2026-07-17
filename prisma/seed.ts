@@ -13,7 +13,6 @@ async function main() {
   await prisma.student.deleteMany()
   await prisma.branchTeacher.deleteMany()
   await prisma.user.deleteMany()
-  await prisma.revenueSetting.deleteMany()
   console.log('Semua data berhasil dihapus.')
 
   // Create owner account
@@ -27,15 +26,6 @@ async function main() {
       phone: ownerPhone,
       password: hashedPassword,
       role: 'OWNER',
-    },
-  })
-
-  // Create default revenue settings
-  await prisma.revenueSetting.create({
-    data: {
-      biayaPerSiswaPerSesi: 50000,
-      persentaseOwner: 40,
-      persentaseGuru: 60,
     },
   })
 

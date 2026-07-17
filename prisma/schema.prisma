@@ -95,6 +95,9 @@ model BranchTeacher {
   provinsi       String
   kotaKabupaten  String
   mataPelajaran  String
+  biayaPerSesi   Int     @default(50000)
+  persentaseOwner Int    @default(40)
+  persentaseGuru  Int    @default(60)
 
   // Relations
   user    User      @relation(fields: [userId], references: [id])
@@ -127,19 +130,14 @@ model Lesson {
   revenue  LessonRevenue?
 }
 
-model RevenueSetting {
-  id                   String   @id @default(cuid())
-  biayaPerSiswaPerSesi Int      @default(50000)
-  persentaseOwner      Int      @default(40)
-  persentaseGuru       Int      @default(60)
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-}
-
 model LessonRevenue {
   id              String   @id @default(cuid())
   lessonId        String   @unique
+  biayaPerSesi    Int
+  jumlahMurid     Int
   biayaTotal      Int
+  persentaseOwner Int
+  persentaseGuru  Int
   pendapatanOwner Int
   pendapatanGuru  Int
   createdAt       DateTime @default(now())

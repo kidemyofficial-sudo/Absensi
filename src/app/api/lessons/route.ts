@@ -114,26 +114,27 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Auto-calculate revenue
-    let revenueSetting = await prisma.revenueSetting.findFirst()
-    if (!revenueSetting) {
-      revenueSetting = await prisma.revenueSetting.create({
-        data: {
-          biayaPerSiswaPerSesi: 50000,
-          persentaseOwner: 40,
-          persentaseGuru: 60,
-        },
-      })
-    }
+    // Find the BranchTeacher record for this guru to get per-guru settings
+    const branchTeacher = await prisma.branchTeacher.findFirst({
+      where: { userId: user.id },
+    })
 
-    const biayaTotal = Number(jumlahMurid) * revenueSetting.biayaPerSiswaPerSesi
-    const pendapatanOwner = Math.floor(biayaTotal * revenueSetting.persentaseOwner / 100)
-    const pendapatanGuru = Math.floor(biayaTotal * revenueSetting.persentaseGuru / 100)
+    const biayaPerSesi = branchTeacher?.biayaPerSesi ?? 50000
+    const persentaseOwner = branchTeacher?.persentaseOwner ?? 40
+    const persentaseGuru = branchTeacher?.persentaseGuru ?? 60
+
+    const biayaTotal = Number(jumlahMurid) * biayaPerSesi
+    const pendapatanOwner = Math.floor(biayaTotal * persentaseOwner / 100)
+    const pendapatanGuru = Math.floor(biayaTotal * persentaseGuru / 100)
 
     const lessonRevenue = await prisma.lessonRevenue.create({
       data: {
         lessonId: lesson.id,
+        biayaPerSesi,
+        jumlahMurid: Number(jumlahMurid),
         biayaTotal,
+        persentaseOwner,
+        persentaseGuru,
         pendapatanOwner,
         pendapatanGuru,
       },
