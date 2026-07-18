@@ -9,6 +9,15 @@ interface UserInfo {
   role: string
 }
 
+interface Student {
+  id: string
+  name: string
+  ttl: string
+  domisili: string
+  asalSekolah: string
+  cabangDaerah: string | null
+}
+
 const JENIS_PEMBELAJARAN = [
   'Matematika', 'Bahasa Indonesia', 'Bahasa Inggris', 'IPA', 'IPS',
   'PPKN', 'Seni Budaya', 'Penjaskes', 'Prakarya', 'Komputer',
@@ -25,7 +34,8 @@ const KELAS_MURID = [
   'Kelas 10 SMA', 'Kelas 11 SMA', 'Kelas 12 SMA', 'Umum',
 ]
 
-const JUMLAH_MURID = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10+']
+// Nomor WhatsApp Admin (Owner)
+const ADMIN_WA = '6281234567890'
 
 export default function AttendancePage() {
   const [user, setUser] = useState<UserInfo | null>(null)
@@ -33,12 +43,13 @@ export default function AttendancePage() {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState({ type: '', text: '' })
 
+  const [students, setStudents] = useState<Student[]>([])
+  const [selectedStudentId, setSelectedStudentId] = useState('')
+
   const [tanggalLes, setTanggalLes] = useState(new Date().toISOString().split('T')[0])
   const [jenisPembelajaran, setJenisPembelajaran] = useState('')
   const [lokasiMengajar, setLokasiMengajar] = useState('')
   const [kelasMurid, setKelasMurid] = useState('')
-  const [jumlahMurid, setJumlahMurid] = useState('')
-  const [namaMurid, setNamaMurid] = useState('')
   const [catatanMateri, setCatatanMateri] = useState('')
   const [fotoUrl, setFotoUrl] = useState('')
   const [jamMulai, setJamMulai] = useState('')
@@ -47,6 +58,7 @@ export default function AttendancePage() {
   const [whatsappWaliMurid, setWhatsappWaliMurid] = useState('')
 
   useEffect(() => { fetchUser() }, [])
+  useEffect(() => { if (user?.role === 'GURU') fetchStudents() }, [user])
 
   const fetchUser = async () => {
     const res = await fetch('/api/auth/me')
@@ -55,27 +67,57 @@ export default function AttendancePage() {
     setLoading(false)
   }
 
+  const fetchStudents = async () => {
+    const res = await fetch('/api/students?status=APPROVED')
+    const data = await res.json()
+    setStudents(data.students || [])
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
     setMessage({ type: '', text: '' })
+
+    const selectedStudent = students.find((s) => s.id === selectedStudentId)
+    const namaMurid = selectedStudent?.name || ''
 
     try {
       const res = await fetch('/api/lessons', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tanggalLes, jenisPembelajaran, lokasiMengajar, kelasMurid, jumlahMurid,
-          namaMurid, catatanMateri, fotoUrl, jamMulai, jamSelesai, namaWaliMurid, whatsappWaliMurid,
+          tanggalLes, jenisPembelajaran, lokasiMengajar, kelasMurid,
+          jumlahMurid: 1,
+          namaMurid, catatanMateri, fotoUrl, jamMulai, jamSelesai,
+          namaWaliMurid, whatsappWaliMurid, studentId: selectedStudentId,
         }),
       })
       const data = await res.json()
       if (res.ok) {
-        setMessage({ type: 'success', text: 'Data les berhasil disimpan!' })
+        // Format pesan WA
+        const waMessage = encodeURIComponent(
+          `📋 *Laporan Absensi Les*\n\n` +
+          `📅 Tanggal: ${tanggalLes}\n` +
+          `👤 Tutor: ${user?.name}\n` +
+          `📱 WA Tutor: ${user?.phone}\n` +
+          `📚 Mata Pelajaran: ${jenisPembelajaran}\n` +
+          `📍 Lokasi: ${lokasiMengajar}\n` +
+          `🏫 Kelas: ${kelasMurid}\n` +
+          `👨‍🎓 Murid: ${namaMurid}\n` +
+          `🕐 Jam: ${jamMulai} - ${jamSelesai}\n` +
+          `📝 Materi: ${catatanMateri}\n` +
+          `👨‍👩‍👦 Wali: ${namaWaliMurid}\n` +
+          `${whatsappWaliMurid ? `📱 WA Wali: ${whatsappWaliMurid}` : ''}`
+        )
+        // Redirect ke WhatsApp admin
+        window.open(`https://wa.me/${ADMIN_WA}?text=${waMessage}`, '_blank')
+
+        setMessage({ type: 'success', text: 'Absensi berhasil disimpan! Silakan kirim laporan ke admin via WhatsApp.' })
+        // Reset form
+        setSelectedStudentId('')
         setTanggalLes(new Date().toISOString().split('T')[0])
         setJenisPembelajaran(''); setLokasiMengajar(''); setKelasMurid('')
-        setJumlahMurid(''); setNamaMurid(''); setCatatanMateri('')
-        setFotoUrl(''); setJamMulai(''); setJamSelesai('')
+        setCatatanMateri(''); setFotoUrl(''); setJamMulai(''); setJamSelesai('')
         setNamaWaliMurid(''); setWhatsappWaliMurid('')
       } else {
         setMessage({ type: 'error', text: data.error || 'Gagal menyimpan data' })
@@ -153,11 +195,11 @@ export default function AttendancePage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Nama Lengkap Tutor <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Nama Tutor <span className="text-red-500">*</span></label>
               <input type="text" value={user?.name || ''} readOnly className={inputClass.replace('bg-white', 'bg-gray-50')} />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Nomor WhatsApp Tutor <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">WhatsApp Tutor <span className="text-red-500">*</span></label>
               <input type="text" value={user?.phone || ''} readOnly className={inputClass.replace('bg-white', 'bg-gray-50')} />
             </div>
           </div>
@@ -179,7 +221,7 @@ export default function AttendancePage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Kelas Murid <span className="text-red-500">*</span></label>
               <select value={kelasMurid} onChange={(e) => setKelasMurid(e.target.value)} required className={selectClass}>
@@ -188,24 +230,15 @@ export default function AttendancePage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Jumlah Murid <span className="text-red-500">*</span></label>
-              <select value={jumlahMurid} onChange={(e) => setJumlahMurid(e.target.value)} required className={selectClass}>
-                <option value="">Pilih Jumlah Murid</option>
-                {JUMLAH_MURID.map((j) => (<option key={j} value={j}>{j}</option>))}
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Pilih Murid <span className="text-red-500">*</span></label>
+              <select value={selectedStudentId} onChange={(e) => setSelectedStudentId(e.target.value)} required className={selectClass}>
+                <option value="">Pilih Murid yang Diajar</option>
+                {students.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name} — {s.cabangDaerah || 'Belum ada cabang'}</option>
+                ))}
               </select>
+              {students.length === 0 && <p className="text-xs text-gray-400 mt-1">Belum ada murid yang ditugaskan</p>}
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Biaya per Siswa</label>
-              <div className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-gray-500 text-sm">
-                Diatur otomatis oleh Admin
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Nama Lengkap Murid yang Diajar <span className="text-red-500">*</span></label>
-            <input type="text" value={namaMurid} onChange={(e) => setNamaMurid(e.target.value)} required
-              placeholder="Contoh: Ahmad Rizki, Siti Aminah" className={inputClass} />
           </div>
 
           <div>
@@ -223,12 +256,12 @@ export default function AttendancePage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Nama Lengkap Wali Murid <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Nama Wali Murid <span className="text-red-500">*</span></label>
               <input type="text" value={namaWaliMurid} onChange={(e) => setNamaWaliMurid(e.target.value)} required
                 placeholder="Nama lengkap wali murid" className={inputClass} />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Nomor WhatsApp Wali Murid</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">WhatsApp Wali Murid</label>
               <input type="text" value={whatsappWaliMurid} onChange={(e) => setWhatsappWaliMurid(e.target.value)}
                 placeholder="Nomor WhatsApp wali murid (opsional)" className={inputClass} />
             </div>
