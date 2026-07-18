@@ -45,7 +45,6 @@ export default function AttendancePage() {
   const [jamSelesai, setJamSelesai] = useState('')
   const [namaWaliMurid, setNamaWaliMurid] = useState('')
   const [whatsappWaliMurid, setWhatsappWaliMurid] = useState('')
-  const [biayaPerSiswa, setBiayaPerSiswa] = useState('')
 
   useEffect(() => { fetchUser() }, [])
 
@@ -68,7 +67,6 @@ export default function AttendancePage() {
         body: JSON.stringify({
           tanggalLes, jenisPembelajaran, lokasiMengajar, kelasMurid, jumlahMurid,
           namaMurid, catatanMateri, fotoUrl, jamMulai, jamSelesai, namaWaliMurid, whatsappWaliMurid,
-          biayaPerSiswa: Number(biayaPerSiswa),
         }),
       })
       const data = await res.json()
@@ -78,7 +76,7 @@ export default function AttendancePage() {
         setJenisPembelajaran(''); setLokasiMengajar(''); setKelasMurid('')
         setJumlahMurid(''); setNamaMurid(''); setCatatanMateri('')
         setFotoUrl(''); setJamMulai(''); setJamSelesai('')
-        setNamaWaliMurid(''); setWhatsappWaliMurid(''); setBiayaPerSiswa('')
+        setNamaWaliMurid(''); setWhatsappWaliMurid('')
       } else {
         setMessage({ type: 'error', text: data.error || 'Gagal menyimpan data' })
       }
@@ -197,10 +195,10 @@ export default function AttendancePage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Biaya per Siswa (Rp) <span className="text-red-500">*</span></label>
-              <input type="number" value={biayaPerSiswa} onChange={(e) => setBiayaPerSiswa(e.target.value)}
-                placeholder="contoh: 70000" min="10000" required className={inputClass} />
-              <p className="text-xs text-gray-500 mt-1">Setiap murid bisa beda biaya</p>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Biaya per Siswa</label>
+              <div className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-gray-500 text-sm">
+                Diatur otomatis oleh Admin
+              </div>
             </div>
           </div>
 

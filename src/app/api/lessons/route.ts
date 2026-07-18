@@ -110,6 +110,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Jumlah murid tidak valid' }, { status: 400 })
     }
 
+    // Ambil biaya per siswa dari BranchTeacher (diatur owner)
+    const branchTeacherForFee = await prisma.branchTeacher.findFirst({
+      where: { userId: user.id },
+    })
+    const biayaPerSiswa = branchTeacherForFee?.biayaPerSesi ?? 50000
+
     // Create lesson and revenue in a serializable transaction
     // Serializable isolation mencegah race condition (double insert, inconsistent reads)
     const result = await prisma.$transaction(async (tx) => {
@@ -118,7 +124,7 @@ export async function POST(request: NextRequest) {
           tanggalLes: new Date(validatedData.tanggalLes),
           guruId: user.id,
           studentId: validatedData.studentId || null,
-          biayaPerSiswa: validatedData.biayaPerSiswa,
+          biayaPerSiswa,
           namaGuru: user.name,
           whatsappGuru: user.phone,
           jenisPembelajaran: validatedData.jenisPembelajaran,
@@ -143,15 +149,15 @@ export async function POST(request: NextRequest) {
       const persentaseOwner = branchTeacher?.persentaseOwner ?? 40
       const persentaseGuru = branchTeacher?.persentaseGuru ?? 60
 
-      // Hitung revenue: biayaPerSiswa × jumlahMurid
-      const biayaTotal = validatedData.biayaPerSiswa * validatedData.jumlahMurid
+      // Hitung revenue: biayaPerSiswa (dari setting owner) × jumlahMurid
+      const biayaTotal = biayaPerSiswa * validatedData.jumlahMurid
       const pendapatanOwner = Math.floor(biayaTotal * persentaseOwner / 100)
       const pendapatanGuru = Math.floor(biayaTotal * persentaseGuru / 100)
 
       const lessonRevenue = await tx.lessonRevenue.create({
         data: {
           lessonId: lesson.id,
-          biayaPerSesi: validatedData.biayaPerSiswa,
+          biayaPerSesi: biayaPerSiswa,
           jumlahMurid: validatedData.jumlahMurid,
           biayaTotal,
           persentaseOwner,

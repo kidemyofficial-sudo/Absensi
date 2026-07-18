@@ -57,7 +57,7 @@ export type BulkAttendanceInput = z.infer<typeof bulkAttendanceSchema>
 export const lessonSchema = z.object({
   tanggalLes: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal harus YYYY-MM-DD'),
   studentId: z.string().cuid().optional().nullable(),
-  biayaPerSiswa: z.number().int('Biaya harus bilangan bulat').min(10000, 'Minimal Rp 10.000').max(10000000, 'Maksimal Rp 10.000.000'),
+  biayaPerSiswa: z.number().int('Biaya harus bilangan bulat').min(10000, 'Minimal Rp 10.000').max(10000000, 'Maksimal Rp 10.000.000').optional(),
   jenisPembelajaran: z.string().min(1, 'Jenis pembelajaran harus diisi').max(100),
   lokasiMengajar: z.string().min(1, 'Lokasi mengajar harus diisi').max(100),
   kelasMurid: z.string().max(50).optional().nullable(),

@@ -136,7 +136,7 @@ export default function PengaturanBagiHasilPage() {
     <div>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Pengaturan Bagi Hasil</h1>
-        <p className="text-sm text-gray-500 mt-1">Atur biaya dan persentase bagi hasil per guru</p>
+        <p className="text-sm text-gray-500 mt-1">Atur biaya per siswa dan persentase bagi hasil per guru</p>
       </div>
 
       {branchTeachers.length === 0 ? (
@@ -152,7 +152,7 @@ export default function PengaturanBagiHasilPage() {
                   <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Guru</th>
                   <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cabang</th>
                   <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mata Pelajaran</th>
-                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Biaya/Sesi</th>
+                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Biaya/Siswa</th>
                   <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">% Owner</th>
                   <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">% Guru</th>
                   <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
@@ -196,7 +196,7 @@ export default function PengaturanBagiHasilPage() {
             <div className="px-6 py-5 space-y-5">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Biaya Per Sesi (Rp)
+                  Biaya Per Siswa (Rp)
                 </label>
                 <input
                   type="number"
@@ -243,15 +243,15 @@ export default function PengaturanBagiHasilPage() {
               </div>
 
               <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Contoh Perhitungan:</h4>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Contoh Perhitungan (per siswa):</h4>
                 <p className="text-sm text-gray-600">
-                  {previewMurid} siswa × {formatRupiah(editBiaya)} = {formatRupiah(previewBiayaTotal)}
+                  1 siswa × {formatRupiah(editBiaya)} = {formatRupiah(editBiaya)}
                 </p>
                 <p className="text-sm text-blue-600">
-                  Owner: {formatRupiah(previewOwner)} ({editOwner}%)
+                  Owner: {formatRupiah(Math.floor((editBiaya * editOwner) / 100))} ({editOwner}%)
                 </p>
                 <p className="text-sm text-green-600">
-                  Guru: {formatRupiah(previewGuru)} ({editGuru}%)
+                  Guru: {formatRupiah(Math.floor((editBiaya * editGuru) / 100))} ({editGuru}%)
                 </p>
               </div>
 
