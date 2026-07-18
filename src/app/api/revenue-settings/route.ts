@@ -9,16 +9,25 @@ export async function GET() {
     return NextResponse.json({ error: 'Hanya owner yang dapat mengakses' }, { status: 403 })
   }
 
-  const branchTeachers = await prisma.branchTeacher.findMany({
+  // Ambil semua siswa yang sudah punya cabang + persentase dari branch teacher
+  const students = await prisma.student.findMany({
+    where: { status: 'APPROVED' },
     include: {
-      user: {
-        select: { id: true, name: true, phone: true },
+      parent: {
+        select: { id: true, name: true },
+      },
+      branchTeachers: {
+        select: {
+          persentaseOwner: true,
+          persentaseGuru: true,
+          user: { select: { name: true } },
+        },
       },
     },
-    orderBy: { user: { name: 'asc' } },
+    orderBy: { name: 'asc' },
   })
 
-  return NextResponse.json({ branchTeachers })
+  return NextResponse.json({ students })
 }
 
 export async function PUT(request: NextRequest) {
@@ -30,37 +39,34 @@ export async function PUT(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { branchTeacherId, biayaPerSesi, persentaseOwner, persentaseGuru } = body
+    const { studentId, biayaPerSiswa } = body
 
-    if (!branchTeacherId || biayaPerSesi === undefined || persentaseOwner === undefined || persentaseGuru === undefined) {
+    if (!studentId || biayaPerSiswa === undefined) {
       return NextResponse.json(
-        { error: 'Semua field wajib harus diisi' },
+        { error: 'Data tidak lengkap' },
         { status: 400 }
       )
     }
 
-    if (persentaseOwner + persentaseGuru !== 100) {
+    if (biayaPerSiswa < 0) {
       return NextResponse.json(
-        { error: 'Persentase harus totaling 100%' },
+        { error: 'Biaya tidak boleh negatif' },
         { status: 400 }
       )
     }
 
-    const updated = await prisma.branchTeacher.update({
-      where: { id: branchTeacherId },
-      data: {
-        biayaPerSesi: Number(biayaPerSesi),
-        persentaseOwner: Number(persentaseOwner),
-        persentaseGuru: Number(persentaseGuru),
-      },
+    const updated = await prisma.student.update({
+      where: { id: studentId },
+      data: { biayaPerSiswa: Number(biayaPerSiswa) },
       include: {
-        user: {
-          select: { id: true, name: true, phone: true },
+        parent: { select: { id: true, name: true } },
+        branchTeachers: {
+          select: { persentaseOwner: true, persentaseGuru: true, user: { select: { name: true } } },
         },
       },
     })
 
-    return NextResponse.json({ branchTeacher: updated })
+    return NextResponse.json({ student: updated })
   } catch (error) {
     console.error('Update revenue settings error:', error)
     return NextResponse.json(

@@ -110,11 +110,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Jumlah murid tidak valid' }, { status: 400 })
     }
 
-    // Ambil biaya per siswa dari BranchTeacher (diatur owner)
-    const branchTeacherForFee = await prisma.branchTeacher.findFirst({
-      where: { userId: user.id },
-    })
-    const biayaPerSiswa = branchTeacherForFee?.biayaPerSesi ?? 50000
+    // Ambil biaya per siswa dari data siswa (diatur owner)
+    let biayaPerSiswa = 50000 // default
+    if (validatedData.studentId) {
+      const student = await prisma.student.findUnique({
+        where: { id: validatedData.studentId },
+        select: { biayaPerSiswa: true },
+      })
+      if (student) {
+        biayaPerSiswa = student.biayaPerSiswa
+      }
+    }
 
     // Create lesson and revenue in a serializable transaction
     // Serializable isolation mencegah race condition (double insert, inconsistent reads)

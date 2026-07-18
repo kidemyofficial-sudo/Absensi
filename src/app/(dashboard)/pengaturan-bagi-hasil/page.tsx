@@ -2,72 +2,58 @@
 
 import { useState, useEffect } from 'react'
 
-interface BranchTeacherRevenue {
+interface StudentRevenue {
   id: string
-  userId: string
-  cabangDaerah: string
-  provinsi: string
-  kotaKabupaten: string
-  mataPelajaran: string
-  biayaPerSesi: number
-  persentaseOwner: number
-  persentaseGuru: number
-  user: {
-    id: string
-    name: string
-    phone: string
-  }
+  name: string
+  ttl: string
+  domisili: string
+  asalSekolah: string
+  cabangDaerah: string | null
+  biayaPerSiswa: number
+  status: string
+  parent: { id: string; name: string } | null
+  branchTeachers: {
+    persentaseOwner: number
+    persentaseGuru: number
+    user: { name: string }
+  }[]
 }
 
 export default function PengaturanBagiHasilPage() {
-  const [branchTeachers, setBranchTeachers] = useState<BranchTeacherRevenue[]>([])
+  const [students, setStudents] = useState<StudentRevenue[]>([])
   const [loading, setLoading] = useState(true)
-  const [editing, setEditing] = useState<BranchTeacherRevenue | null>(null)
+  const [editing, setEditing] = useState<StudentRevenue | null>(null)
   const [editBiaya, setEditBiaya] = useState(50000)
-  const [editOwner, setEditOwner] = useState(40)
-  const [editGuru, setEditGuru] = useState(60)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
 
   useEffect(() => {
-    fetchBranchTeachers()
+    fetchStudents()
   }, [])
 
-  const fetchBranchTeachers = async () => {
+  const fetchStudents = async () => {
     try {
       const res = await fetch('/api/revenue-settings')
       const data = await res.json()
-      if (data.branchTeachers) {
-        setBranchTeachers(data.branchTeachers)
+      if (data.students) {
+        setStudents(data.students)
       }
     } catch {
-      console.error('Failed to fetch branch teachers')
+      console.error('Failed to fetch students')
     } finally {
       setLoading(false)
     }
   }
 
-  const openEdit = (bt: BranchTeacherRevenue) => {
-    setEditing(bt)
-    setEditBiaya(bt.biayaPerSesi)
-    setEditOwner(bt.persentaseOwner)
-    setEditGuru(bt.persentaseGuru)
+  const openEdit = (student: StudentRevenue) => {
+    setEditing(student)
+    setEditBiaya(student.biayaPerSiswa)
     setMessage('')
   }
 
   const closeEdit = () => {
     setEditing(null)
     setMessage('')
-  }
-
-  const handleOwnerChange = (value: number) => {
-    setEditOwner(value)
-    setEditGuru(100 - value)
-  }
-
-  const handleGuruChange = (value: number) => {
-    setEditGuru(value)
-    setEditOwner(100 - value)
   }
 
   const handleSave = async () => {
@@ -80,25 +66,21 @@ export default function PengaturanBagiHasilPage() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          branchTeacherId: editing.id,
-          biayaPerSesi: Number(editBiaya),
-          persentaseOwner: Number(editOwner),
-          persentaseGuru: Number(editGuru),
+          studentId: editing.id,
+          biayaPerSiswa: Number(editBiaya),
         }),
       })
 
       const data = await res.json()
 
-      if (res.ok && data.branchTeacher) {
-        setBranchTeachers((prev) =>
-          prev.map((bt) =>
-            bt.id === editing.id ? { ...bt, ...data.branchTeacher } : bt
+      if (res.ok && data.student) {
+        setStudents((prev) =>
+          prev.map((s) =>
+            s.id === editing.id ? { ...s, ...data.student } : s
           )
         )
         setMessage('Berhasil disimpan!')
-        setTimeout(() => {
-          closeEdit()
-        }, 1000)
+        setTimeout(() => closeEdit(), 1000)
       } else {
         setMessage(data.error || 'Gagal menyimpan')
       }
@@ -111,18 +93,10 @@ export default function PengaturanBagiHasilPage() {
 
   const formatRupiah = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
+      style: 'currency', currency: 'IDR',
+      minimumFractionDigits: 0, maximumFractionDigits: 0,
     }).format(amount)
   }
-
-  // Preview calculation
-  const previewMurid = 3
-  const previewBiayaTotal = previewMurid * editBiaya
-  const previewOwner = Math.floor((previewBiayaTotal * editOwner) / 100)
-  const previewGuru = Math.floor((previewBiayaTotal * editGuru) / 100)
 
   if (loading) {
     return (
@@ -139,9 +113,9 @@ export default function PengaturanBagiHasilPage() {
         <p className="text-sm text-gray-500 mt-1">Atur biaya per siswa dan persentase bagi hasil per guru</p>
       </div>
 
-      {branchTeachers.length === 0 ? (
+      {students.length === 0 ? (
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-          <p className="text-sm text-gray-500">Belum ada data guru yang terdaftar di cabang daerah.</p>
+          <p className="text-sm text-gray-500">Belum ada siswa yang terdaftar.</p>
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -149,9 +123,9 @@ export default function PengaturanBagiHasilPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-100">
-                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Guru</th>
+                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Siswa</th>
                   <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cabang</th>
-                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mata Pelajaran</th>
+                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Guru</th>
                   <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Biaya/Siswa</th>
                   <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">% Owner</th>
                   <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">% Guru</th>
@@ -159,19 +133,25 @@ export default function PengaturanBagiHasilPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {branchTeachers.map((bt) => (
-                  <tr key={bt.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-5 py-3.5 text-sm text-gray-900 font-medium">{bt.user.name}</td>
-                    <td className="px-5 py-3.5 text-sm text-gray-600">{bt.cabangDaerah}</td>
-                    <td className="px-5 py-3.5 text-sm text-gray-600">{bt.mataPelajaran}</td>
-                    <td className="px-5 py-3.5 text-sm text-gray-600">{formatRupiah(bt.biayaPerSesi)}</td>
-                    <td className="px-5 py-3.5 text-sm text-blue-600 font-medium">{bt.persentaseOwner}%</td>
-                    <td className="px-5 py-3.5 text-sm text-green-600 font-medium">{bt.persentaseGuru}%</td>
+                {students.map((student) => (
+                  <tr key={student.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-5 py-3.5 text-sm font-medium text-gray-900">{student.name}</td>
+                    <td className="px-5 py-3.5 text-sm text-gray-600">{student.cabangDaerah || '-'}</td>
+                    <td className="px-5 py-3.5 text-sm text-gray-600">
+                      {student.branchTeachers.length > 0
+                        ? student.branchTeachers.map((bt) => bt.user.name).join(', ')
+                        : '-'}
+                    </td>
+                    <td className="px-5 py-3.5 text-sm text-gray-600">{formatRupiah(student.biayaPerSiswa)}</td>
+                    <td className="px-5 py-3.5 text-sm text-blue-600 font-medium">
+                      {student.branchTeachers.length > 0 ? `${student.branchTeachers[0].persentaseOwner}%` : '40%'}
+                    </td>
+                    <td className="px-5 py-3.5 text-sm text-green-600 font-medium">
+                      {student.branchTeachers.length > 0 ? `${student.branchTeachers[0].persentaseGuru}%` : '60%'}
+                    </td>
                     <td className="px-5 py-3.5">
-                      <button
-                        onClick={() => openEdit(bt)}
-                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                      >
+                      <button onClick={() => openEdit(student)}
+                        className="text-blue-600 hover:text-blue-800 text-sm font-medium">
                         Edit
                       </button>
                     </td>
@@ -188,72 +168,32 @@ export default function PengaturanBagiHasilPage() {
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg">
             <div className="px-6 py-4 border-b border-gray-100">
-              <h3 className="text-base font-semibold text-gray-900">
-                Edit Bagi Hasil — {editing.user.name}
-              </h3>
-              <p className="text-xs text-gray-500 mt-0.5">{editing.cabangDaerah} · {editing.mataPelajaran}</p>
+              <h3 className="text-base font-semibold text-gray-900">Edit Biaya — {editing.name}</h3>
+              <p className="text-xs text-gray-500 mt-0.5">{editing.cabangDaerah || 'Belum ada cabang'}</p>
             </div>
             <div className="px-6 py-5 space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Biaya Per Siswa (Rp)
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Biaya Per Siswa (Rp)</label>
                 <input
-                  type="number"
-                  value={editBiaya}
+                  type="number" value={editBiaya}
                   onChange={(e) => setEditBiaya(Number(e.target.value))}
                   min={0}
                   className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white transition-all"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Persentase Owner (%)
-                  </label>
-                  <input
-                    type="range"
-                    min={0}
-                    max={100}
-                    value={editOwner}
-                    onChange={(e) => handleOwnerChange(Number(e.target.value))}
-                    className="w-full"
-                  />
-                  <div className="text-center text-lg font-bold text-blue-600 mt-1">
-                    {editOwner}%
-                  </div>
+              {editing.branchTeachers.length > 0 && (
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Contoh Perhitungan:</h4>
+                  <p className="text-sm text-gray-600">1 siswa × {formatRupiah(editBiaya)} = {formatRupiah(editBiaya)}</p>
+                  <p className="text-sm text-blue-600">
+                    Owner: {formatRupiah(Math.floor((editBiaya * editing.branchTeachers[0].persentaseOwner) / 100))} ({editing.branchTeachers[0].persentaseOwner}%)
+                  </p>
+                  <p className="text-sm text-green-600">
+                    Guru: {formatRupiah(Math.floor((editBiaya * editing.branchTeachers[0].persentaseGuru) / 100))} ({editing.branchTeachers[0].persentaseGuru}%)
+                  </p>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Persentase Guru (%)
-                  </label>
-                  <input
-                    type="range"
-                    min={0}
-                    max={100}
-                    value={editGuru}
-                    onChange={(e) => handleGuruChange(Number(e.target.value))}
-                    className="w-full"
-                  />
-                  <div className="text-center text-lg font-bold text-green-600 mt-1">
-                    {editGuru}%
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Contoh Perhitungan (per siswa):</h4>
-                <p className="text-sm text-gray-600">
-                  1 siswa × {formatRupiah(editBiaya)} = {formatRupiah(editBiaya)}
-                </p>
-                <p className="text-sm text-blue-600">
-                  Owner: {formatRupiah(Math.floor((editBiaya * editOwner) / 100))} ({editOwner}%)
-                </p>
-                <p className="text-sm text-green-600">
-                  Guru: {formatRupiah(Math.floor((editBiaya * editGuru) / 100))} ({editGuru}%)
-                </p>
-              </div>
+              )}
 
               {message && (
                 <div className={`text-sm font-medium ${message.includes('Berhasil') ? 'text-green-600' : 'text-red-600'}`}>
@@ -262,17 +202,9 @@ export default function PengaturanBagiHasilPage() {
               )}
             </div>
             <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
-              <button
-                onClick={closeEdit}
-                className="px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
-              >
-                Batal
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="bg-blue-600 text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 disabled:opacity-50 text-sm font-medium transition-colors"
-              >
+              <button onClick={closeEdit} className="px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-xl transition-colors">Batal</button>
+              <button onClick={handleSave} disabled={saving}
+                className="bg-blue-600 text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 disabled:opacity-50 text-sm font-medium transition-colors">
                 {saving ? 'Menyimpan...' : 'Simpan'}
               </button>
             </div>
