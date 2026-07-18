@@ -51,6 +51,7 @@ export default function AttendancePage() {
   const [lokasiMengajar, setLokasiMengajar] = useState('')
   const [kelasMurid, setKelasMurid] = useState('')
   const [catatanMateri, setCatatanMateri] = useState('')
+  const [kritikSaran, setKritikSaran] = useState('')
   const [fotoUrl, setFotoUrl] = useState('')
   const [jamMulai, setJamMulai] = useState('')
   const [jamSelesai, setJamSelesai] = useState('')
@@ -88,7 +89,7 @@ export default function AttendancePage() {
         body: JSON.stringify({
           tanggalLes, jenisPembelajaran, lokasiMengajar, kelasMurid,
           jumlahMurid: 1,
-          namaMurid, catatanMateri, fotoUrl, jamMulai, jamSelesai,
+          namaMurid, catatanMateri, kritikSaran, fotoUrl, jamMulai, jamSelesai,
           namaWaliMurid, whatsappWaliMurid, studentId: selectedStudentId,
         }),
       })
@@ -106,6 +107,7 @@ export default function AttendancePage() {
           `👨‍🎓 Murid: ${namaMurid}\n` +
           `🕐 Jam: ${jamMulai} - ${jamSelesai}\n` +
           `📝 Materi: ${catatanMateri}\n` +
+          (kritikSaran ? `💡 Kritik & Saran: ${kritikSaran}\n` : '') +
           `👨‍👩‍👦 Wali: ${namaWaliMurid}\n` +
           `${whatsappWaliMurid ? `📱 WA Wali: ${whatsappWaliMurid}` : ''}`
         )
@@ -117,7 +119,8 @@ export default function AttendancePage() {
         setSelectedStudentId('')
         setTanggalLes(new Date().toISOString().split('T')[0])
         setJenisPembelajaran(''); setLokasiMengajar(''); setKelasMurid('')
-        setCatatanMateri(''); setFotoUrl(''); setJamMulai(''); setJamSelesai('')
+        setCatatanMateri(''); setKritikSaran(''); setFotoUrl('')
+        setJamMulai(''); setJamSelesai('')
         setNamaWaliMurid(''); setWhatsappWaliMurid('')
       } else {
         setMessage({ type: 'error', text: data.error || 'Gagal menyimpan data' })
@@ -245,6 +248,13 @@ export default function AttendancePage() {
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Catatan / Materi <span className="text-red-500">*</span></label>
             <textarea value={catatanMateri} onChange={(e) => setCatatanMateri(e.target.value)} required rows={4}
               placeholder="Jelaskan materi yang diajarkan dan catatan perkembangan murid."
+              className={inputClass + ' resize-none'} />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Kritik dan Saran Pembelajaran</label>
+            <textarea value={kritikSaran} onChange={(e) => setKritikSaran(e.target.value)} rows={3}
+              placeholder="Saran perbaikan metode pembelajaran, kendala yang dihadapi, dll."
               className={inputClass + ' resize-none'} />
           </div>
 

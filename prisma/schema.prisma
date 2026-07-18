@@ -124,6 +124,7 @@ model Lesson {
   jumlahMurid       Int
   namaMurid         String
   catatanMateri     String
+  kritikSaran       String?
   fotoUrl           String?
   jamMulai          String
   jamSelesai        String

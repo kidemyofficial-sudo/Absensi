@@ -139,6 +139,7 @@ export async function POST(request: NextRequest) {
           jumlahMurid: validatedData.jumlahMurid,
           namaMurid: sanitize(validatedData.namaMurid),
           catatanMateri: sanitize(validatedData.catatanMateri),
+          kritikSaran: validatedData.kritikSaran ? sanitize(validatedData.kritikSaran) : null,
           fotoUrl: validatedData.fotoUrl || null,
           jamMulai: validatedData.jamMulai,
           jamSelesai: validatedData.jamSelesai,

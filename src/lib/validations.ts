@@ -64,6 +64,7 @@ export const lessonSchema = z.object({
   jumlahMurid: z.number().int('Jumlah murid harus bilangan bulat').min(1, 'Minimal 1 murid').max(100, 'Maksimal 100 murid'),
   namaMurid: z.string().min(1, 'Nama murid harus diisi').max(255),
   catatanMateri: z.string().min(1, 'Catatan materi harus diisi').max(2000),
+  kritikSaran: z.string().max(2000).optional().nullable(),
   fotoUrl: z.string().url('URL foto tidak valid').optional().nullable(),
   jamMulai: z.string().regex(/^\d{2}:\d{2}$/, 'Format jam harus HH:MM'),
   jamSelesai: z.string().regex(/^\d{2}:\d{2}$/, 'Format jam harus HH:MM'),
