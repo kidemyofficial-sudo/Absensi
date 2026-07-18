@@ -319,6 +319,100 @@ export default async function DashboardPage() {
             Lihat Detail Pendapatan
           </Link>
         </div>
+
+        {/* Section Aplikasi Pendukung */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V6.75m-12 0H18m-12 0h.008" />
+              </svg>
+            </div>
+            <h3 className="text-sm font-semibold text-gray-900">Aplikasi Pendukung Pembelajaran</h3>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            <a href="https://calendar.google.com" target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-blue-50 hover:shadow-sm transition-all group">
+              <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                <svg className="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.285-4.74 3.285-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.91-6.16-4.5H2.18v2.84C3.99 21.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 001 12c0 1.61.39 3.14 1.05 4.5l3.35-2.58z"/><path fill="#EA4335" d="M12.04 5.53c.83 0 1.58.29 2.17.8l1.6-1.6C13.98 3.4 12.24 2.5 12 2.5c-2.17 0-4.207.576-5.963 1.584A9.96 9.96 0 002.18 11h3.35c.28-1.41 1.07-2.69 2.17-3.68.54-.64 1.18-1.19 1.88-1.62z"/></svg>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-gray-900">Google Calendar</p>
+                <p className="text-[10px] text-gray-400">Jadwal les</p>
+              </div>
+            </a>
+            <a href="https://chat.openai.com" target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-green-50 hover:shadow-sm transition-all group">
+              <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none"><path d="M22.282 9.821a5.985 5.985 0 00-.516-4.91 6.046 6.046 0 00-6.51-2.9A6.065 6.065 0 0014.45 3.6a5.99 5.99 0 00-4.24 1.891 5.97 5.97 0 00-1.367 3.464c0 1.498.756 2.936 2.097 3.844a5.99 5.99 0 003.18 1.09 5.99 5.99 0 003.778-1.368A5.985 5.985 0 0021.5 12c0-1.168-.387-2.25-1.05-3.125l.012-.016a5.99 5.99 0 00.782-1.179z" fill="#10A37F"/></svg>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-gray-900">ChatGPT</p>
+                <p className="text-[10px] text-gray-400">Asisten AI</p>
+              </div>
+            </a>
+            <a href="https://www.canva.com" target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-purple-50 hover:shadow-sm transition-all group">
+              <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#7D2AE8"/><path d="M8 12h8M12 8v8" stroke="white" strokeWidth="2" strokeLinecap="round"/></svg>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-gray-900">Canva</p>
+                <p className="text-[10px] text-gray-400">Desain materi</p>
+              </div>
+            </a>
+            <a href="https://drive.google.com" target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-yellow-50 hover:shadow-sm transition-all group">
+              <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                <svg className="w-5 h-5" viewBox="0 0 24 24"><path fill="#FBBC05" d="M1.5 12.45l5.592 9.555h11.004l5.592-9.555L12 2.175 1.5 12.45z"/><path fill="#34A853" d="M7.5 12.45L12 2.175l4.5 10.275H7.5z"/><path fill="#4285F4" d="M12 2.175v10.275h5.5L12 2.175z"/><path fill="#EA4335" d="M7.5 12.45L12 2.175 7.5 12.45z"/></svg>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-gray-900">Google Drive</p>
+                <p className="text-[10px] text-gray-400">Penyimpanan file</p>
+              </div>
+            </a>
+            <a href="https://zoom.us" target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-blue-50 hover:shadow-sm transition-all group">
+              <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none"><rect width="20" height="14" x="2" y="5" rx="2" fill="#2D8CFF"/><path d="M15 10l4.5-3v10l-4.5-3V10z" fill="white"/></svg>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-gray-900">Zoom</p>
+                <p className="text-[10px] text-gray-400">Video meeting</p>
+              </div>
+            </a>
+            <a href="https://meet.google.com" target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-red-50 hover:shadow-sm transition-all group">
+              <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                <svg className="w-5 h-5" viewBox="0 0 24 24"><path fill="#00897B" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path fill="white" d="M10 8l6 4-6 4V8z"/></svg>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-gray-900">Google Meet</p>
+                <p className="text-[10px] text-gray-400">Video call</p>
+              </div>
+            </a>
+            <a href="https://quizizz.com" target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-orange-50 hover:shadow-sm transition-all group">
+              <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none"><rect width="18" height="18" x="3" y="3" rx="4" fill="#8B5CF6"/><path d="M9 12h6M12 9v6" stroke="white" strokeWidth="2" strokeLinecap="round"/></svg>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-gray-900">Quizizz</p>
+                <p className="text-[10px] text-gray-400">Kuis interaktif</p>
+              </div>
+            </a>
+            <a href="https://www.khanacademy.org" target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-teal-50 hover:shadow-sm transition-all group">
+              <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none"><rect width="20" height="20" x="2" y="2" rx="4" fill="#14BF96"/><path d="M8 16V8l8 4-8 4z" fill="white"/></svg>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-gray-900">Khan Academy</p>
+                <p className="text-[10px] text-gray-400">Belajar online</p>
+              </div>
+            </a>
+          </div>
+        </div>
       </div>
     )
   }
