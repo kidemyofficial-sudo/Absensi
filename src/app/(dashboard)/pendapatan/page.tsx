@@ -18,18 +18,25 @@ export default async function PendapatanPage() {
     where.lesson = { ...where.lesson as Record<string, unknown>, guruId: user.id }
   }
 
-  const revenues = await prisma.lessonRevenue.findMany({
-    where,
-    include: {
-      lesson: {
-        select: {
-          id: true, tanggalLes: true, namaGuru: true, guruId: true,
-          jumlahMurid: true, namaMurid: true, jenisPembelajaran: true,
+  let revenues: any[] = []
+
+  try {
+    revenues = await prisma.lessonRevenue.findMany({
+      where,
+      include: {
+        lesson: {
+          select: {
+            id: true, tanggalLes: true, namaGuru: true, guruId: true,
+            jumlahMurid: true, namaMurid: true, jenisPembelajaran: true,
+          },
         },
       },
-    },
-    orderBy: { lesson: { tanggalLes: 'desc' } },
-  })
+      orderBy: { lesson: { tanggalLes: 'desc' } },
+    })
+  } catch (err) {
+    console.error("Prisma error in pendapatan page findMany:", err)
+  }
+
 
   const totalPendapatan = revenues.reduce((sum, r) => sum + r.pendapatanGuru, 0)
 

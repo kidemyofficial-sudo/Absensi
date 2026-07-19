@@ -8,10 +8,23 @@ export default async function SettingsPage() {
 
   if (!user) return null
 
-  const userData = await prisma.user.findUnique({
-    where: { id: user.id },
-    select: { id: true, name: true, phone: true, role: true },
-  })
+  let userData: { id: string; name: string; phone: string; role: string } | null = null
+
+  try {
+    userData = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { id: true, name: true, phone: true, role: true },
+    })
+  } catch (err) {
+    console.error("Prisma error in settings page findUnique:", err)
+  }
+
+  const fallbackUser = {
+    id: user.id,
+    name: user.name,
+    phone: '',
+    role: user.role,
+  }
 
   return (
     <div>
@@ -33,8 +46,9 @@ export default async function SettingsPage() {
               <p className="text-xs text-gray-500">Update informasi profil Anda</p>
             </div>
           </div>
-          <ProfileForm user={userData!} />
+          <ProfileForm user={userData || fallbackUser} />
         </div>
+
 
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
           <div className="flex items-center gap-3 mb-5">
