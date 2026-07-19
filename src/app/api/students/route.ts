@@ -76,8 +76,12 @@ export async function GET(request: NextRequest) {
   const cabangWhere: Prisma.StudentWhereInput = { ...where }
   delete cabangWhere.cabangDaerah
 
-  const [students, total, cabangRows] = await Promise.all([
-    prisma.student.findMany({
+  let students: any[] = []
+  let total = 0
+  let cabangRows: any[] = []
+
+  try {
+    students = await prisma.student.findMany({
       where,
       select: {
         id: true,
@@ -102,9 +106,19 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' },
       skip: (page - 1) * limit,
       take: limit,
-    }).catch(() => []),
-    prisma.student.count({ where }).catch(() => 0),
-    prisma.student.findMany({
+    })
+  } catch (err) {
+    console.error("Prisma error in students findMany:", err)
+  }
+
+  try {
+    total = await prisma.student.count({ where })
+  } catch (err) {
+    console.error("Prisma error in students count:", err)
+  }
+
+  try {
+    cabangRows = await prisma.student.findMany({
       where: {
         ...cabangWhere,
         cabangDaerah: { not: null },
@@ -112,8 +126,11 @@ export async function GET(request: NextRequest) {
       select: { cabangDaerah: true },
       distinct: ['cabangDaerah'],
       orderBy: { cabangDaerah: 'asc' },
-    }).catch(() => []),
-  ])
+    })
+  } catch (err) {
+    console.error("Prisma error in cabangs findMany:", err)
+  }
+
 
   return NextResponse.json({
     students,

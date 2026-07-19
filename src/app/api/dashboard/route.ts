@@ -13,11 +13,27 @@ export async function GET() {
   today.setHours(0, 0, 0, 0)
 
   if (user.role === 'OWNER') {
-    const [totalStudents, totalTeachers, todayAttendance] = await Promise.all([
-      prisma.student.count().catch(() => 0),
-      prisma.user.count({ where: { role: 'GURU' } }).catch(() => 0),
-      prisma.attendance.count({ where: { date: today } }).catch(() => 0),
-    ])
+    let totalStudents = 0
+    let totalTeachers = 0
+    let todayAttendance = 0
+
+    try {
+      totalStudents = await prisma.student.count()
+    } catch {
+      totalStudents = 0
+    }
+
+    try {
+      totalTeachers = await prisma.user.count({ where: { role: 'GURU' } })
+    } catch {
+      totalTeachers = 0
+    }
+
+    try {
+      todayAttendance = await prisma.attendance.count({ where: { date: today } })
+    } catch {
+      todayAttendance = 0
+    }
 
     return NextResponse.json({
       role: 'OWNER',
