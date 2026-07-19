@@ -17,24 +17,35 @@ export default async function DashboardPage() {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
 
-    const [totalStudents, totalTeachers, pendingStudents, todayAttendance, monthlyRevenue] = await Promise.all([
-      prisma.student.count({ where: { status: 'APPROVED' } }),
-      prisma.user.count({ where: { role: 'GURU' } }),
-      prisma.student.count({ where: { status: 'PENDING' } }),
-      prisma.attendance.count({ where: { date: today } }),
-      prisma.lessonRevenue.findMany({
-        where: {
-          lesson: {
-            tanggalLes: { gte: startOfMonth, lte: endOfMonth },
+    let totalStudents = 0
+    let totalTeachers = 0
+    let pendingStudents = 0
+    let todayAttendance = 0
+    type OwnerRevRow = { id: string; lessonId: string; pendapatanOwner: number; pendapatanGuru: number; lesson: { namaGuru: string } }
+    let monthlyRevenue: OwnerRevRow[] = []
+
+    try {
+      ;[totalStudents, totalTeachers, pendingStudents, todayAttendance, monthlyRevenue] = await Promise.all([
+        prisma.student.count({ where: { status: 'APPROVED' } }),
+        prisma.user.count({ where: { role: 'GURU' } }),
+        prisma.student.count({ where: { status: 'PENDING' } }),
+        prisma.attendance.count({ where: { date: today } }),
+        prisma.lessonRevenue.findMany({
+          where: {
+            lesson: {
+              tanggalLes: { gte: startOfMonth, lte: endOfMonth },
+            },
           },
-        },
-        include: {
-          lesson: {
-            select: { namaGuru: true },
+          include: {
+            lesson: {
+              select: { namaGuru: true },
+            },
           },
-        },
-      }),
-    ])
+        }),
+      ])
+    } catch {
+      // DB cold start — render page with empty/zero fallbacks
+    }
 
     const totalPendapatanOwner = monthlyRevenue.reduce((sum, r) => sum + r.pendapatanOwner, 0)
     const totalPendapatanGuru = monthlyRevenue.reduce((sum, r) => sum + r.pendapatanGuru, 0)
@@ -204,41 +215,51 @@ export default async function DashboardPage() {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
 
-    const [branchTeachers, todayAttendances, monthlyRevenues] = await Promise.all([
-      prisma.branchTeacher.findMany({
-        where: { userId: user.id },
-        select: {
-          cabangDaerah: true,
-          _count: {
-            select: { student: true },
-          },
-        },
-      }),
-      prisma.attendance.count({
-        where: {
-          teacherId: user.id,
-          date: today,
-        },
-      }),
-      prisma.lessonRevenue.findMany({
-        where: {
-          lesson: {
-            guruId: user.id,
-            tanggalLes: { gte: startOfMonth, lte: endOfMonth },
-          },
-        },
-        include: {
-          lesson: {
-            select: {
-              tanggalLes: true,
-              jumlahMurid: true,
-              namaMurid: true,
-              jenisPembelajaran: true,
+    type BranchTeacherRow = { cabangDaerah: string; _count: { student: number } }
+    type GuruRevRow = { id: string; lessonId: string; pendapatanGuru: number; lesson: { tanggalLes: Date; jumlahMurid: number; namaMurid: string; jenisPembelajaran: string } }
+    let branchTeachers: BranchTeacherRow[] = []
+    let todayAttendances = 0
+    let monthlyRevenues: GuruRevRow[] = []
+
+    try {
+      ;[branchTeachers, todayAttendances, monthlyRevenues] = await Promise.all([
+        prisma.branchTeacher.findMany({
+          where: { userId: user.id },
+          select: {
+            cabangDaerah: true,
+            _count: {
+              select: { student: true },
             },
           },
-        },
-      }),
-    ])
+        }),
+        prisma.attendance.count({
+          where: {
+            teacherId: user.id,
+            date: today,
+          },
+        }),
+        prisma.lessonRevenue.findMany({
+          where: {
+            lesson: {
+              guruId: user.id,
+              tanggalLes: { gte: startOfMonth, lte: endOfMonth },
+            },
+          },
+          include: {
+            lesson: {
+              select: {
+                tanggalLes: true,
+                jumlahMurid: true,
+                namaMurid: true,
+                jenisPembelajaran: true,
+              },
+            },
+          },
+        }),
+      ])
+    } catch {
+      // DB cold start — render page with empty/zero fallbacks
+    }
 
     const totalPendapatanGuru = monthlyRevenues.reduce((sum, r) => sum + r.pendapatanGuru, 0)
 
@@ -419,32 +440,44 @@ export default async function DashboardPage() {
 
   // Orang Tua dashboard
   if (user.role === 'ORANG_TUA') {
-    const children = await prisma.student.findMany({
-      where: { parentId: user.id },
-      select: {
-        id: true,
-        name: true,
-        ttl: true,
-        domisili: true,
-        asalSekolah: true,
-        cabangDaerah: true,
-        status: true,
-      },
-    })
+    let children: { id: string; name: string; ttl: string; domisili: string; asalSekolah: string; cabangDaerah: string | null; status: string }[] = []
+
+    try {
+      children = await prisma.student.findMany({
+        where: { parentId: user.id },
+        select: {
+          id: true,
+          name: true,
+          ttl: true,
+          domisili: true,
+          asalSekolah: true,
+          cabangDaerah: true,
+          status: true,
+        },
+      })
+    } catch {
+      // DB cold start — fallback to empty
+    }
 
     const childrenIds = children.map((c) => c.id)
 
-    const todayAttendances = await prisma.attendance.findMany({
-      where: {
-        studentId: { in: childrenIds },
-        date: today,
-      },
-      select: {
-        studentId: true,
-        status: true,
-        note: true,
-      },
-    })
+    let todayAttendances: { studentId: string; status: string; note: string | null }[] = []
+
+    try {
+      todayAttendances = await prisma.attendance.findMany({
+        where: {
+          studentId: { in: childrenIds },
+          date: today,
+        },
+        select: {
+          studentId: true,
+          status: true,
+          note: true,
+        },
+      })
+    } catch {
+      // DB cold start — fallback to empty
+    }
 
     return (
       <div>
