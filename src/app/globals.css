@@ -44,9 +44,10 @@ h1, h2, h3, h4, h5, h6, p, span, td, th, label, option, li, a {
   color: #000000 !important;
 }
 
-/* Except placeholder */
+/* Placeholder juga hitam */
 input::placeholder, textarea::placeholder, [placeholder] {
-  color: #9ca3af !important;
+  color: #000000 !important;
+  opacity: 0.6;
 }
 
 /* Except white text on colored buttons */
