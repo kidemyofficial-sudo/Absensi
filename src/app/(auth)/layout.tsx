@@ -16,7 +16,7 @@ export default function AuthLayout({
       <div className="w-full max-w-md">
         <div className="text-center mb-6">
           <div className="inline-flex flex-col items-center justify-center">
-            <div className="relative w-44 h-16">
+            <div className="relative w-80 h-32">
               <Image
                 src="/image/kidemy logo.png"
                 alt="Kidemy Logo"
