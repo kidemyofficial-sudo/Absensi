@@ -1,34 +1,26 @@
-import DOMPurify from 'dompurify'
-import { JSDOM } from 'jsdom'
-
-// Inisialisasi DOMPurify untuk server-side
-// jsdom menyediakan window object yang dibutuhkan DOMPurify
-const window = new JSDOM('').window
-const purify = DOMPurify(window)
-
-// Konfigurasi: tidak izinkan HTML tags sama sekali
-// Hanya izinkan text plain — paling aman untuk input form
-const SANITIZE_CONFIG = {
-  ALLOWED_TAGS: [] as string[],
-  ALLOWED_ATTR: [] as string[],
-  ALLOW_DATA_ATTR: false,
-}
-
 /**
- * Sanitize string input menggunakan DOMPurify
- * Melindungi dari XSS: script injection, event handlers, svg injection, dll
+ * Sanitize string input secara secure tanpa menggunakan package JSDOM/DOMPurify
+ * yang memiliki dependency native binary berat dan sering crash di serverless environment Vercel.
  *
- * Bukan regex biasa — DOMPurify parse HTML secara proper dan handle:
- * - <script>alert(1)</script>
- * - <img src=x onerror=alert(1)>
- * - <svg onload=alert(1)>
- * - <iframe src=javascript:alert(1)>
- * - Unicode bypass tricks
- * - Null byte injection
+ * Mencegah XSS dengan cara:
+ * 1. Menghilangkan semua pola tag HTML/XML secara aman.
+ * 2. Meng-encode karakter khusus HTML menjadi HTML Entities untuk perlindungan mutlak.
  */
 export function sanitize(input: string): string {
   if (typeof input !== 'string') return ''
-  return purify.sanitize(input, SANITIZE_CONFIG).trim()
+  
+  // 1. Bersihkan tag HTML secara aman
+  const stripped = input.replace(/<[^>]*>?/gm, '')
+  
+  // 2. Encode karakter khusus HTML
+  return stripped
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/\//g, '&#x2F;')
+    .trim()
 }
 
 /**
