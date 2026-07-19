@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { hashPassword, createToken, setTokenCookie } from '@/lib/auth'
 import { registerSchema } from '@/lib/validations'
 import { authRatelimit, getAuthKey } from '@/lib/rate-limit'
+import { ZodError } from 'zod'
 
 export async function POST(request: NextRequest) {
   try {
@@ -59,9 +60,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ user }, { status: 201 })
   } catch (error) {
-    if (error instanceof Error && error.name === 'ZodError') {
+    if (error instanceof ZodError) {
       return NextResponse.json(
-        { error: 'Data tidak valid' },
+        { error: error.issues[0]?.message || 'Data tidak valid' },
         { status: 400 }
       )
     }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 interface UserInfo { id: string; name: string; phone: string; role: string }
 
@@ -22,12 +22,13 @@ export default function ReportsPage() {
   const [jenisFilter, setJenisFilter] = useState('')
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null)
 
-  useEffect(() => { fetchUser() }, [])
-  useEffect(() => { if (user) fetchLessons() }, [user])
+  const fetchUser = useCallback(async () => {
+    const res = await fetch('/api/auth/me')
+    const data = await res.json()
+    setUser(data.user || null)
+  }, [])
 
-  const fetchUser = async () => { const res = await fetch('/api/auth/me'); const data = await res.json(); setUser(data.user || null) }
-
-  const fetchLessons = async () => {
+  const fetchLessons = useCallback(async () => {
     setLoading(true)
     const params = new URLSearchParams()
     if (startDate) params.set('startDate', startDate)
@@ -38,7 +39,15 @@ export default function ReportsPage() {
     const data = await res.json()
     setLessons(data.lessons || [])
     setLoading(false)
-  }
+  }, [startDate, endDate, guruFilter, jenisFilter])
+
+  useEffect(() => {
+    fetchUser()
+  }, [fetchUser])
+
+  useEffect(() => {
+    if (user) fetchLessons()
+  }, [user, fetchLessons])
 
   const handleSearch = () => { fetchLessons() }
 

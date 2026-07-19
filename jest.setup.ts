@@ -1,4 +1,6 @@
 import '@testing-library/jest-dom'
+import fs from 'fs'
+import path from 'path'
 
 // Polyfill TextEncoder and TextDecoder for Jest
 class TextEncoderPolyfill {
@@ -6,7 +8,7 @@ class TextEncoderPolyfill {
     const arr = new Uint8Array(str.length * 3)
     let actualLen = 0
     for (let i = 0; i < str.length; i++) {
-      let code = str.charCodeAt(i)
+      const code = str.charCodeAt(i)
       if (code < 0x80) {
         arr[actualLen++] = code
       } else if (code < 0x800) {
@@ -37,4 +39,28 @@ global.TextDecoder = class TextDecoder {
 }
 
 // Set env vars for tests
+const envPath = path.join(process.cwd(), '.env')
+if (fs.existsSync(envPath)) {
+  const envFile = fs.readFileSync(envPath, 'utf8')
+  for (const line of envFile.split(/\r?\n/)) {
+    const trimmed = line.trim()
+    if (!trimmed || trimmed.startsWith('#')) continue
+    const equalsIndex = trimmed.indexOf('=')
+    if (equalsIndex === -1) continue
+
+    const key = trimmed.slice(0, equalsIndex).trim()
+    if (process.env[key]) continue
+
+    let value = trimmed.slice(equalsIndex + 1).trim()
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1)
+    }
+
+    process.env[key] = value
+  }
+}
+
 process.env.JWT_SECRET = 'test-secret-key-for-jest'

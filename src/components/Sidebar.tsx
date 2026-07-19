@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
@@ -177,9 +178,16 @@ const navConfigs: Record<string, typeof ownerNav> = {
   ORANG_TUA: orangTuaNav,
 }
 
+const roleLabels: Record<string, string> = {
+  OWNER: 'Owner',
+  GURU: 'Guru',
+  ORANG_TUA: 'Wali Murid',
+}
+
 function SidebarContent({ user, pathname, onNavigate }: { user: User; pathname: string; onNavigate?: () => void }) {
   const [search, setSearch] = useState('')
   const navConfig = navConfigs[user.role] || ownerNav
+  const roleLabel = roleLabels[user.role] || user.role
 
   const filteredSections = navConfig.sections.map((section) => ({
     ...section,
@@ -193,10 +201,10 @@ function SidebarContent({ user, pathname, onNavigate }: { user: User; pathname: 
       {/* Logo */}
       <div className="px-5 py-5 border-b border-gray-100">
         <div className="flex items-center gap-3">
-          <img src="/image/kidemy.webp" alt="Kidemy" className="w-12 h-12 rounded-xl object-cover" />
+          <Image src="/image/kidemy.webp" alt="Kidemy" width={48} height={48} className="w-12 h-12 rounded-xl object-cover" />
           <div>
             <h1 className="text-base font-bold text-gray-900">Sistem Absensi</h1>
-            <p className="text-xs font-semibold text-gray-500 uppercase">{user.role}</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase">{roleLabel}</p>
           </div>
         </div>
       </div>
@@ -260,7 +268,7 @@ function SidebarContent({ user, pathname, onNavigate }: { user: User; pathname: 
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
-            <p className="text-xs text-gray-400">{user.role}</p>
+            <p className="text-xs text-gray-400">{roleLabel}</p>
           </div>
         </div>
       </div>
@@ -271,6 +279,7 @@ function SidebarContent({ user, pathname, onNavigate }: { user: User; pathname: 
 export default function Sidebar({ user, mobile }: SidebarProps) {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
+  const roleLabel = roleLabels[user.role] || user.role
 
   if (mobile) {
     return (
@@ -297,10 +306,10 @@ export default function Sidebar({ user, mobile }: SidebarProps) {
             <div className="fixed inset-y-0 left-0 w-72 bg-white shadow-2xl z-50 flex flex-col">
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                 <div className="flex items-center gap-2">
-                  <img src="/image/kidemy.webp" alt="Kidemy" className="w-10 h-10 rounded-xl object-cover" />
+                  <Image src="/image/kidemy.webp" alt="Kidemy" width={40} height={40} className="w-10 h-10 rounded-xl object-cover" />
                   <div>
                     <h1 className="text-base font-bold text-gray-900">Sistem Absensi</h1>
-                    <p className="text-xs font-semibold text-gray-500 uppercase">{user.role}</p>
+                    <p className="text-xs font-semibold text-gray-500 uppercase">{roleLabel}</p>
                   </div>
                 </div>
                 <button

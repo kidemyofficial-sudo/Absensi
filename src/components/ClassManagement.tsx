@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 interface Teacher {
   id: string
@@ -26,11 +26,7 @@ export default function ClassManagement() {
   })
   const [message, setMessage] = useState('')
 
-  useEffect(() => {
-    fetchData()
-  }, [])
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     const [btRes, tRes] = await Promise.all([
       fetch('/api/branch-teachers'),
       fetch('/api/users?role=GURU'),
@@ -40,7 +36,11 @@ export default function ClassManagement() {
     setBranchTeachers(btData.branchTeachers || [])
     setTeachers(tData.users || [])
     setLoading(false)
-  }
+  }, [])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

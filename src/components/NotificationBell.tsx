@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 
 interface Notification {
   id: string
@@ -16,11 +16,22 @@ export default function NotificationBell() {
   const [loading, setLoading] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const res = await fetch('/api/notifications')
+      const data = await res.json()
+      setNotifications(data.notifications || [])
+      setUnreadCount(data.unreadCount || 0)
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error)
+    }
+  }, [])
+
   useEffect(() => {
     fetchNotifications()
     const interval = setInterval(fetchNotifications, 30000)
     return () => clearInterval(interval)
-  }, [])
+  }, [fetchNotifications])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -31,17 +42,6 @@ export default function NotificationBell() {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
-
-  const fetchNotifications = async () => {
-    try {
-      const res = await fetch('/api/notifications')
-      const data = await res.json()
-      setNotifications(data.notifications || [])
-      setUnreadCount(data.unreadCount || 0)
-    } catch (error) {
-      console.error('Failed to fetch notifications:', error)
-    }
-  }
 
   const markAsRead = async (id: string) => {
     try {

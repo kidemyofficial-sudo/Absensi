@@ -1,11 +1,12 @@
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
+import { randomInt } from 'crypto'
 
 const CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
 function generateKodeSiswa(): string {
   let kode = 'STD-'
   for (let i = 0; i < 5; i++) {
-    kode += CHARS.charAt(Math.floor(Math.random() * CHARS.length))
+    kode += CHARS.charAt(randomInt(CHARS.length))
   }
   return kode
 }
@@ -13,7 +14,7 @@ function generateKodeSiswa(): string {
 const prisma = new PrismaClient()
 
 async function main() {
-  console.log('Menghapus semua data...')
+  console.log('Membersihkan data non-owner...')
   await prisma.lessonRevenue.deleteMany()
   await prisma.lesson.deleteMany()
   await prisma.attendance.deleteMany()
@@ -21,13 +22,21 @@ async function main() {
   await prisma.student.deleteMany()
   await prisma.branchTeacher.deleteMany()
   await prisma.auditLog.deleteMany()
-  await prisma.user.deleteMany()
-  console.log('Semua data berhasil dihapus.\n')
+  await prisma.user.deleteMany({
+    where: { role: { not: 'OWNER' } },
+  })
+  console.log('Data non-owner berhasil dihapus.\n')
 
   // === 1. BUAT OWNER ===
   const hashedPasswordOwner = await bcrypt.hash('admin123456', 12)
-  const owner = await prisma.user.create({
-    data: {
+  const owner = await prisma.user.upsert({
+    where: { phone: '081234567890' },
+    update: {
+      name: 'Owner/Admin',
+      password: hashedPasswordOwner,
+      role: 'OWNER',
+    },
+    create: {
       name: 'Owner/Admin',
       phone: '081234567890',
       password: hashedPasswordOwner,
@@ -140,7 +149,7 @@ async function main() {
   ]
 
   for (const b of branchSidoarjo) {
-    const bt = await prisma.branchTeacher.create({
+    await prisma.branchTeacher.create({
       data: {
         userId: guruList[b.guruIdx].id,
         cabangDaerah: 'Kota Sidoarjo, Jawa Timur',
@@ -155,7 +164,7 @@ async function main() {
   }
 
   for (const b of branchSurabaya) {
-    const bt = await prisma.branchTeacher.create({
+    await prisma.branchTeacher.create({
       data: {
         userId: guruList[b.guruIdx].id,
         cabangDaerah: 'Kota Surabaya, Jawa Timur',

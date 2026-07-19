@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser, verifyPassword, hashPassword } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { z } from 'zod'
-
-const changePasswordSchema = z.object({
-  currentPassword: z.string().min(1),
-  newPassword: z.string().min(6),
-})
+import { changePasswordSchema } from '@/lib/validations'
+import { ZodError } from 'zod'
 
 export async function POST(request: NextRequest) {
   const user = await getCurrentUser()
@@ -44,8 +40,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ message: 'Password berhasil diubah' })
   } catch (error) {
-    if (error instanceof Error && error.name === 'ZodError') {
-      return NextResponse.json({ error: 'Data tidak valid' }, { status: 400 })
+    if (error instanceof ZodError) {
+      return NextResponse.json({ error: error.issues[0]?.message || 'Data tidak valid' }, { status: 400 })
     }
     console.error('Change password error:', error)
     return NextResponse.json({ error: 'Terjadi kesalahan' }, { status: 500 })

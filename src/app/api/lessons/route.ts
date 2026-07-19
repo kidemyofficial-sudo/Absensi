@@ -5,6 +5,7 @@ import { lessonSchema } from '@/lib/validations'
 import { apiRatelimit, getClientIp } from '@/lib/rate-limit'
 import { logAudit, getIp } from '@/lib/audit'
 import { sanitize } from '@/lib/sanitize'
+import { ZodError } from 'zod'
 
 export async function GET(request: NextRequest) {
   const user = await getCurrentUser()
@@ -105,21 +106,26 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validatedData = lessonSchema.parse(body)
 
-    // Validate jumlahMurid
-    if (isNaN(validatedData.jumlahMurid) || validatedData.jumlahMurid <= 0) {
-      return NextResponse.json({ error: 'Jumlah murid tidak valid' }, { status: 400 })
-    }
+    const student = await prisma.student.findFirst({
+      where: {
+        id: validatedData.studentId,
+        status: 'APPROVED',
+        branchTeachers: {
+          some: { userId: user.id },
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        biayaPerSiswa: true,
+      },
+    })
 
-    // Ambil biaya per siswa dari data siswa (diatur owner)
-    let biayaPerSiswa = 50000 // default
-    if (validatedData.studentId) {
-      const student = await prisma.student.findUnique({
-        where: { id: validatedData.studentId },
-        select: { biayaPerSiswa: true },
-      })
-      if (student) {
-        biayaPerSiswa = student.biayaPerSiswa
-      }
+    if (!student) {
+      return NextResponse.json(
+        { error: 'Siswa tidak valid atau belum ditugaskan ke guru ini' },
+        { status: 400 }
+      )
     }
 
     // Create lesson and revenue in a serializable transaction
@@ -129,15 +135,15 @@ export async function POST(request: NextRequest) {
         data: {
           tanggalLes: new Date(validatedData.tanggalLes),
           guruId: user.id,
-          studentId: validatedData.studentId || null,
-          biayaPerSiswa,
+          studentId: student.id,
+          biayaPerSiswa: student.biayaPerSiswa,
           namaGuru: user.name,
           whatsappGuru: user.phone,
           jenisPembelajaran: validatedData.jenisPembelajaran,
           lokasiMengajar: validatedData.lokasiMengajar,
           kelasMurid: validatedData.kelasMurid || null,
           jumlahMurid: validatedData.jumlahMurid,
-          namaMurid: sanitize(validatedData.namaMurid),
+          namaMurid: sanitize(student.name),
           catatanMateri: sanitize(validatedData.catatanMateri),
           kritikSaran: validatedData.kritikSaran ? sanitize(validatedData.kritikSaran) : null,
           fotoUrl: validatedData.fotoUrl || null,
@@ -150,21 +156,26 @@ export async function POST(request: NextRequest) {
 
       // Ambil persentase dari BranchTeacher (atau default)
       const branchTeacher = await tx.branchTeacher.findFirst({
-        where: { userId: user.id },
+        where: {
+          userId: user.id,
+          student: {
+            some: { id: student.id },
+          },
+        },
       })
 
       const persentaseOwner = branchTeacher?.persentaseOwner ?? 40
       const persentaseGuru = branchTeacher?.persentaseGuru ?? 60
 
       // Hitung revenue: biayaPerSiswa (dari setting owner) × jumlahMurid
-      const biayaTotal = biayaPerSiswa * validatedData.jumlahMurid
+      const biayaTotal = student.biayaPerSiswa * validatedData.jumlahMurid
       const pendapatanOwner = Math.floor(biayaTotal * persentaseOwner / 100)
       const pendapatanGuru = Math.floor(biayaTotal * persentaseGuru / 100)
 
       const lessonRevenue = await tx.lessonRevenue.create({
         data: {
           lessonId: lesson.id,
-          biayaPerSesi: biayaPerSiswa,
+          biayaPerSesi: student.biayaPerSiswa,
           jumlahMurid: validatedData.jumlahMurid,
           biayaTotal,
           persentaseOwner,
@@ -186,15 +197,15 @@ export async function POST(request: NextRequest) {
       action: 'CREATE',
       entity: 'Lesson',
       entityId: result.lesson.id,
-      newData: { namaMurid: validatedData.namaMurid, jumlahMurid: validatedData.jumlahMurid },
+      newData: { namaMurid: student.name, jumlahMurid: validatedData.jumlahMurid },
       ip: getIp(request),
     })
 
     return NextResponse.json(result, { status: 201 })
   } catch (error) {
-    if (error instanceof Error && error.name === 'ZodError') {
+    if (error instanceof ZodError) {
       return NextResponse.json(
-        { error: 'Data tidak valid' },
+        { error: error.issues[0]?.message || 'Data tidak valid' },
         { status: 400 }
       )
     }

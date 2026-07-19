@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import PasswordVisibilityToggle from '@/components/PasswordVisibilityToggle'
+import PasswordStrength from '@/components/PasswordStrength'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -13,6 +15,7 @@ export default function RegisterPage() {
   const [role, setRole] = useState<'GURU' | 'ORANG_TUA'>('GURU')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -74,15 +77,24 @@ export default function RegisterPage() {
 
         <div>
           <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white transition-all"
-            minLength={6}
-            required
-          />
+          <div className="relative">
+            <input
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-3.5 py-2.5 pr-12 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white transition-all"
+              minLength={8}
+              required
+            />
+            <PasswordVisibilityToggle
+              visible={showPassword}
+              onToggle={() => setShowPassword((prev) => !prev)}
+              labelVisible="Sembunyikan password"
+              labelHidden="Tampilkan password"
+            />
+          </div>
+          <PasswordStrength password={password} className="mt-3" />
         </div>
 
         <div>

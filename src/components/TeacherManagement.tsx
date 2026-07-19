@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 interface Teacher {
   id: string
@@ -20,16 +20,16 @@ export default function TeacherManagement() {
   })
   const [message, setMessage] = useState('')
 
-  useEffect(() => {
-    fetchTeachers()
-  }, [])
-
-  const fetchTeachers = async () => {
+  const fetchTeachers = useCallback(async () => {
     const res = await fetch('/api/users?role=GURU')
     const data = await res.json()
     setTeachers(data.users || [])
     setLoading(false)
-  }
+  }, [])
+
+  useEffect(() => {
+    fetchTeachers()
+  }, [fetchTeachers])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

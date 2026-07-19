@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { provinsiList, kotaKabupatenByProvinsi, type Provinsi } from '@/data/indonesia'
 
 interface Student {
@@ -16,7 +16,6 @@ interface Student {
 }
 
 interface User { id: string; name: string; role: string }
-interface BranchTeacher { id: string; cabangDaerah: string; user: { name: string } }
 interface Teacher { id: string; name: string; phone: string }
 
 export default function StudentsPage() {
@@ -26,7 +25,6 @@ export default function StudentsPage() {
   const [statusFilter, setStatusFilter] = useState('')
   const [search, setSearch] = useState('')
   const [cabangFilter, setCabangFilter] = useState('')
-  const [branchTeachers, setBranchTeachers] = useState<BranchTeacher[]>([])
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [assignModal, setAssignModal] = useState<Student | null>(null)
   const [assignData, setAssignData] = useState({ provinsi: '', kotaKabupaten: '', teacherId: '', mataPelajaran: '' })
@@ -38,17 +36,13 @@ export default function StudentsPage() {
     'Fisika', 'Kimia', 'Biologi', 'Umum', 'Lainnya',
   ]
 
-  useEffect(() => {
-    fetchUser()
-    fetchStudents()
-    if (user?.role === 'OWNER') { fetchBranchTeachers(); fetchTeachers() }
-  }, [user?.role])
+  const fetchUser = useCallback(async () => {
+    const res = await fetch('/api/auth/me')
+    const data = await res.json()
+    setUser(data.user)
+  }, [])
 
-  useEffect(() => { fetchStudents() }, [statusFilter, search, cabangFilter])
-
-  const fetchUser = async () => { const res = await fetch('/api/auth/me'); const data = await res.json(); setUser(data.user) }
-
-  const fetchStudents = async () => {
+  const fetchStudents = useCallback(async () => {
     setLoading(true)
     const params = new URLSearchParams()
     if (statusFilter) params.set('status', statusFilter)
@@ -58,17 +52,40 @@ export default function StudentsPage() {
     const data = await res.json()
     setStudents(data.students || [])
     setLoading(false)
-  }
+  }, [statusFilter, search, cabangFilter])
 
-  const fetchBranchTeachers = async () => { const res = await fetch('/api/branch-teachers'); const data = await res.json(); setBranchTeachers(data.branchTeachers || []) }
-  const fetchTeachers = async () => { const res = await fetch('/api/users?role=GURU'); const data = await res.json(); setTeachers(data.users || []) }
+  const fetchTeachers = useCallback(async () => {
+    const res = await fetch('/api/users?role=GURU')
+    const data = await res.json()
+    setTeachers(data.users || [])
+  }, [])
+
+  useEffect(() => {
+    fetchUser()
+  }, [fetchUser])
+
+  useEffect(() => {
+    fetchStudents()
+  }, [fetchStudents])
+
+  useEffect(() => {
+    if (user?.role === 'OWNER') {
+      fetchTeachers()
+    }
+  }, [user?.role, fetchTeachers])
 
   const handleApprove = async (studentId: string, status: 'APPROVED' | 'REJECTED') => {
     const res = await fetch(`/api/students/${studentId}/approve`, {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
     })
-    if (res.ok) fetchStudents()
+    if (res.ok) {
+      fetchStudents()
+      return
+    }
+
+    const data = await res.json().catch(() => ({}))
+    console.error(data.error || 'Gagal memperbarui status siswa')
   }
 
   const handleAssign = async () => {
@@ -78,7 +95,15 @@ export default function StudentsPage() {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ cabangDaerah, provinsi: assignData.provinsi, kotaKabupaten: assignData.kotaKabupaten, teacherId: assignData.teacherId, mataPelajaran: assignData.mataPelajaran }),
     })
-    if (res.ok) { setAssignModal(null); setAssignData({ provinsi: '', kotaKabupaten: '', teacherId: '', mataPelajaran: '' }); fetchStudents() }
+    if (res.ok) {
+      setAssignModal(null)
+      setAssignData({ provinsi: '', kotaKabupaten: '', teacherId: '', mataPelajaran: '' })
+      fetchStudents()
+      return
+    }
+
+    const data = await res.json().catch(() => ({}))
+    console.error(data.error || 'Gagal assign siswa')
   }
 
   const cabangs = [...new Set(students.filter((s) => s.cabangDaerah).map((s) => s.cabangDaerah))].sort()

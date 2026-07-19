@@ -4,7 +4,8 @@ import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers'
 import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { generateKodeSiswa } from '@/lib/generate-kode'
+import { sanitize } from '@/lib/sanitize'
+import { withUniqueKodeSiswa } from '@/lib/student-code'
 
 export async function registerStudent(formData: FormData) {
   const cookieStore = await cookies()
@@ -19,27 +20,34 @@ export async function registerStudent(formData: FormData) {
     return
   }
 
-  const name = formData.get('name') as string
-  const ttl = formData.get('ttl') as string
-  const domisili = formData.get('domisili') as string
-  const asalSekolah = formData.get('asalSekolah') as string
+  const name = String(formData.get('name') || '').trim()
+  const ttl = String(formData.get('ttl') || '').trim()
+  const domisili = String(formData.get('domisili') || '').trim()
+  const asalSekolah = String(formData.get('asalSekolah') || '').trim()
 
   if (!name || name.length < 2 || !ttl || !domisili || !asalSekolah) {
     return
   }
 
+  const safeName = sanitize(name)
+  const safeTtl = sanitize(ttl)
+  const safeDomisili = sanitize(domisili)
+  const safeAsalSekolah = sanitize(asalSekolah)
+
   // Create student with random kode
-  await prisma.student.create({
-    data: {
-      name,
-      kodeSiswa: generateKodeSiswa(),
-      ttl,
-      domisili,
-      asalSekolah,
-      parentId: payload.userId,
-      status: 'PENDING',
-    },
-  })
+  await withUniqueKodeSiswa((kodeSiswa) =>
+    prisma.student.create({
+      data: {
+        name: safeName,
+        kodeSiswa,
+        ttl: safeTtl,
+        domisili: safeDomisili,
+        asalSekolah: safeAsalSekolah,
+        parentId: payload.userId,
+        status: 'PENDING',
+      },
+    })
+  )
 
   // Notify owners
   const owners = await prisma.user.findMany({
@@ -51,7 +59,7 @@ export async function registerStudent(formData: FormData) {
     await prisma.notification.create({
       data: {
         userId: owner.id,
-        message: `Siswa baru: ${name} menunggu persetujuan`,
+        message: `Siswa baru: ${safeName} menunggu persetujuan`,
       },
     })
   }

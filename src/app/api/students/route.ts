@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { ZodError } from 'zod'
 import { logAudit, getIp } from '@/lib/audit'
 import { sanitize } from '@/lib/sanitize'
-import { generateKodeSiswa } from '@/lib/generate-kode'
+import { withUniqueKodeSiswa } from '@/lib/student-code'
 
 // Schema untuk Orang Tua mendaftarkan siswa
 const parentRegisterSchema = z.object({
@@ -12,13 +13,6 @@ const parentRegisterSchema = z.object({
   ttl: z.string().min(1, 'Tempat tanggal lahir harus diisi'),
   domisili: z.string().min(1, 'Domisili harus diisi'),
   asalSekolah: z.string().min(1, 'Asal sekolah harus diisi'),
-})
-
-// Schema untuk Owner approve dan assign
-const ownerAssignSchema = z.object({
-  studentId: z.string().cuid(),
-  cabangDaerah: z.string().min(1, 'Cabang Daerah harus diisi'),
-  branchTeacherId: z.string().cuid().optional(),
 })
 
 export async function GET(request: NextRequest) {
@@ -106,22 +100,24 @@ export async function POST(request: NextRequest) {
     const validatedData = parentRegisterSchema.parse(body)
 
     // Create student with PENDING status
-    const student = await prisma.student.create({
-      data: {
-        name: sanitize(validatedData.name),
-        kodeSiswa: generateKodeSiswa(),
-        ttl: sanitize(validatedData.ttl),
-        domisili: sanitize(validatedData.domisili),
-        asalSekolah: sanitize(validatedData.asalSekolah),
-        parentId: user.id,
-        status: 'PENDING',
-      },
-      include: {
-        parent: {
-          select: { id: true, name: true },
+    const student = await withUniqueKodeSiswa((kodeSiswa) =>
+      prisma.student.create({
+        data: {
+          name: sanitize(validatedData.name),
+          kodeSiswa,
+          ttl: sanitize(validatedData.ttl),
+          domisili: sanitize(validatedData.domisili),
+          asalSekolah: sanitize(validatedData.asalSekolah),
+          parentId: user.id,
+          status: 'PENDING',
         },
-      },
-    })
+        include: {
+          parent: {
+            select: { id: true, name: true },
+          },
+        },
+      })
+    )
 
     // Notify owner
     const owners = await prisma.user.findMany({
@@ -152,9 +148,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ student }, { status: 201 })
   } catch (error) {
-    if (error instanceof Error && error.name === 'ZodError') {
+    if (error instanceof ZodError) {
       return NextResponse.json(
-        { error: 'Data tidak valid' },
+        { error: error.issues[0]?.message || 'Data tidak valid' },
         { status: 400 }
       )
     }

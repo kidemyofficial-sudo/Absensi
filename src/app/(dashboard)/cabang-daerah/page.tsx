@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { provinsiList, kotaKabupatenByProvinsi, type Provinsi } from '@/data/indonesia'
 
 interface Teacher {
@@ -46,10 +46,7 @@ export default function CabangDaerahPage() {
     'Fisika', 'Kimia', 'Biologi', 'Umum', 'Lainnya',
   ]
 
-  useEffect(() => { fetchData() }, [])
-  useEffect(() => { fetchData() }, [search])
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true)
     const [btRes, tRes] = await Promise.all([
       fetch('/api/branch-teachers'),
@@ -60,7 +57,11 @@ export default function CabangDaerahPage() {
     setBranchTeachers(btData.branchTeachers || [])
     setTeachers(tData.users || [])
     setLoading(false)
-  }
+  }, [])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

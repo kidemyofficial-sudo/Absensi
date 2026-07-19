@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
   }
 
   if (cabangFilter) {
-    where.student = { cabangDaerah: cabangFilter }
+    where.student = { is: { cabangDaerah: cabangFilter } }
   }
 
   if (studentId) {

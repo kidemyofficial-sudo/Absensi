@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { studentSchema } from '@/lib/validations'
 import { logAudit, getIp } from '@/lib/audit'
 import { sanitize } from '@/lib/sanitize'
+import { ZodError } from 'zod'
 
 export async function GET(
   request: NextRequest,
@@ -93,9 +94,9 @@ export async function PUT(
 
     return NextResponse.json({ student })
   } catch (error) {
-    if (error instanceof Error && error.name === 'ZodError') {
+    if (error instanceof ZodError) {
       return NextResponse.json(
-        { error: 'Data tidak valid' },
+        { error: error.issues[0]?.message || 'Data tidak valid' },
         { status: 400 }
       )
     }

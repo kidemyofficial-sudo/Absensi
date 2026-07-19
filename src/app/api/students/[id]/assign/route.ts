@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { z } from 'zod'
+import { z, ZodError } from 'zod'
 
 const assignSchema = z.object({
   cabangDaerah: z.string().min(1, 'Cabang Daerah harus diisi'),
@@ -42,16 +42,9 @@ export async function PATCH(
       )
     }
 
-    // Update student cabangDaerah
-    const updated = await prisma.student.update({
-      where: { id },
-      data: { cabangDaerah: validatedData.cabangDaerah },
-    })
-
-    // Assign to teacher if provided
+    let teacher: { id: string; role: string } | null = null
     if (validatedData.teacherId) {
-      // Check if teacher exists
-      const teacher = await prisma.user.findUnique({
+      teacher = await prisma.user.findUnique({
         where: { id: validatedData.teacherId },
       })
 
@@ -61,57 +54,67 @@ export async function PATCH(
           { status: 400 }
         )
       }
+    }
 
-      // Find or create branch teacher
-      let branchTeacher = await prisma.branchTeacher.findUnique({
-        where: {
-          userId_cabangDaerah: {
-            userId: validatedData.teacherId,
-            cabangDaerah: validatedData.cabangDaerah,
-          },
-        },
+    const updated = await prisma.$transaction(async (tx) => {
+      const updatedStudent = await tx.student.update({
+        where: { id },
+        data: { cabangDaerah: validatedData.cabangDaerah },
       })
 
-      if (!branchTeacher) {
-        // Create new branch teacher
-        branchTeacher = await prisma.branchTeacher.create({
+      if (teacher) {
+        let branchTeacher = await tx.branchTeacher.findUnique({
+          where: {
+            userId_cabangDaerah: {
+              userId: validatedData.teacherId!,
+              cabangDaerah: validatedData.cabangDaerah,
+            },
+          },
+        })
+
+        if (!branchTeacher) {
+          branchTeacher = await tx.branchTeacher.create({
+            data: {
+              userId: validatedData.teacherId!,
+              cabangDaerah: validatedData.cabangDaerah,
+              provinsi: validatedData.provinsi,
+              kotaKabupaten: validatedData.kotaKabupaten,
+              mataPelajaran: validatedData.mataPelajaran || 'Umum',
+            },
+          })
+        }
+
+        const currentBranchTeachers = await tx.branchTeacher.findMany({
+          where: {
+            student: { some: { id } },
+          },
+          select: { id: true },
+        })
+
+        if (currentBranchTeachers.length > 0) {
+          await tx.student.update({
+            where: { id },
+            data: {
+              branchTeachers: {
+                disconnect: currentBranchTeachers,
+              },
+            },
+          })
+        }
+
+        await tx.branchTeacher.update({
+          where: { id: branchTeacher.id },
           data: {
-            userId: validatedData.teacherId,
-            cabangDaerah: validatedData.cabangDaerah,
-            provinsi: validatedData.provinsi,
-            kotaKabupaten: validatedData.kotaKabupaten,
-            mataPelajaran: validatedData.mataPelajaran || 'Umum',
+            student: {
+              connect: { id },
+            },
           },
         })
       }
 
-      // Disconnect student from other branch teachers first
-      await prisma.student.update({
-        where: { id },
-        data: {
-          branchTeachers: {
-            disconnect: await prisma.branchTeacher.findMany({
-              where: {
-                student: { some: { id } },
-              },
-              select: { id: true },
-            }),
-          },
-        },
-      })
+      return updatedStudent
+    })
 
-      // Connect student to branch teacher
-      await prisma.branchTeacher.update({
-        where: { id: branchTeacher.id },
-        data: {
-          student: {
-            connect: { id },
-          },
-        },
-      })
-    }
-
-    // Notify parent
     await prisma.notification.create({
       data: {
         userId: student.parentId,
@@ -121,9 +124,9 @@ export async function PATCH(
 
     return NextResponse.json({ student: updated })
   } catch (error) {
-    if (error instanceof Error && error.name === 'ZodError') {
+    if (error instanceof ZodError) {
       return NextResponse.json(
-        { error: 'Data tidak valid', details: error.message },
+        { error: error.issues[0]?.message || 'Data tidak valid' },
         { status: 400 }
       )
     }

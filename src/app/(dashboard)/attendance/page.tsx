@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { LESSON_LOCATIONS, MIN_CATATAN_MATERI_LENGTH } from '@/lib/lesson-options'
 
 interface UserInfo {
   id: string
@@ -22,10 +23,6 @@ const JENIS_PEMBELAJARAN = [
   'Matematika', 'Bahasa Indonesia', 'Bahasa Inggris', 'IPA', 'IPS',
   'PPKN', 'Seni Budaya', 'Penjaskes', 'Prakarya', 'Komputer',
   'Bimbingan Belajar', 'Mengaji', 'Bahasa Arab', 'Tahfidz', 'Umum', 'Lainnya',
-]
-
-const LOKASI_MENGAJAR = [
-  'Home Visit', 'Online (Zoom/Meet)', 'Kidemy House',
 ]
 
 const KELAS_MURID = [
@@ -59,45 +56,73 @@ export default function AttendancePage() {
   const [namaWaliMurid, setNamaWaliMurid] = useState('')
   const [whatsappWaliMurid, setWhatsappWaliMurid] = useState('')
 
-  useEffect(() => { fetchUser() }, [])
-  useEffect(() => { if (user?.role === 'GURU') fetchStudents() }, [user])
+  useEffect(() => {
+    const fetchUser = async () => {
+      const res = await fetch('/api/auth/me')
+      const data = await res.json()
+      setUser(data.user || null)
+      setLoading(false)
+    }
 
-  const fetchUser = async () => {
-    const res = await fetch('/api/auth/me')
-    const data = await res.json()
-    setUser(data.user || null)
-    setLoading(false)
-  }
+    fetchUser()
+  }, [])
 
-  const fetchStudents = async () => {
-    const res = await fetch('/api/students?status=APPROVED')
-    const data = await res.json()
-    setStudents(data.students || [])
-  }
+  useEffect(() => {
+    if (user?.role !== 'GURU') return
+
+    const fetchStudents = async () => {
+      const res = await fetch('/api/students?status=APPROVED')
+      const data = await res.json()
+      setStudents(data.students || [])
+    }
+
+    fetchStudents()
+  }, [user?.role])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
     setMessage({ type: '', text: '' })
 
-    if (catatanMateri.length < 20) {
+    const selectedStudent = students.find((s) => s.id === selectedStudentId)
+    const resolvedJenisPembelajaran = jenisPembelajaran === 'Lainnya' ? jenisLainnya.trim() : jenisPembelajaran.trim()
+    const trimmedCatatanMateri = catatanMateri.trim()
+    const trimmedKritikSaran = kritikSaran.trim()
+    const trimmedFotoUrl = fotoUrl.trim()
+    const trimmedNamaWaliMurid = namaWaliMurid.trim()
+    const trimmedWhatsappWaliMurid = whatsappWaliMurid.trim()
+
+    if (!selectedStudent) {
+      setMessage({ type: 'error', text: 'Pilih murid yang diajar' })
+      setSaving(false)
+      return
+    }
+
+    if (!resolvedJenisPembelajaran) {
+      setMessage({ type: 'error', text: 'Tulis nama mata pelajaran jika memilih Lainnya' })
+      setSaving(false)
+      return
+    }
+
+    if (trimmedCatatanMateri.length < MIN_CATATAN_MATERI_LENGTH) {
       setMessage({ type: 'error', text: 'Catatan terlalu singkat, jelaskan aktivitas dan materi lebih detail' })
       setSaving(false)
       return
     }
 
-    const selectedStudent = students.find((s) => s.id === selectedStudentId)
-    const namaMurid = selectedStudent?.name || ''
+    const namaMurid = selectedStudent.name
 
     try {
       const res = await fetch('/api/lessons', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tanggalLes, jenisPembelajaran: jenisPembelajaran === 'Lainnya' ? jenisLainnya : jenisPembelajaran, lokasiMengajar, kelasMurid,
+          tanggalLes, jenisPembelajaran: resolvedJenisPembelajaran, lokasiMengajar, kelasMurid,
           jumlahMurid: 1,
-          namaMurid, catatanMateri, kritikSaran, fotoUrl, jamMulai, jamSelesai,
-          namaWaliMurid, whatsappWaliMurid, studentId: selectedStudentId,
+          namaMurid, catatanMateri: trimmedCatatanMateri, kritikSaran: trimmedKritikSaran || null,
+          fotoUrl: trimmedFotoUrl || null, jamMulai, jamSelesai,
+          namaWaliMurid: trimmedNamaWaliMurid, whatsappWaliMurid: trimmedWhatsappWaliMurid || null,
+          studentId: selectedStudentId,
         }),
       })
       const data = await res.json()
@@ -108,15 +133,15 @@ export default function AttendancePage() {
           `📅 Tanggal: ${tanggalLes}\n` +
           `👤 Tutor: ${user?.name}\n` +
           `📱 WA Tutor: ${user?.phone}\n` +
-          `📚 Mata Pelajaran/Topik: ${jenisPembelajaran === 'Lainnya' ? jenisLainnya : jenisPembelajaran}\n` +
+          `📚 Mata Pelajaran/Topik: ${resolvedJenisPembelajaran}\n` +
           `📍 Lokasi: ${lokasiMengajar}\n` +
           `🏫 Kelas: ${kelasMurid}\n` +
           `👨‍🎓 Murid: ${namaMurid}\n` +
           `🕐 Jam: ${jamMulai} - ${jamSelesai}\n` +
-          `📝 Rangkuman Aktivitas: ${catatanMateri}\n` +
-          (kritikSaran ? `💡 Catatan Perkembangan/Kendala: ${kritikSaran}\n` : '') +
-          `👨‍👩‍👦 Wali: ${namaWaliMurid}\n` +
-          `${whatsappWaliMurid ? `📱 WA Wali: ${whatsappWaliMurid}` : ''}`
+          `📝 Rangkuman Aktivitas: ${trimmedCatatanMateri}\n` +
+          (trimmedKritikSaran ? `💡 Catatan Perkembangan/Kendala: ${trimmedKritikSaran}\n` : '') +
+          `👨‍👩‍👦 Wali: ${trimmedNamaWaliMurid}\n` +
+          `${trimmedWhatsappWaliMurid ? `📱 WA Wali: ${trimmedWhatsappWaliMurid}` : ''}`
         )
         // Redirect ke WhatsApp admin
         window.open(`https://wa.me/${ADMIN_WA}?text=${waMessage}`, '_blank')
@@ -231,7 +256,7 @@ export default function AttendancePage() {
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Lokasi Mengajar <span className="text-red-500">*</span></label>
               <select value={lokasiMengajar} onChange={(e) => setLokasiMengajar(e.target.value)} required className={selectClass}>
                 <option value="">Pilih Lokasi Mengajar</option>
-                {LOKASI_MENGAJAR.map((l) => (<option key={l} value={l}>{l}</option>))}
+                {LESSON_LOCATIONS.map((l) => (<option key={l} value={l}>{l}</option>))}
               </select>
             </div>
           </div>
@@ -261,7 +286,7 @@ export default function AttendancePage() {
             <textarea value={catatanMateri} onChange={(e) => setCatatanMateri(e.target.value)} required rows={4}
               placeholder="Rangkuman aktivitas dan materi yang diajarkan hari ini. Jangan terlalu singkat, jelaskan dengan detail."
               className={inputClass + ' resize-none'} />
-            {catatanMateri.length > 0 && catatanMateri.length < 20 && (
+            {catatanMateri.trim().length > 0 && catatanMateri.trim().length < MIN_CATATAN_MATERI_LENGTH && (
               <p className="text-xs text-red-500 mt-1">Catatan terlalu singkat, jelaskan lebih detail</p>
             )}
           </div>

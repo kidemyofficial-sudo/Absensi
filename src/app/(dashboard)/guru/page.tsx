@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 interface Teacher {
   id: string
@@ -20,10 +20,7 @@ export default function GuruPage() {
   const [message, setMessage] = useState('')
   const [search, setSearch] = useState('')
 
-  useEffect(() => { fetchTeachers() }, [])
-  useEffect(() => { fetchTeachers() }, [search])
-
-  const fetchTeachers = async () => {
+  const fetchTeachers = useCallback(async () => {
     setLoading(true)
     const params = new URLSearchParams()
     if (search) params.set('search', search)
@@ -31,7 +28,11 @@ export default function GuruPage() {
     const data = await res.json()
     setTeachers(data.users || [])
     setLoading(false)
-  }
+  }, [search])
+
+  useEffect(() => {
+    fetchTeachers()
+  }, [fetchTeachers])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
