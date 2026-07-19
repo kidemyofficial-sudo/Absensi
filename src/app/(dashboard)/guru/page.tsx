@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import ConfirmDialog from '@/components/ConfirmDialog'
 
 interface Teacher {
   id: string
@@ -19,6 +20,7 @@ export default function GuruPage() {
   const [formData, setFormData] = useState({ name: '', phone: '', password: '' })
   const [message, setMessage] = useState('')
   const [search, setSearch] = useState('')
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null)
 
   const fetchTeachers = useCallback(async () => {
     setLoading(true)
@@ -54,10 +56,11 @@ export default function GuruPage() {
     }
   }
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Yakin ingin menghapus guru ${name}?`)) return
+  const handleDeleteConfirmed = async () => {
+    if (!deleteConfirm) return
+    setDeleteConfirm(null)
     try {
-      const res = await fetch(`/api/users/${id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/users/${deleteConfirm.id}`, { method: 'DELETE' })
       if (!res.ok) {
         const data = await res.json()
         throw new Error(data.error || 'Gagal hapus guru')
@@ -70,6 +73,15 @@ export default function GuruPage() {
 
   return (
     <div>
+      <ConfirmDialog
+        isOpen={!!deleteConfirm}
+        title="Hapus Guru"
+        message={`Yakin ingin menghapus guru ${deleteConfirm?.name}? Tindakan ini tidak dapat dibatalkan.`}
+        confirmText="Ya, Hapus"
+        variant="danger"
+        onConfirm={handleDeleteConfirmed}
+        onCancel={() => setDeleteConfirm(null)}
+      />
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Guru</h1>
@@ -184,7 +196,7 @@ export default function GuruPage() {
                     </td>
                     <td className="px-5 py-3.5 text-sm text-right whitespace-nowrap">
                       <button
-                        onClick={() => handleDelete(teacher.id, teacher.name)}
+                        onClick={() => setDeleteConfirm({ id: teacher.id, name: teacher.name })}
                         className="text-red-500 hover:text-red-700 font-medium text-xs"
                       >
                         Hapus

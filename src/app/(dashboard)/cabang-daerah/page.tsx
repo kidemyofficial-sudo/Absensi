@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { provinsiList, kotaKabupatenByProvinsi, type Provinsi } from '@/data/indonesia'
+import ConfirmDialog from '@/components/ConfirmDialog'
 
 interface Teacher {
   id: string
@@ -34,6 +35,7 @@ export default function CabangDaerahPage() {
   const [search, setSearch] = useState('')
   const [expandedCabang, setExpandedCabang] = useState<string | null>(null)
   const [expandedGuru, setExpandedGuru] = useState<string | null>(null)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
   const kotaList = formData.provinsi
     ? kotaKabupatenByProvinsi[formData.provinsi as Provinsi] || []
@@ -91,10 +93,11 @@ export default function CabangDaerahPage() {
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Yakin ingin menghapus mapping cabang daerah ini?')) return
+  const handleDeleteConfirmed = async () => {
+    if (!deleteConfirmId) return
+    setDeleteConfirmId(null)
     try {
-      const res = await fetch(`/api/branch-teachers/${id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/branch-teachers/${deleteConfirmId}`, { method: 'DELETE' })
       if (!res.ok) {
         const data = await res.json()
         throw new Error(data.error || 'Gagal hapus')
@@ -121,6 +124,15 @@ export default function CabangDaerahPage() {
 
   return (
     <div>
+      <ConfirmDialog
+        isOpen={!!deleteConfirmId}
+        title="Hapus Mapping Cabang Daerah"
+        message="Yakin ingin menghapus mapping cabang daerah ini? Siswa yang terdaftar tidak akan ikut terhapus."
+        confirmText="Ya, Hapus"
+        variant="danger"
+        onConfirm={handleDeleteConfirmed}
+        onCancel={() => setDeleteConfirmId(null)}
+      />
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Cabang Daerah</h1>
@@ -289,7 +301,7 @@ export default function CabangDaerahPage() {
                                 <div className="flex items-center gap-3">
                                   <span className="text-xs text-gray-500 bg-white px-2 py-0.5 rounded-lg">{bt.student.length} siswa</span>
                                   <button
-                                    onClick={(e) => { e.stopPropagation(); handleDelete(bt.id) }}
+                                    onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(bt.id) }}
                                     className="text-xs text-red-500 hover:text-red-700 font-medium"
                                   >
                                     Hapus
