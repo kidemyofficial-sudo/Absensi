@@ -85,7 +85,13 @@ export async function DELETE(
     where: { id },
     include: {
       students: { select: { id: true } },
-      attendances: { select: { id: true } },
+      branchTeachers: {
+        select: {
+          id: true,
+          student: { select: { id: true } },
+        },
+      },
+      lessons: { select: { id: true } },
     },
   })
 
@@ -93,27 +99,43 @@ export async function DELETE(
     return NextResponse.json({ error: 'User tidak ditemukan' }, { status: 404 })
   }
 
-  // Cek apakah guru punya data terkait
-  if (targetUser.role === 'GURU') {
-    if (targetUser.attendances.length > 0) {
-      return NextResponse.json(
-        { error: 'Guru memiliki data absensi, tidak bisa dihapus' },
-        { status: 400 }
-      )
-    }
+  // Orang tua yang masih punya siswa tidak bisa dihapus
+  if (targetUser.role === 'ORANG_TUA' && targetUser.students.length > 0) {
+    return NextResponse.json(
+      { error: `Orang Tua masih memiliki ${targetUser.students.length} siswa. Hapus siswa terlebih dahulu.` },
+      { status: 400 }
+    )
   }
 
-  // Cek apakah orang tua punya anak
-  if (targetUser.role === 'ORANG_TUA') {
-    if (targetUser.students.length > 0) {
-      return NextResponse.json(
-        { error: 'Orang Tua memiliki data siswa, tidak bisa dihapus' },
-        { status: 400 }
-      )
+  try {
+    if (targetUser.role === 'GURU') {
+      // 1. Hapus LessonRevenue & Lesson terkait guru ini
+      if (targetUser.lessons.length > 0) {
+        const lessonIds = targetUser.lessons.map((l) => l.id)
+        await prisma.lessonRevenue.deleteMany({ where: { lessonId: { in: lessonIds } } })
+        await prisma.lesson.deleteMany({ where: { id: { in: lessonIds } } })
+      }
+
+      // 2. Lepaskan semua siswa dari BranchTeacher milik guru ini, lalu hapus BranchTeacher
+      for (const bt of targetUser.branchTeachers) {
+        if (bt.student.length > 0) {
+          const studentIds = bt.student.map((s) => s.id)
+          await prisma.branchTeacher.update({
+            where: { id: bt.id },
+            data: { student: { disconnect: studentIds.map((sid) => ({ id: sid })) } },
+          })
+        }
+      }
+      await prisma.branchTeacher.deleteMany({ where: { userId: id } })
+
+      // 3. Hapus data attendance guru
+      await prisma.attendance.deleteMany({ where: { teacherId: id } })
     }
+
+    await prisma.user.delete({ where: { id } })
+    return NextResponse.json({ message: 'User berhasil dihapus' })
+  } catch (error) {
+    console.error('Delete user error:', error)
+    return NextResponse.json({ error: 'Gagal menghapus user' }, { status: 500 })
   }
-
-  await prisma.user.delete({ where: { id } })
-
-  return NextResponse.json({ message: 'User berhasil dihapus' })
 }
