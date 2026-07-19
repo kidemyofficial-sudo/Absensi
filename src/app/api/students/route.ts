@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
   const cabangWhere: Prisma.StudentWhereInput = { ...where }
   delete cabangWhere.cabangDaerah
 
-  const [students, total, cabangRows] = await prisma.$transaction([
+  const [students, total, cabangRows] = await Promise.all([
     prisma.student.findMany({
       where,
       select: {
@@ -102,8 +102,8 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' },
       skip: (page - 1) * limit,
       take: limit,
-    }),
-    prisma.student.count({ where }),
+    }).catch(() => []),
+    prisma.student.count({ where }).catch(() => 0),
     prisma.student.findMany({
       where: {
         ...cabangWhere,
@@ -112,7 +112,7 @@ export async function GET(request: NextRequest) {
       select: { cabangDaerah: true },
       distinct: ['cabangDaerah'],
       orderBy: { cabangDaerah: 'asc' },
-    }),
+    }).catch(() => []),
   ])
 
   return NextResponse.json({
