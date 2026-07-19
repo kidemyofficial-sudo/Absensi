@@ -142,7 +142,7 @@ export default function PendapatanPrintButton({
     }
 
     .brand img {
-      height: 60px;
+      height: 110px;
       object-fit: contain;
     }
 
