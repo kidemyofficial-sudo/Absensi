@@ -44,10 +44,43 @@ h1, h2, h3, h4, h5, h6, p, span, td, th, label, option, li, a {
   color: #000000 !important;
 }
 
+/* Form text stays black while typing, selecting, and using browser autofill */
+input,
+textarea,
+select,
+option {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+  caret-color: #000000;
+}
+
+input:disabled,
+textarea:disabled,
+select:disabled,
+input[readonly],
+textarea[readonly] {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+  opacity: 1;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-text-fill-color: #000000 !important;
+  caret-color: #000000;
+}
+
 /* Placeholder juga hitam */
 input::placeholder, textarea::placeholder, [placeholder] {
   color: #000000 !important;
-  opacity: 0.6;
+  opacity: 1;
 }
 
 /* Except white text on colored buttons */
