@@ -38,7 +38,9 @@ export default async function PendapatanPage() {
   }
 
 
-  const totalPendapatan = revenues.reduce((sum, r) => sum + r.pendapatanGuru, 0)
+  const totalPendapatan = revenues.reduce((sum, r) => {
+    return sum + (user.role === 'OWNER' ? r.pendapatanOwner : r.pendapatanGuru)
+  }, 0)
 
   const formatRupiah = (amount: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount)
@@ -64,10 +66,16 @@ export default async function PendapatanPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h3 className="text-base font-semibold text-gray-900">Estimasi Pendapatan {bulan}</h3>
+          <h3 className="text-base font-semibold text-gray-900">
+            {user.role === 'OWNER' ? 'Estimasi Pendapatan Owner' : 'Estimasi Pendapatan'} {bulan}
+          </h3>
         </div>
         <p className="text-3xl font-bold text-green-600 mb-2">{formatRupiah(totalPendapatan)}</p>
-        <p className="text-sm text-gray-500">Pembayaran dilakukan langsung ke rekening Anda.</p>
+        <p className="text-sm text-gray-500">
+          {user.role === 'OWNER'
+            ? 'Pendapatan bersih bagian Owner dari seluruh operasional les.'
+            : 'Pembayaran dilakukan langsung ke rekening Anda.'}
+        </p>
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -82,9 +90,26 @@ export default async function PendapatanPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-100">
-                    {['Tanggal', 'Jenis Les', 'Murid', 'Jumlah Siswa', 'Total Biaya', 'Bagi Hasil Guru'].map((h) => (
-                      <th key={h} className="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{h}</th>
-                    ))}
+                    {user.role === 'OWNER' ? (
+                      <>
+                        <th className="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
+                        <th className="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Les</th>
+                        <th className="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Guru</th>
+                        <th className="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Murid</th>
+                        <th className="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah Siswa</th>
+                        <th className="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Biaya</th>
+                        <th className="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bagi Hasil Owner</th>
+                        <th className="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bagi Hasil Guru</th>
+                      </>
+                    ) : (
+                      <>
+                        <th className="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
+                        <th className="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Les</th>
+                        <th className="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Murid</th>
+                        <th className="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah Siswa</th>
+                        <th className="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Salary</th>
+                      </>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -92,10 +117,20 @@ export default async function PendapatanPage() {
                     <tr key={rev.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-3.5 text-sm text-gray-900">{formatDate(rev.lesson.tanggalLes)}</td>
                       <td className="px-4 py-3.5 text-sm text-gray-600">{rev.lesson.jenisPembelajaran}</td>
+                      {user.role === 'OWNER' && (
+                        <td className="px-4 py-3.5 text-sm text-gray-900">{rev.lesson.namaGuru}</td>
+                      )}
                       <td className="px-4 py-3.5 text-sm text-gray-900">{rev.lesson.namaMurid}</td>
                       <td className="px-4 py-3.5 text-sm text-gray-600">{rev.lesson.jumlahMurid}</td>
-                      <td className="px-4 py-3.5 text-sm text-gray-600">{formatRupiah(rev.biayaTotal)}</td>
-                      <td className="px-4 py-3.5 text-sm font-medium text-green-600">{formatRupiah(rev.pendapatanGuru)}</td>
+                      {user.role === 'OWNER' ? (
+                        <>
+                          <td className="px-4 py-3.5 text-sm text-gray-600">{formatRupiah(rev.biayaTotal)}</td>
+                          <td className="px-4 py-3.5 text-sm font-medium text-blue-600">{formatRupiah(rev.pendapatanOwner)}</td>
+                          <td className="px-4 py-3.5 text-sm font-medium text-green-600">{formatRupiah(rev.pendapatanGuru)}</td>
+                        </>
+                      ) : (
+                        <td className="px-4 py-3.5 text-sm font-medium text-green-600">{formatRupiah(rev.pendapatanGuru)}</td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
