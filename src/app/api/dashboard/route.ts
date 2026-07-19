@@ -14,11 +14,9 @@ export async function GET() {
 
   if (user.role === 'OWNER') {
     const [totalStudents, totalTeachers, todayAttendance] = await Promise.all([
-      prisma.student.count(),
-      prisma.user.count({ where: { role: 'GURU' } }),
-      prisma.attendance.count({
-        where: { date: today },
-      }),
+      prisma.student.count().catch(() => 0),
+      prisma.user.count({ where: { role: 'GURU' } }).catch(() => 0),
+      prisma.attendance.count({ where: { date: today } }).catch(() => 0),
     ])
 
     return NextResponse.json({

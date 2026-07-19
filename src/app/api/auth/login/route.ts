@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
       phone: user.phone,
       role: user.role,
     })
-    setTokenCookie(token)
+    await setTokenCookie(token)
 
     return NextResponse.json({
       user: {

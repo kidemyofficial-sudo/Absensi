@@ -1,3 +1,10 @@
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Masuk ke Akun',
+  description: 'Login ke platform Kidemy — sistem absensi les privat untuk guru, orang tua, dan admin.',
+}
+
 export default function AuthLayout({
   children,
 }: {

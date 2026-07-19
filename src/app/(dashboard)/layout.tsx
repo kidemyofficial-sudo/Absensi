@@ -3,6 +3,13 @@ import { redirect } from 'next/navigation'
 import LogoutButton from '@/components/LogoutButton'
 import Sidebar from '@/components/Sidebar'
 import NotificationBell from '@/components/NotificationBell'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Dashboard',
+  description: 'Kelola absensi les privat, siswa, laporan, dan pendapatan guru di platform Kidemy.',
+  robots: { index: false, follow: false },
+}
 
 export default async function DashboardLayout({
   children,
