@@ -1,5 +1,6 @@
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import PendapatanPrintButton from '@/components/PendapatanPrintButton'
 
 export default async function PendapatanPage() {
   const user = await getCurrentUser()
@@ -34,9 +35,8 @@ export default async function PendapatanPage() {
       orderBy: { lesson: { tanggalLes: 'desc' } },
     })
   } catch (err) {
-    console.error("Prisma error in pendapatan page findMany:", err)
+    console.error('Prisma error in pendapatan page findMany:', err)
   }
-
 
   const totalPendapatan = revenues.reduce((sum, r) => {
     return sum + (user.role === 'OWNER' ? r.pendapatanOwner : r.pendapatanGuru)
@@ -52,13 +52,39 @@ export default async function PendapatanPage() {
 
   const bulan = new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(now)
 
+  // Serialize revenues for client component (Date → string)
+  const serializedRevenues = revenues.map((r) => ({
+    id: r.id,
+    biayaTotal: r.biayaTotal,
+    pendapatanOwner: r.pendapatanOwner,
+    pendapatanGuru: r.pendapatanGuru,
+    lesson: {
+      tanggalLes: r.lesson.tanggalLes.toISOString(),
+      jenisPembelajaran: r.lesson.jenisPembelajaran,
+      namaGuru: r.lesson.namaGuru,
+      namaMurid: r.lesson.namaMurid,
+      jumlahMurid: r.lesson.jumlahMurid,
+    },
+  }))
+
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Pendapatan</h1>
-        <p className="text-sm text-gray-500 mt-1">Detail pendapatan bulanan</p>
+      {/* Header */}
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Pendapatan</h1>
+          <p className="text-sm text-gray-500 mt-1">Detail pendapatan bulanan</p>
+        </div>
+        <PendapatanPrintButton
+          revenues={serializedRevenues}
+          role={user.role}
+          userName={user.name}
+          bulan={bulan}
+          totalPendapatan={totalPendapatan}
+        />
       </div>
 
+      {/* Summary card */}
       <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm mb-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">
@@ -78,6 +104,7 @@ export default async function PendapatanPage() {
         </p>
       </div>
 
+      {/* Detail table */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100">
           <h3 className="text-base font-semibold text-gray-900">Detail Per Les</h3>
