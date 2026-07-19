@@ -25,7 +25,7 @@ const JENIS_PEMBELAJARAN = [
 ]
 
 const LOKASI_MENGAJAR = [
-  'Home Visit', 'Rumah Tutor', 'Online (Zoom/Meet)', 'Kidemy House',
+  'Home Visit', 'Online (Zoom/Meet)', 'Kidemy House',
 ]
 
 const KELAS_MURID = [
@@ -80,8 +80,8 @@ export default function AttendancePage() {
     setSaving(true)
     setMessage({ type: '', text: '' })
 
-    if (catatanMateri.length < 10) {
-      setMessage({ type: 'error', text: 'Catatan minimal 10 karakter' })
+    if (catatanMateri.length < 20) {
+      setMessage({ type: 'error', text: 'Catatan terlalu singkat, jelaskan aktivitas dan materi lebih detail' })
       setSaving(false)
       return
     }
@@ -113,7 +113,7 @@ export default function AttendancePage() {
           `🏫 Kelas: ${kelasMurid}\n` +
           `👨‍🎓 Murid: ${namaMurid}\n` +
           `🕐 Jam: ${jamMulai} - ${jamSelesai}\n` +
-          `📝 Materi: ${catatanMateri}\n` +
+          `📝 Rangkuman Aktivitas: ${catatanMateri}\n` +
           (kritikSaran ? `💡 Catatan Perkembangan/Kendala: ${kritikSaran}\n` : '') +
           `👨‍👩‍👦 Wali: ${namaWaliMurid}\n` +
           `${whatsappWaliMurid ? `📱 WA Wali: ${whatsappWaliMurid}` : ''}`
@@ -259,10 +259,10 @@ export default function AttendancePage() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Catatan <span className="text-red-500">*</span></label>
             <textarea value={catatanMateri} onChange={(e) => setCatatanMateri(e.target.value)} required rows={4}
-              placeholder="Jelaskan materi yang diajarkan (minimal 10 karakter)."
+              placeholder="Rangkuman aktivitas dan materi yang diajarkan hari ini. Jangan terlalu singkat, jelaskan dengan detail."
               className={inputClass + ' resize-none'} />
-            {catatanMateri.length > 0 && catatanMateri.length < 10 && (
-              <p className="text-xs text-red-500 mt-1">Catatan minimal 10 karakter</p>
+            {catatanMateri.length > 0 && catatanMateri.length < 20 && (
+              <p className="text-xs text-red-500 mt-1">Catatan terlalu singkat, jelaskan lebih detail</p>
             )}
           </div>
 
