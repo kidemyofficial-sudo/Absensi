@@ -60,23 +60,28 @@ export async function getCurrentUser() {
   const session = await getSession()
   if (!session) return null
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.userId },
-    select: {
-      id: true,
-      name: true,
-      phone: true,
-      role: true,
-    },
-  })
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: session.userId },
+      select: {
+        id: true,
+        name: true,
+        phone: true,
+        role: true,
+      },
+    })
 
-  // User not found in DB (e.g. after DB reset) — clear stale cookie
-  if (!user) {
-    await clearTokenCookie()
+    // User not found in DB (e.g. after DB reset) — clear stale cookie
+    if (!user) {
+      await clearTokenCookie()
+      return null
+    }
+
+    return user
+  } catch (err) {
+    console.error('Prisma error in getCurrentUser:', err)
     return null
   }
-
-  return user
 }
 
 export async function setTokenCookie(token: string) {
