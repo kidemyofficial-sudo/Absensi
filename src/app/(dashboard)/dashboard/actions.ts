@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers'
 import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { generateKodeSiswa } from '@/lib/generate-kode'
 
 export async function registerStudent(formData: FormData) {
   const cookieStore = await cookies()
@@ -27,10 +28,11 @@ export async function registerStudent(formData: FormData) {
     return
   }
 
-  // Create student
+  // Create student with random kode
   await prisma.student.create({
     data: {
       name,
+      kodeSiswa: generateKodeSiswa(),
       ttl,
       domisili,
       asalSekolah,

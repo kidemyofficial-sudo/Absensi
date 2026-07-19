@@ -1,6 +1,15 @@
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 
+const CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+function generateKodeSiswa(): string {
+  let kode = 'STD-'
+  for (let i = 0; i < 5; i++) {
+    kode += CHARS.charAt(Math.floor(Math.random() * CHARS.length))
+  }
+  return kode
+}
+
 const prisma = new PrismaClient()
 
 async function main() {
@@ -102,6 +111,7 @@ async function main() {
     const siswa = await prisma.student.create({
       data: {
         name: s.name,
+        kodeSiswa: generateKodeSiswa(),
         ttl: s.ttl,
         domisili: s.domisili,
         asalSekolah: s.asalSekolah,

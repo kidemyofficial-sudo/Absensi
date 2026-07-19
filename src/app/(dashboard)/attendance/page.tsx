@@ -25,7 +25,7 @@ const JENIS_PEMBELAJARAN = [
 ]
 
 const LOKASI_MENGAJAR = [
-  'Rumah Siswa', 'Rumah Tutor', 'Online (Zoom/Meet)', 'Tempat Les', 'Kantor', 'Lainnya',
+  'Home Visit', 'Rumah Tutor', 'Online (Zoom/Meet)', 'Kidemy House',
 ]
 
 const KELAS_MURID = [
@@ -48,6 +48,7 @@ export default function AttendancePage() {
 
   const [tanggalLes, setTanggalLes] = useState(new Date().toISOString().split('T')[0])
   const [jenisPembelajaran, setJenisPembelajaran] = useState('')
+  const [jenisLainnya, setJenisLainnya] = useState('')
   const [lokasiMengajar, setLokasiMengajar] = useState('')
   const [kelasMurid, setKelasMurid] = useState('')
   const [catatanMateri, setCatatanMateri] = useState('')
@@ -79,6 +80,12 @@ export default function AttendancePage() {
     setSaving(true)
     setMessage({ type: '', text: '' })
 
+    if (catatanMateri.length < 10) {
+      setMessage({ type: 'error', text: 'Catatan minimal 10 karakter' })
+      setSaving(false)
+      return
+    }
+
     const selectedStudent = students.find((s) => s.id === selectedStudentId)
     const namaMurid = selectedStudent?.name || ''
 
@@ -87,7 +94,7 @@ export default function AttendancePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tanggalLes, jenisPembelajaran, lokasiMengajar, kelasMurid,
+          tanggalLes, jenisPembelajaran: jenisPembelajaran === 'Lainnya' ? jenisLainnya : jenisPembelajaran, lokasiMengajar, kelasMurid,
           jumlahMurid: 1,
           namaMurid, catatanMateri, kritikSaran, fotoUrl, jamMulai, jamSelesai,
           namaWaliMurid, whatsappWaliMurid, studentId: selectedStudentId,
@@ -101,13 +108,13 @@ export default function AttendancePage() {
           `📅 Tanggal: ${tanggalLes}\n` +
           `👤 Tutor: ${user?.name}\n` +
           `📱 WA Tutor: ${user?.phone}\n` +
-          `📚 Mata Pelajaran: ${jenisPembelajaran}\n` +
+          `📚 Mata Pelajaran/Topik: ${jenisPembelajaran === 'Lainnya' ? jenisLainnya : jenisPembelajaran}\n` +
           `📍 Lokasi: ${lokasiMengajar}\n` +
           `🏫 Kelas: ${kelasMurid}\n` +
           `👨‍🎓 Murid: ${namaMurid}\n` +
           `🕐 Jam: ${jamMulai} - ${jamSelesai}\n` +
           `📝 Materi: ${catatanMateri}\n` +
-          (kritikSaran ? `💡 Kritik & Saran: ${kritikSaran}\n` : '') +
+          (kritikSaran ? `💡 Catatan Perkembangan/Kendala: ${kritikSaran}\n` : '') +
           `👨‍👩‍👦 Wali: ${namaWaliMurid}\n` +
           `${whatsappWaliMurid ? `📱 WA Wali: ${whatsappWaliMurid}` : ''}`
         )
@@ -118,7 +125,7 @@ export default function AttendancePage() {
         // Reset form
         setSelectedStudentId('')
         setTanggalLes(new Date().toISOString().split('T')[0])
-        setJenisPembelajaran(''); setLokasiMengajar(''); setKelasMurid('')
+        setJenisPembelajaran(''); setJenisLainnya(''); setLokasiMengajar(''); setKelasMurid('')
         setCatatanMateri(''); setKritikSaran(''); setFotoUrl('')
         setJamMulai(''); setJamSelesai('')
         setNamaWaliMurid(''); setWhatsappWaliMurid('')
@@ -209,11 +216,16 @@ export default function AttendancePage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Jenis Pembelajaran <span className="text-red-500">*</span></label>
-              <select value={jenisPembelajaran} onChange={(e) => setJenisPembelajaran(e.target.value)} required className={selectClass}>
-                <option value="">Pilih Jenis Pembelajaran</option>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Mata Pelajaran/Topik <span className="text-red-500">*</span></label>
+              <select value={jenisPembelajaran} onChange={(e) => { setJenisPembelajaran(e.target.value); if (e.target.value !== 'Lainnya') setJenisLainnya('') }} required className={selectClass}>
+                <option value="">Pilih Mata Pelajaran</option>
                 {JENIS_PEMBELAJARAN.map((j) => (<option key={j} value={j}>{j}</option>))}
               </select>
+              {jenisPembelajaran === 'Lainnya' && (
+                <input type="text" value={jenisLainnya} onChange={(e) => setJenisLainnya(e.target.value)}
+                  placeholder="Tulis nama mata pelajaran..." required
+                  className="w-full mt-2 px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white transition-all text-sm" />
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Lokasi Mengajar <span className="text-red-500">*</span></label>
@@ -245,16 +257,19 @@ export default function AttendancePage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Catatan / Materi <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Catatan <span className="text-red-500">*</span></label>
             <textarea value={catatanMateri} onChange={(e) => setCatatanMateri(e.target.value)} required rows={4}
-              placeholder="Jelaskan materi yang diajarkan dan catatan perkembangan murid."
+              placeholder="Jelaskan materi yang diajarkan (minimal 10 karakter)."
               className={inputClass + ' resize-none'} />
+            {catatanMateri.length > 0 && catatanMateri.length < 10 && (
+              <p className="text-xs text-red-500 mt-1">Catatan minimal 10 karakter</p>
+            )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Kritik dan Saran Pembelajaran</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Catatan Singkat Perkembangan atau Kendala</label>
             <textarea value={kritikSaran} onChange={(e) => setKritikSaran(e.target.value)} rows={3}
-              placeholder="Saran perbaikan metode pembelajaran, kendala yang dihadapi, dll."
+              placeholder="Kendala yang dihadapi atau catatan perkembangan murid."
               className={inputClass + ' resize-none'} />
           </div>
 

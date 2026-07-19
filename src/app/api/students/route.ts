@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { logAudit, getIp } from '@/lib/audit'
 import { sanitize } from '@/lib/sanitize'
+import { generateKodeSiswa } from '@/lib/generate-kode'
 
 // Schema untuk Orang Tua mendaftarkan siswa
 const parentRegisterSchema = z.object({
@@ -108,6 +109,7 @@ export async function POST(request: NextRequest) {
     const student = await prisma.student.create({
       data: {
         name: sanitize(validatedData.name),
+        kodeSiswa: generateKodeSiswa(),
         ttl: sanitize(validatedData.ttl),
         domisili: sanitize(validatedData.domisili),
         asalSekolah: sanitize(validatedData.asalSekolah),

@@ -48,12 +48,13 @@ model User {
 model Student {
   id            String        @id @default(cuid())
   name          String
+  kodeSiswa     String        @unique // Kode acak, contoh: STD-7X9K2
   ttl           String        @db.VarChar(255)
   domisili      String        @db.VarChar(500)
   asalSekolah   String        @db.VarChar(255)
   cabangDaerah  String?
   parentId      String
-  biayaPerSiswa Int           @default(50000) // Biaya per siswa (diatur owner)
+  biayaPerSiswa Int           @default(50000)
   status        StudentStatus @default(PENDING)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
