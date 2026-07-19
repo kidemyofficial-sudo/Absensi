@@ -1,5 +1,7 @@
 'use client'
 
+import { useState, useRef, useEffect } from 'react'
+
 interface RevenueRow {
   id: string
   biayaTotal: number
@@ -46,16 +48,31 @@ export default function PendapatanPrintButton({
   bulan,
   totalPendapatan,
 }: PendapatanPrintButtonProps) {
-  const handlePrint = () => {
-    const isOwner = role === 'OWNER'
+  const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
-    const tableHeaders = isOwner
+  // Tutup dropdown jika klik di luar
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handlePrint = (printAsRole: 'OWNER' | 'GURU') => {
+    setIsOpen(false)
+    const isPrintOwner = printAsRole === 'OWNER'
+
+    const tableHeaders = isPrintOwner
       ? `<th>Tanggal</th><th>Jenis Les</th><th>Guru</th><th>Murid</th><th>Jml Siswa</th><th>Total Biaya</th><th>Bagi Hasil Owner</th><th>Bagi Hasil Guru</th>`
       : `<th>Tanggal</th><th>Jenis Les</th><th>Murid</th><th>Jml Siswa</th><th>Salary</th>`
 
     const tableRows = revenues
       .map((r) => {
-        if (isOwner) {
+        if (isPrintOwner) {
           return `
             <tr>
               <td>${formatDate(r.lesson.tanggalLes)}</td>
@@ -80,7 +97,12 @@ export default function PendapatanPrintButton({
       })
       .join('')
 
-    const totalLabel = isOwner ? 'Total Pendapatan Owner' : 'Total Salary'
+    // Hitung total berdasarkan tipe cetak
+    const totalCetak = revenues.reduce((sum, r) => {
+      return sum + (isPrintOwner ? r.pendapatanOwner : r.pendapatanGuru)
+    }, 0)
+
+    const totalLabel = isPrintOwner ? 'Total Pendapatan Owner' : 'Total Salary'
 
     const printWindow = window.open('', '_blank', 'width=900,height=700')
     if (!printWindow) return
@@ -117,30 +139,11 @@ export default function PendapatanPrintButton({
     .brand {
       display: flex;
       align-items: center;
-      gap: 14px;
     }
 
     .brand img {
-      width: 64px;
-      height: 64px;
-      border-radius: 12px;
-      object-fit: cover;
-    }
-
-    .brand-text h1 {
-      font-size: 22pt;
-      font-weight: 800;
-      color: #1e3a8a;
-      letter-spacing: -0.5px;
-      line-height: 1;
-    }
-
-    .brand-text p {
-      font-size: 10pt;
-      color: #2563eb;
-      font-weight: 500;
-      margin-top: 2px;
-      letter-spacing: 0.3px;
+      height: 60px;
+      object-fit: contain;
     }
 
     .header-right {
@@ -259,10 +262,6 @@ export default function PendapatanPrintButton({
   <div class="header">
     <div class="brand">
       <img src="${window.location.origin}/image/kidemy logo.png" alt="Kidemy Logo" />
-      <div class="brand-text">
-        <h1>Kidemy</h1>
-        <p>Learn and Grow</p>
-      </div>
     </div>
     <div class="header-right">
       <h2>Laporan Pendapatan</h2>
@@ -278,8 +277,8 @@ export default function PendapatanPrintButton({
       <span class="meta-value">${userName}</span>
     </div>
     <div class="meta-item">
-      <span class="meta-label">Peran</span>
-      <span class="meta-value">${role === 'OWNER' ? 'Owner / Admin' : 'Guru'}</span>
+      <span class="meta-label">Peran Cetak</span>
+      <span class="meta-value">${isPrintOwner ? 'Owner / Admin' : 'Guru'}</span>
     </div>
     <div class="meta-item">
       <span class="meta-label">Periode</span>
@@ -299,8 +298,8 @@ export default function PendapatanPrintButton({
     <tbody>
       ${tableRows || '<tr><td colspan="8" style="text-align:center;padding:20px;color:#9ca3af">Belum ada data les bulan ini</td></tr>'}
       <tr class="total-row">
-        <td colspan="${isOwner ? 6 : 4}">${totalLabel}</td>
-        <td colspan="${isOwner ? 2 : 1}" class="${isOwner ? 'amount-owner' : 'amount-guru'}">${formatRupiah(totalPendapatan)}</td>
+        <td colspan="${isPrintOwner ? 6 : 4}">${totalLabel}</td>
+        <td colspan="${isPrintOwner ? 2 : 1}" class="${isPrintOwner ? 'amount-owner' : 'amount-guru'}">${formatRupiah(totalCetak)}</td>
       </tr>
     </tbody>
   </table>
@@ -313,7 +312,7 @@ export default function PendapatanPrintButton({
     </div>
     <div class="signature">
       <div class="sig-line"></div>
-      <p>${role === 'OWNER' ? 'Tanda Tangan Owner' : 'Tanda Tangan Guru'}</p>
+      <p>${isPrintOwner ? 'Tanda Tangan Owner' : 'Tanda Tangan Guru'}</p>
       <small>${userName}</small>
     </div>
   </div>
@@ -328,15 +327,42 @@ export default function PendapatanPrintButton({
     printWindow.document.close()
   }
 
+  // Jika guru, sembunyikan tombol cetak sesuai instruksi ("cetak PDF ini hanya ada di owner ya")
+  if (role !== 'OWNER') {
+    return null
+  }
+
   return (
-    <button
-      onClick={handlePrint}
-      className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors shadow-sm"
-    >
-      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.056 48.056 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" />
-      </svg>
-      Cetak PDF
-    </button>
+    <div className="relative inline-block text-left" ref={dropdownRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-all shadow-sm focus:outline-none"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.056 48.056 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" />
+        </svg>
+        Cetak PDF
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1.5 z-50 focus:outline-none">
+          <button
+            onClick={() => handlePrint('OWNER')}
+            className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600 font-medium transition-colors"
+          >
+            Cetak sebagai Owner
+          </button>
+          <button
+            onClick={() => handlePrint('GURU')}
+            className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-green-600 font-medium transition-colors"
+          >
+            Cetak sebagai Guru
+          </button>
+        </div>
+      )}
+    </div>
   )
 }

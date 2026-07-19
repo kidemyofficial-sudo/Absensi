@@ -14,20 +14,16 @@ export default function AuthLayout({
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="inline-flex flex-col items-center gap-3">
-            <div className="relative w-20 h-20 rounded-2xl overflow-hidden shadow-md">
+        <div className="text-center mb-6">
+          <div className="inline-flex flex-col items-center justify-center">
+            <div className="relative w-44 h-16">
               <Image
                 src="/image/kidemy logo.png"
                 alt="Kidemy Logo"
                 fill
-                className="object-cover"
+                className="object-contain"
                 priority
               />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900 tracking-tight">Kidemy</h1>
-              <p className="text-sm text-blue-600 font-medium mt-0.5">Learn and Grow</p>
             </div>
           </div>
         </div>
