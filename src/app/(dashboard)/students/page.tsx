@@ -17,6 +17,12 @@ interface Student {
 
 interface User { id: string; name: string; role: string }
 interface Teacher { id: string; name: string; phone: string }
+interface Pagination {
+  page: number
+  limit: number
+  total: number
+  totalPages: number
+}
 
 export default function StudentsPage() {
   const [students, setStudents] = useState<Student[]>([])
@@ -24,7 +30,10 @@ export default function StudentsPage() {
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState('')
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [cabangFilter, setCabangFilter] = useState('')
+  const [cabangs, setCabangs] = useState<string[]>([])
+  const [pagination, setPagination] = useState<Pagination>({ page: 1, limit: 25, total: 0, totalPages: 1 })
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [assignModal, setAssignModal] = useState<Student | null>(null)
   const [assignData, setAssignData] = useState({ provinsi: '', kotaKabupaten: '', teacherId: '', mataPelajaran: '' })
@@ -44,15 +53,23 @@ export default function StudentsPage() {
 
   const fetchStudents = useCallback(async () => {
     setLoading(true)
-    const params = new URLSearchParams()
+    const params = new URLSearchParams({
+      page: String(pagination.page),
+      limit: String(pagination.limit),
+    })
     if (statusFilter) params.set('status', statusFilter)
-    if (search) params.set('search', search)
+    if (debouncedSearch) params.set('search', debouncedSearch)
     if (cabangFilter) params.set('cabang', cabangFilter)
-    const res = await fetch(`/api/students?${params.toString()}`)
-    const data = await res.json()
-    setStudents(data.students || [])
-    setLoading(false)
-  }, [statusFilter, search, cabangFilter])
+    try {
+      const res = await fetch(`/api/students?${params.toString()}`)
+      const data = await res.json()
+      setStudents(data.students || [])
+      setCabangs(data.cabangs || [])
+      setPagination((prev) => data.pagination || prev)
+    } finally {
+      setLoading(false)
+    }
+  }, [pagination.page, pagination.limit, statusFilter, debouncedSearch, cabangFilter])
 
   const fetchTeachers = useCallback(async () => {
     const res = await fetch('/api/users?role=GURU')
@@ -63,6 +80,15 @@ export default function StudentsPage() {
   useEffect(() => {
     fetchUser()
   }, [fetchUser])
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setDebouncedSearch(search.trim())
+      setPagination((prev) => ({ ...prev, page: 1 }))
+    }, 350)
+
+    return () => window.clearTimeout(timeout)
+  }, [search])
 
   useEffect(() => {
     fetchStudents()
@@ -106,7 +132,12 @@ export default function StudentsPage() {
     console.error(data.error || 'Gagal assign siswa')
   }
 
-  const cabangs = [...new Set(students.filter((s) => s.cabangDaerah).map((s) => s.cabangDaerah))].sort()
+  const setPage = (page: number) => {
+    setPagination((prev) => ({
+      ...prev,
+      page: Math.min(Math.max(page, 1), prev.totalPages),
+    }))
+  }
 
   return (
     <div>
@@ -123,11 +154,11 @@ export default function StudentsPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
               </svg>
             </div>
-            <input type="text" placeholder="Cari nama atau NIS..." value={search} onChange={(e) => setSearch(e.target.value)}
+            <input type="text" placeholder="Cari nama, TTL, atau sekolah..." value={search} onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" />
           </div>
           {user?.role === 'OWNER' && (
-            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
+            <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1) }}
               className="px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white transition-all">
               <option value="">Semua Status</option>
               <option value="PENDING">Menunggu ACC</option>
@@ -135,10 +166,10 @@ export default function StudentsPage() {
               <option value="REJECTED">Ditolak</option>
             </select>
           )}
-          <select value={cabangFilter} onChange={(e) => setCabangFilter(e.target.value)}
+          <select value={cabangFilter} onChange={(e) => { setCabangFilter(e.target.value); setPage(1) }}
             className="px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white transition-all">
             <option value="">Semua Cabang</option>
-            {cabangs.map((c) => (<option key={c} value={c!}>{c}</option>))}
+            {cabangs.map((c) => (<option key={c} value={c}>{c}</option>))}
           </select>
         </div>
       </div>
@@ -252,6 +283,32 @@ export default function StudentsPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+        {!loading && students.length > 0 && (
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-5 py-4 border-t border-gray-100">
+            <p className="text-xs text-gray-500">
+              Menampilkan {students.length} dari {pagination.total} siswa
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPage(pagination.page - 1)}
+                disabled={pagination.page <= 1}
+                className="px-3 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Sebelumnya
+              </button>
+              <span className="text-xs text-gray-500">
+                Halaman {pagination.page} / {pagination.totalPages}
+              </span>
+              <button
+                onClick={() => setPage(pagination.page + 1)}
+                disabled={pagination.page >= pagination.totalPages}
+                className="px-3 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Berikutnya
+              </button>
+            </div>
           </div>
         )}
       </div>

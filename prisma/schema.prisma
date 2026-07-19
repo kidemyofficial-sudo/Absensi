@@ -64,6 +64,11 @@ model Student {
   attendances     Attendance[]
   branchTeachers  BranchTeacher[]
   lessons         Lesson[]
+
+  @@index([status])
+  @@index([cabangDaerah])
+  @@index([parentId])
+  @@index([createdAt])
 }
 
 model Attendance {
@@ -109,6 +114,8 @@ model BranchTeacher {
   student Student[]
 
   @@unique([userId, cabangDaerah])
+  @@index([cabangDaerah])
+  @@index([userId])
 }
 
 model Lesson {

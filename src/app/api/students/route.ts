@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { Prisma, StudentStatus } from '@prisma/client'
 import { z } from 'zod'
 import { ZodError } from 'zod'
 import { logAudit, getIp } from '@/lib/audit'
@@ -15,6 +16,16 @@ const parentRegisterSchema = z.object({
   asalSekolah: z.string().min(1, 'Asal sekolah harus diisi'),
 })
 
+const PAGE_SIZE = 25
+const MAX_PAGE_SIZE = 50
+const studentStatuses = ['PENDING', 'APPROVED', 'REJECTED'] as const
+
+function getPositiveInt(value: string | null, fallback: number, max?: number) {
+  const parsed = Number(value)
+  if (!Number.isInteger(parsed) || parsed < 1) return fallback
+  return max ? Math.min(parsed, max) : parsed
+}
+
 export async function GET(request: NextRequest) {
   const user = await getCurrentUser()
 
@@ -25,15 +36,17 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const status = searchParams.get('status')
   const cabangFilter = searchParams.get('cabang')
-  const search = searchParams.get('search')
+  const search = searchParams.get('search')?.trim()
+  const page = getPositiveInt(searchParams.get('page'), 1)
+  const limit = getPositiveInt(searchParams.get('limit'), PAGE_SIZE, MAX_PAGE_SIZE)
 
-  const where: Record<string, unknown> = {}
+  const where: Prisma.StudentWhereInput = {}
 
   // Default filter: Guru hanya lihat siswa APPROVED
   if (user.role === 'GURU') {
     where.status = 'APPROVED'
-  } else if (status) {
-    where.status = status
+  } else if (status && studentStatuses.includes(status as typeof studentStatuses[number])) {
+    where.status = status as StudentStatus
   }
 
   if (cabangFilter) {
@@ -60,24 +73,58 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const students = await prisma.student.findMany({
-    where,
-    include: {
-      parent: {
-        select: { id: true, name: true, phone: true },
-      },
-      branchTeachers: {
-        include: {
-          user: {
-            select: { id: true, name: true },
+  const cabangWhere: Prisma.StudentWhereInput = { ...where }
+  delete cabangWhere.cabangDaerah
+
+  const [students, total, cabangRows] = await prisma.$transaction([
+    prisma.student.findMany({
+      where,
+      select: {
+        id: true,
+        name: true,
+        ttl: true,
+        domisili: true,
+        asalSekolah: true,
+        cabangDaerah: true,
+        status: true,
+        parent: {
+          select: { id: true, name: true, phone: true },
+        },
+        branchTeachers: {
+          select: {
+            id: true,
+            user: {
+              select: { id: true, name: true },
+            },
           },
         },
       },
-    },
-    orderBy: { createdAt: 'desc' },
-  })
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.student.count({ where }),
+    prisma.student.findMany({
+      where: {
+        ...cabangWhere,
+        cabangDaerah: { not: null },
+      },
+      select: { cabangDaerah: true },
+      distinct: ['cabangDaerah'],
+      orderBy: { cabangDaerah: 'asc' },
+    }),
+  ])
 
-  return NextResponse.json({ students })
+  return NextResponse.json({
+    students,
+    cabangs: cabangRows.map((row) => row.cabangDaerah).filter(Boolean),
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / limit)),
+    },
+  })
 }
 
 export async function POST(request: NextRequest) {
