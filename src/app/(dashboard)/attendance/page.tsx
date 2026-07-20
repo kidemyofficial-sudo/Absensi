@@ -67,11 +67,31 @@ export default function AttendancePage() {
   const [kelasMurid, setKelasMurid] = useState('')
   const [catatanMateri, setCatatanMateri] = useState('')
   const [kritikSaran, setKritikSaran] = useState('')
-  const [fotoUrl, setFotoUrl] = useState('')
+  
+  // Custom Image Upload states
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null)
+  
   const [jamMulai, setJamMulai] = useState('')
   const [jamSelesai, setJamSelesai] = useState('')
   const [namaWaliMurid, setNamaWaliMurid] = useState('')
   const [whatsappWaliMurid, setWhatsappWaliMurid] = useState('')
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setSelectedFile(file)
+      setImagePreviewUrl(URL.createObjectURL(file))
+    }
+  }
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null)
+    if (imagePreviewUrl) {
+      URL.revokeObjectURL(imagePreviewUrl)
+    }
+    setImagePreviewUrl(null)
+  }
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -121,7 +141,6 @@ export default function AttendancePage() {
     const resolvedJenisPembelajaran = jenisPembelajaran === 'Lainnya' ? jenisLainnya.trim() : jenisPembelajaran.trim()
     const trimmedCatatanMateri = catatanMateri.trim()
     const trimmedKritikSaran = kritikSaran.trim()
-    const trimmedFotoUrl = fotoUrl.trim()
     const trimmedNamaWaliMurid = namaWaliMurid.trim()
     const trimmedWhatsappWaliMurid = whatsappWaliMurid.trim()
 
@@ -145,6 +164,29 @@ export default function AttendancePage() {
 
     const namaMurid = selectedStudent.name
 
+    // Upload image to tmpfiles.org if selected
+    let uploadedFotoUrl = ''
+    if (selectedFile) {
+      setMessage({ type: 'info', text: 'Mengunggah foto les...' })
+      try {
+        const formData = new FormData()
+        formData.append('file', selectedFile)
+        const uploadRes = await fetch('https://tmpfiles.org/api/v1/upload', {
+          method: 'POST',
+          body: formData,
+        })
+        if (uploadRes.ok) {
+          const uploadData = await uploadRes.json()
+          const rawUrl = uploadData.data?.url
+          if (rawUrl) {
+            uploadedFotoUrl = rawUrl.replace('https://tmpfiles.org/', 'https://tmpfiles.org/dl/')
+          }
+        }
+      } catch (err) {
+        console.error('Failed to upload image:', err)
+      }
+    }
+
     try {
       const res = await fetch('/api/lessons', {
         method: 'POST',
@@ -153,7 +195,8 @@ export default function AttendancePage() {
           tanggalLes, jenisPembelajaran: resolvedJenisPembelajaran, lokasiMengajar, kelasMurid,
           jumlahMurid: 1,
           namaMurid, catatanMateri: trimmedCatatanMateri, kritikSaran: trimmedKritikSaran || null,
-          fotoUrl: trimmedFotoUrl || null, jamMulai, jamSelesai,
+          fotoUrl: null, // explicit null so it does not get saved in the database
+          jamMulai, jamSelesai,
           namaWaliMurid: trimmedNamaWaliMurid, whatsappWaliMurid: trimmedWhatsappWaliMurid || null,
           studentId: selectedStudentId,
         }),
@@ -174,7 +217,8 @@ export default function AttendancePage() {
           `📝 Rangkuman Aktivitas: ${trimmedCatatanMateri}\n` +
           (trimmedKritikSaran ? `💡 Catatan Perkembangan/Kendala: ${trimmedKritikSaran}\n` : '') +
           `👨‍👩‍👦 Wali: ${trimmedNamaWaliMurid}\n` +
-          (trimmedWhatsappWaliMurid ? `📱 WA Wali: ${trimmedWhatsappWaliMurid}` : '')
+          (trimmedWhatsappWaliMurid ? `📱 WA Wali: ${trimmedWhatsappWaliMurid}\n` : '') +
+          (uploadedFotoUrl ? `📸 Foto Kegiatan: ${uploadedFotoUrl}` : '')
         )
 
         const cleanParentPhone = formatWhatsAppNumber(trimmedWhatsappWaliMurid)
@@ -215,7 +259,11 @@ export default function AttendancePage() {
     setKelasMurid('')
     setCatatanMateri('')
     setKritikSaran('')
-    setFotoUrl('')
+    setSelectedFile(null)
+    if (imagePreviewUrl) {
+      URL.revokeObjectURL(imagePreviewUrl)
+    }
+    setImagePreviewUrl(null)
     setJamMulai('')
     setJamSelesai('')
     setNamaWaliMurid('')
@@ -528,9 +576,43 @@ export default function AttendancePage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Upload Foto</label>
-                    <input type="text" value={fotoUrl} onChange={(e) => setFotoUrl(e.target.value)}
-                      placeholder="URL atau nama file foto (opsional)" className={inputClass} />
+                    <label className="block text-sm font-semibold mb-1.5" style={{ color: '#4b5563' }}>Lampiran Foto Kegiatan</label>
+                    
+                    {imagePreviewUrl ? (
+                      <div className="relative rounded-2xl overflow-hidden border border-gray-100 shadow-sm max-w-xs bg-white/50 p-2">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={imagePreviewUrl} alt="Preview Foto Les" className="w-full h-40 object-cover rounded-xl" />
+                        <button
+                          type="button"
+                          onClick={handleRemoveFile}
+                          className="absolute top-4 right-4 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 shadow-md transition-colors"
+                          title="Hapus Foto"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                        <p className="text-[10px] text-gray-500 font-semibold px-2 py-1 truncate">{selectedFile?.name}</p>
+                      </div>
+                    ) : (
+                      <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-2xl p-6 cursor-pointer bg-white/30 hover:bg-white/50 transition-all hover:border-indigo-400">
+                        <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 mb-3">
+                          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                          </svg>
+                        </div>
+                        <span className="text-xs font-bold text-gray-700">Ambil Foto Langsung atau Pilih File</span>
+                        <span className="text-[10px] text-gray-400 mt-1 font-medium">Mendukung kamera HP & file gambar (PNG, JPG)</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          capture="environment"
+                          onChange={handleFileChange}
+                          className="hidden"
+                        />
+                      </label>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
