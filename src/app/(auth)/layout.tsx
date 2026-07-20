@@ -12,16 +12,23 @@ export default function AuthLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 px-4 py-10">
       <div className="w-full max-w-md">
-        <div className="text-center mb-1">
+        <div className="text-center">
           {/* Gunakan img biasa agar bisa pakai width 100% tanpa terbatas aspect ratio container */}
           {/* Logo PNG memiliki transparent padding internal — kita beri width penuh agar nampak besar */}
+          {/* Gunakan negative margin bottom untuk merapatkan jarak transparan di dalam PNG */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/image/kidemy logo.png"
             alt="Kidemy Logo"
-            style={{ width: '260px', maxWidth: '100%', display: 'inline-block' }}
+            style={{
+              width: '260px',
+              maxWidth: '100%',
+              display: 'inline-block',
+              marginBottom: '-35px',
+              marginTop: '-15px'
+            }}
             loading="eager"
           />
         </div>
