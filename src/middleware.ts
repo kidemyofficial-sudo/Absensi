@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server'
 import { verifyToken } from '@/lib/auth'
 
 // Routes that require authentication
-const protectedRoutes = ['/dashboard', '/students', '/attendance', '/reports', '/cabang-daerah', '/guru', '/settings', '/pendapatan', '/pengaturan-bagi-hasil']
+const protectedRoutes = ['/dashboard', '/students', '/attendance', '/reports', '/cabang-daerah', '/guru', '/wali-murid', '/settings', '/pendapatan', '/pengaturan-bagi-hasil']
 
 // Routes that are only for unauthenticated users
 const authRoutes = ['/login', '/register']
@@ -45,10 +45,9 @@ export async function middleware(request: NextRequest) {
     }
 
     // Check role-based access
-    if (pathname.startsWith('/students') && session.role !== 'OWNER') {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
-    }
-    if (pathname.startsWith('/pengaturan-bagi-hasil') && session.role !== 'OWNER') {
+    const ownerOnlyPaths = ['/students', '/guru', '/wali-murid', '/pengaturan-bagi-hasil']
+    const isOwnerOnly = ownerOnlyPaths.some(path => pathname.startsWith(path))
+    if (isOwnerOnly && session.role !== 'OWNER') {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
   }

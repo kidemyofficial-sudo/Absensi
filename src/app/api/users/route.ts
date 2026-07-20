@@ -32,7 +32,14 @@ export async function GET(request: NextRequest) {
       name: true,
       phone: true,
       role: true,
+      status: true,
       createdAt: true,
+      students: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
       branchTeachers: {
         select: {
           cabangDaerah: true,
@@ -72,12 +79,14 @@ export async function POST(request: NextRequest) {
         phone: validatedData.phone,
         password: hashedPassword,
         role: validatedData.role,
+        status: 'APPROVED',
       },
       select: {
         id: true,
         name: true,
         phone: true,
         role: true,
+        status: true,
       },
     })
 

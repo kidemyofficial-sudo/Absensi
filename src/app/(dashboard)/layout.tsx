@@ -23,6 +23,10 @@ export default async function DashboardLayout({
     redirect('/login')
   }
 
+  if (user.status !== 'APPROVED') {
+    redirect('/waiting-approval')
+  }
+
   return (
     <div className="h-screen flex overflow-hidden glass-bg">
       <Sidebar user={user} />

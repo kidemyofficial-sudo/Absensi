@@ -68,8 +68,17 @@ export async function getCurrentUser() {
         name: true,
         phone: true,
         role: true,
+        status: true,
       },
     })
+
+    if (user && user.role === 'OWNER' && user.status !== 'APPROVED') {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { status: 'APPROVED' },
+      })
+      user.status = 'APPROVED'
+    }
 
     // User not found in DB (e.g. after DB reset) — clear stale cookie
     if (!user) {

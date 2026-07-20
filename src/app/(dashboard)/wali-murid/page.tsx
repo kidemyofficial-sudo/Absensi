@@ -3,19 +3,20 @@
 import { useState, useEffect, useCallback } from 'react'
 import ConfirmDialog from '@/components/ConfirmDialog'
 
-interface Teacher {
+interface Parent {
   id: string
   name: string
   phone: string
   status: 'PENDING' | 'APPROVED' | 'REJECTED'
   createdAt: string
-  branchTeachers: {
-    cabangDaerah: string
+  students: {
+    id: string
+    name: string
   }[]
 }
 
-export default function GuruPage() {
-  const [teachers, setTeachers] = useState<Teacher[]>([])
+export default function WaliMuridPage() {
+  const [parents, setParents] = useState<Parent[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState({ name: '', phone: '', password: '' })
@@ -23,19 +24,19 @@ export default function GuruPage() {
   const [search, setSearch] = useState('')
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null)
 
-  const fetchTeachers = useCallback(async () => {
+  const fetchParents = useCallback(async () => {
     setLoading(true)
     const params = new URLSearchParams()
     if (search) params.set('search', search)
-    const res = await fetch(`/api/users?role=GURU&${params.toString()}`)
+    const res = await fetch(`/api/users?role=ORANG_TUA&${params.toString()}`)
     const data = await res.json()
-    setTeachers(data.users || [])
+    setParents(data.users || [])
     setLoading(false)
   }, [search])
 
   useEffect(() => {
-    fetchTeachers()
-  }, [fetchTeachers])
+    fetchParents()
+  }, [fetchParents])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -44,14 +45,14 @@ export default function GuruPage() {
       const res = await fetch('/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, role: 'GURU' }),
+        body: JSON.stringify({ ...formData, role: 'ORANG_TUA' }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Gagal tambah guru')
-      setMessage('Guru berhasil ditambahkan!')
+      if (!res.ok) throw new Error(data.error || 'Gagal tambah wali murid')
+      setMessage('Wali Murid berhasil ditambahkan!')
       setFormData({ name: '', phone: '', password: '' })
       setShowForm(false)
-      fetchTeachers()
+      fetchParents()
     } catch (err) {
       setMessage(err instanceof Error ? err.message : 'Terjadi kesalahan')
     }
@@ -64,9 +65,10 @@ export default function GuruPage() {
       const res = await fetch(`/api/users/${deleteConfirm.id}`, { method: 'DELETE' })
       if (!res.ok) {
         const data = await res.json()
-        throw new Error(data.error || 'Gagal hapus guru')
+        throw new Error(data.error || 'Gagal hapus wali murid')
       }
-      fetchTeachers()
+      setMessage('Wali Murid berhasil dihapus!')
+      fetchParents()
     } catch (err) {
       setMessage(err instanceof Error ? err.message : 'Terjadi kesalahan')
     }
@@ -82,8 +84,8 @@ export default function GuruPage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Gagal menyetujui akun')
-      setMessage('Akun guru berhasil disetujui!')
-      fetchTeachers()
+      setMessage('Akun wali murid berhasil disetujui!')
+      fetchParents()
     } catch (err) {
       setMessage(err instanceof Error ? err.message : 'Terjadi kesalahan')
     }
@@ -95,8 +97,8 @@ export default function GuruPage() {
     <div>
       <ConfirmDialog
         isOpen={!!deleteConfirm}
-        title="Hapus Guru"
-        message={`Yakin ingin menghapus guru ${deleteConfirm?.name}? Tindakan ini tidak dapat dibatalkan.`}
+        title="Hapus Wali Murid"
+        message={`Yakin ingin menghapus wali murid ${deleteConfirm?.name}? Tindakan ini tidak dapat dibatalkan.`}
         confirmText="Ya, Hapus"
         variant="danger"
         onConfirm={handleDeleteConfirmed}
@@ -104,8 +106,8 @@ export default function GuruPage() {
       />
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: '#1e1b4b' }}>Guru</h1>
-          <p className="text-sm mt-1" style={{ color: '#6b7280' }}>Kelola data guru pengampu</p>
+          <h1 className="text-2xl font-bold" style={{ color: '#1e1b4b' }}>Wali Murid</h1>
+          <p className="text-sm mt-1" style={{ color: '#6b7280' }}>Kelola data wali murid (orang tua siswa)</p>
         </div>
         <button
           onClick={() => { setShowForm(!showForm); setFormData({ name: '', phone: '', password: '' }) }}
@@ -123,7 +125,7 @@ export default function GuruPage() {
               <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
               </svg>
-              Tambah Guru
+              Tambah Wali Murid
             </>
           )}
         </button>
@@ -144,7 +146,7 @@ export default function GuruPage() {
 
       {showForm && (
         <div className="glass-card p-6 mb-6">
-          <h3 className="text-base font-bold mb-4" style={{ color: '#1e1b4b' }}>Tambah Guru Baru</h3>
+          <h3 className="text-base font-bold mb-4" style={{ color: '#1e1b4b' }}>Tambah Wali Murid Baru</h3>
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
               <div>
@@ -155,7 +157,7 @@ export default function GuruPage() {
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
                   className="glass-input"
-                  placeholder="Nama guru"
+                  placeholder="Nama wali murid"
                 />
               </div>
               <div>
@@ -198,7 +200,7 @@ export default function GuruPage() {
           </div>
           <input
             type="text"
-            placeholder="Cari nama atau telepon guru..."
+            placeholder="Cari nama atau telepon wali murid..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="glass-input pl-9"
@@ -209,8 +211,8 @@ export default function GuruPage() {
       <div className="glass-card overflow-hidden">
         {loading ? (
           <div className="p-8 text-center text-sm" style={{ color: '#9ca3af' }}>Loading...</div>
-        ) : teachers.length === 0 ? (
-          <div className="p-8 text-center text-sm" style={{ color: '#9ca3af' }}>Tidak ada guru ditemukan</div>
+        ) : parents.length === 0 ? (
+          <div className="p-8 text-center text-sm" style={{ color: '#9ca3af' }}>Tidak ada wali murid ditemukan</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="glass-table w-full">
@@ -219,22 +221,22 @@ export default function GuruPage() {
                   <th>Nama</th>
                   <th>Telepon</th>
                   <th>Status</th>
-                  <th>Cabang Daerah Diampu</th>
+                  <th>Siswa Terkait</th>
                   <th>Terdaftar</th>
                   <th className="text-right">Aksi</th>
                 </tr>
               </thead>
               <tbody>
-                {teachers.map((teacher) => (
-                  <tr key={teacher.id}>
-                    <td className="font-bold whitespace-nowrap" style={{ color: '#1e1b4b' }}>{teacher.name}</td>
-                    <td className="whitespace-nowrap" style={{ color: '#4b5563' }}>{teacher.phone}</td>
+                {parents.map((parent) => (
+                  <tr key={parent.id}>
+                    <td className="font-bold whitespace-nowrap" style={{ color: '#1e1b4b' }}>{parent.name}</td>
+                    <td className="whitespace-nowrap" style={{ color: '#4b5563' }}>{parent.phone}</td>
                     <td className="whitespace-nowrap">
-                      {teacher.status === 'PENDING' ? (
+                      {parent.status === 'PENDING' ? (
                         <span className="px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
                           Menunggu ACC
                         </span>
-                      ) : teacher.status === 'APPROVED' ? (
+                      ) : parent.status === 'APPROVED' ? (
                         <span className="px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                           Aktif
                         </span>
@@ -245,11 +247,11 @@ export default function GuruPage() {
                       )}
                     </td>
                     <td className="whitespace-nowrap">
-                      {teacher.branchTeachers && teacher.branchTeachers.length > 0 ? (
+                      {parent.students && parent.students.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
-                          {teacher.branchTeachers.map((bt) => (
-                            <span key={bt.cabangDaerah} className="px-2.5 py-0.5 rounded-lg text-xs font-semibold" style={{ background: 'rgba(99,102,241,0.1)', color: '#6366f1' }}>
-                              {bt.cabangDaerah}
+                          {parent.students.map((student) => (
+                            <span key={student.id} className="px-2.5 py-0.5 rounded-lg text-xs font-semibold" style={{ background: 'rgba(99,102,241,0.1)', color: '#6366f1' }}>
+                              {student.name}
                             </span>
                           ))}
                         </div>
@@ -258,19 +260,19 @@ export default function GuruPage() {
                       )}
                     </td>
                     <td className="whitespace-nowrap" style={{ color: '#4b5563' }}>
-                      {new Date(teacher.createdAt).toLocaleDateString('id-ID')}
+                      {new Date(parent.createdAt).toLocaleDateString('id-ID')}
                     </td>
                     <td className="text-right whitespace-nowrap gap-2 flex items-center justify-end">
-                      {teacher.status === 'PENDING' && (
+                      {parent.status === 'PENDING' && (
                         <button
-                          onClick={() => handleApprove(teacher.id)}
+                          onClick={() => handleApprove(parent.id)}
                           className="px-2.5 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-lg font-bold text-xs transition-colors"
                         >
                           ACC
                         </button>
                       )}
                       <button
-                        onClick={() => setDeleteConfirm({ id: teacher.id, name: teacher.name })}
+                        onClick={() => setDeleteConfirm({ id: parent.id, name: parent.name })}
                         className="px-2.5 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-lg font-bold text-xs transition-colors"
                       >
                         Hapus

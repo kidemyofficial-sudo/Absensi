@@ -32,6 +32,7 @@ model User {
   phone              String    @unique
   password           String
   role               Role
+  status             UserStatus @default(PENDING)
   failedLoginAttempts Int      @default(0)
   lockedUntil        DateTime?
   createdAt          DateTime  @default(now())
@@ -45,6 +46,12 @@ model User {
   branchTeachers BranchTeacher[]
   tasks          MyTask[]
   schedules      TeacherSchedule[]
+}
+
+enum UserStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 model Student {

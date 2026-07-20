@@ -113,6 +113,7 @@ const ownerNav = {
         { href: '/dashboard', label: 'Dashboard', icon: DashboardIcon },
         { href: '/cabang-daerah', label: 'Cabang Daerah', icon: SchoolIcon },
         { href: '/guru', label: 'Guru', icon: TeacherIcon },
+        { href: '/wali-murid', label: 'Wali Murid', icon: StudentIcon },
         { href: '/students', label: 'Siswa', icon: StudentIcon },
       ] as NavItem[],
     },

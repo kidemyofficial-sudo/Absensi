@@ -6,6 +6,7 @@ import { z } from 'zod'
 const updateProfileSchema = z.object({
   name: z.string().min(2).optional(),
   phone: z.string().min(10).optional(),
+  status: z.enum(['PENDING', 'APPROVED', 'REJECTED']).optional(),
 })
 
 export async function PATCH(
@@ -29,6 +30,11 @@ export async function PATCH(
     const body = await request.json()
     const validatedData = updateProfileSchema.parse(body)
 
+    // Only OWNER can change status
+    if (validatedData.status && user.role !== 'OWNER') {
+      return NextResponse.json({ error: 'Tidak diizinkan mengubah status' }, { status: 403 })
+    }
+
     // Check phone uniqueness if changed
     if (validatedData.phone) {
       const existing = await prisma.user.findFirst({
@@ -51,6 +57,7 @@ export async function PATCH(
         name: true,
         phone: true,
         role: true,
+        status: true,
       },
     })
 
