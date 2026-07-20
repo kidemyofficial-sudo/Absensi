@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface User {
   id: string
@@ -201,7 +201,7 @@ const roleColors: Record<string, string> = {
   ORANG_TUA: 'linear-gradient(135deg, #10b981, #0d9488)',
 }
 
-function SidebarContent({ user, pathname, onNavigate }: { user: User; pathname: string; onNavigate?: () => void }) {
+function SidebarContent({ user, pathname, onNavigate, isCollapsed, setIsCollapsed }: { user: User; pathname: string; onNavigate?: () => void; isCollapsed?: boolean; setIsCollapsed?: (v: boolean) => void }) {
   const [search, setSearch] = useState('')
   const navConfig = navConfigs[user.role] || ownerNav
   const roleLabel = roleLabels[user.role] || user.role
@@ -215,56 +215,82 @@ function SidebarContent({ user, pathname, onNavigate }: { user: User; pathname: 
 
   return (
     <div className="flex flex-col h-full">
-      {/* Logo */}
-      <div className="px-5 py-5" style={{ borderBottom: '1px solid rgba(229,231,235,0.35)' }}>
+      {/* Logo & Toggle */}
+      <div className={`px-5 py-5 flex items-center ${isCollapsed ? 'flex-col justify-center gap-2' : 'justify-between'}`} style={{ borderBottom: '1px solid rgba(229,231,235,0.35)' }}>
         <div className="flex items-center gap-3">
           <Image src="/image/kidemy.webp" alt="Kidemy" width={40} height={40}
-            className="w-10 h-10 rounded-2xl object-cover shadow-sm" />
-          <div>
-            <h1 className="text-sm font-bold" style={{ color: '#1e1b4b' }}>Sistem Absensi</h1>
-            <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: '#8b5cf6' }}>{roleLabel}</p>
-          </div>
+            className="w-10 h-10 rounded-2xl object-cover shadow-sm flex-shrink-0" />
+          {!isCollapsed && (
+            <div>
+              <h1 className="text-sm font-bold truncate" style={{ color: '#1e1b4b' }}>Sistem Absensi</h1>
+              <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: '#8b5cf6' }}>{roleLabel}</p>
+            </div>
+          )}
         </div>
+        {!isCollapsed && setIsCollapsed && (
+          <button
+            onClick={() => setIsCollapsed(true)}
+            className="p-1 rounded-lg hover:bg-indigo-50 text-gray-400 hover:text-indigo-600 transition-all hidden sm:block"
+            title="Sembunyikan Sidebar"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+        )}
+        {isCollapsed && setIsCollapsed && (
+          <button
+            onClick={() => setIsCollapsed(false)}
+            className="p-1 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-all flex items-center justify-center"
+            title="Tampilkan Sidebar"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* Search */}
-      <div className="px-4 py-3">
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: '#9ca3af' }}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-            </svg>
+      {!isCollapsed && (
+        <div className="px-4 py-3">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: '#9ca3af' }}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              placeholder="Cari menu..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-9 pr-3 py-2 text-xs rounded-xl transition-all outline-none"
+              style={{
+                background: 'rgba(249,250,251,0.8)',
+                border: '1px solid rgba(229,231,235,0.6)',
+                color: '#374151',
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.95)'
+                e.currentTarget.style.borderColor = 'rgba(99,102,241,0.4)'
+                e.currentTarget.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.10)'
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.background = 'rgba(249,250,251,0.8)'
+                e.currentTarget.style.borderColor = 'rgba(229,231,235,0.6)'
+                e.currentTarget.style.boxShadow = 'none'
+              }}
+            />
           </div>
-          <input
-            type="text"
-            placeholder="Cari menu..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 text-xs rounded-xl transition-all outline-none"
-            style={{
-              background: 'rgba(249,250,251,0.8)',
-              border: '1px solid rgba(229,231,235,0.6)',
-              color: '#374151',
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.95)'
-              e.currentTarget.style.borderColor = 'rgba(99,102,241,0.4)'
-              e.currentTarget.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.10)'
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.background = 'rgba(249,250,251,0.8)'
-              e.currentTarget.style.borderColor = 'rgba(229,231,235,0.6)'
-              e.currentTarget.style.boxShadow = 'none'
-            }}
-          />
         </div>
-      </div>
+      )}
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-2 overflow-y-auto">
         {filteredSections.map((section) => (
           <div key={section.label} className="mb-5">
-            <p className="px-3 mb-2 nav-section-label">{section.label}</p>
+            {!isCollapsed && <p className="px-3 mb-2 nav-section-label">{section.label}</p>}
             <ul className="space-y-0.5">
               {section.items.map((item) => {
                 const active = pathname === item.href
@@ -273,12 +299,13 @@ function SidebarContent({ user, pathname, onNavigate }: { user: User; pathname: 
                     <Link
                       href={item.href}
                       onClick={onNavigate}
-                      className="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200"
+                      className={`group flex items-center ${isCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5'} rounded-xl text-sm font-medium transition-all duration-200`}
+                      title={isCollapsed ? item.label : undefined}
                       style={active ? {
                         background: 'linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.08))',
                         color: '#6366f1',
                         boxShadow: '0 2px 8px rgba(99,102,241,0.12)',
-                        borderLeft: '3px solid #6366f1',
+                        borderLeft: active && !isCollapsed ? '3px solid #6366f1' : 'none',
                       } : {
                         color: '#6b7280',
                       }}
@@ -296,7 +323,7 @@ function SidebarContent({ user, pathname, onNavigate }: { user: User; pathname: 
                       }}
                     >
                       {item.icon({ active })}
-                      <span style={{ color: active ? '#6366f1' : 'inherit' }}>{item.label}</span>
+                      {!isCollapsed && <span style={{ color: active ? '#6366f1' : 'inherit' }}>{item.label}</span>}
                     </Link>
                   </li>
                 )
@@ -308,27 +335,40 @@ function SidebarContent({ user, pathname, onNavigate }: { user: User; pathname: 
 
       {/* User Info at bottom */}
       <div className="px-4 py-4" style={{ borderTop: '1px solid rgba(229,231,235,0.35)' }}>
-        <div className="flex items-center gap-3 p-2.5 rounded-xl" style={{ background: 'rgba(99,102,241,0.05)' }}>
+        <div className={`flex items-center ${isCollapsed ? 'justify-center p-2' : 'gap-3 p-2.5'} rounded-xl`} style={{ background: 'rgba(99,102,241,0.05)' }}>
           <div
             className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm"
             style={{ background: roleColors[user.role] || roleColors.GURU }}
           >
             <span className="text-xs font-bold text-white">{user.name.charAt(0).toUpperCase()}</span>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold truncate" style={{ color: '#1e1b4b' }}>{user.name}</p>
-            <p className="text-[10px] font-medium" style={{ color: '#8b5cf6' }}>{roleLabel}</p>
-          </div>
+          {!isCollapsed && (
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold truncate" style={{ color: '#1e1b4b' }}>{user.name}</p>
+              <p className="text-[10px] font-medium" style={{ color: '#8b5cf6' }}>{roleLabel}</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
   )
-}
-
-export default function Sidebar({ user, mobile }: SidebarProps) {
+}export default function Sidebar({ user, mobile }: SidebarProps) {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(false)
   const roleLabel = roleLabels[user.role] || user.role
+
+  useEffect(() => {
+    const saved = localStorage.getItem('sidebar_collapsed')
+    if (saved === 'true') {
+      setIsCollapsed(true)
+    }
+  }, [])
+
+  const handleSetCollapsed = (val: boolean) => {
+    setIsCollapsed(val)
+    localStorage.setItem('sidebar_collapsed', String(val))
+  }
 
   const sidebarStyle = {
     background: 'rgba(255,255,255,0.82)',
@@ -391,8 +431,8 @@ export default function Sidebar({ user, mobile }: SidebarProps) {
   }
 
   return (
-    <aside className="hidden sm:flex w-64 min-h-screen flex-shrink-0 flex-col" style={sidebarStyle}>
-      <SidebarContent user={user} pathname={pathname} />
+    <aside className={`hidden sm:flex min-h-screen flex-shrink-0 flex-col transition-all duration-300 ease-in-out ${isCollapsed ? 'w-20' : 'w-64'}`} style={sidebarStyle}>
+      <SidebarContent user={user} pathname={pathname} isCollapsed={isCollapsed} setIsCollapsed={handleSetCollapsed} />
     </aside>
   )
 }

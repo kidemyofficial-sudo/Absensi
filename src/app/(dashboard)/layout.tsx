@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import LogoutButton from '@/components/LogoutButton'
 import Sidebar from '@/components/Sidebar'
 import NotificationBell from '@/components/NotificationBell'
+import SmartNotifier from '@/components/SmartNotifier'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -42,6 +43,7 @@ export default async function DashboardLayout({
           </div>
           <div className="hidden sm:block" />
           <div className="flex items-center gap-3">
+            {user.role === 'GURU' && <SmartNotifier />}
             {user.role === 'ORANG_TUA' && <NotificationBell />}
             {/* Avatar */}
             <div className="flex items-center gap-2.5 pl-3" style={{ borderLeft: '1px solid rgba(209,213,219,0.5)' }}>
