@@ -12,20 +12,25 @@ export default function AuthLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-gray-50 px-4 pt-3 pb-8 flex flex-col items-center">
+    <div className="min-h-screen bg-gray-50 px-4 pt-4 pb-6 flex flex-col items-center">
       <div className="w-full max-w-md">
-        {/* Logo — PNG has large internal transparent padding top & bottom, use negative margins to crop it */}
-        <div className="text-center overflow-hidden">
+        {/*
+          Logo PNG is 500x500 (square). The visible "Kidemy Learn & Grow" graphic
+          sits in the middle ~40% of the image, with ~30% transparent padding top and bottom.
+          At display width 260px → total height = 260px.
+          Transparent top = ~78px, visible content = ~104px, transparent bottom = ~78px.
+          We crop with a fixed-height container + overflow-hidden + negative marginTop.
+        */}
+        <div style={{ height: '110px', overflow: 'hidden', textAlign: 'center', marginBottom: '12px' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/image/kidemy logo.png"
             alt="Kidemy Logo"
             style={{
-              width: '260px',
+              width: '280px',
               maxWidth: '100%',
               display: 'inline-block',
-              marginTop: '-30px',
-              marginBottom: '-36px',
+              marginTop: '-72px',
             }}
             loading="eager"
           />
