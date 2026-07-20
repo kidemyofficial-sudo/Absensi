@@ -43,19 +43,36 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Judul, tanggal, dan waktu mulai wajib diisi' }, { status: 400 })
     }
 
-    const newSchedule = await prisma.teacherSchedule.create({
-      data: {
-        userId: user.id,
-        title,
-        description,
-        date: new Date(date),
-        time,
-        timeEnd: timeEnd || null,
-        notified: false,
-        category: category || 'JADWAL',
-        recurrence: recurrence || 'ONCE',
-      },
-    })
+    let newSchedule
+    try {
+      // Attempt 1: insert with new fields (requires prisma db push to have run)
+      newSchedule = await prisma.teacherSchedule.create({
+        data: {
+          userId: user.id,
+          title,
+          description,
+          date: new Date(date),
+          time,
+          timeEnd: timeEnd || null,
+          notified: false,
+          category: category || 'JADWAL',
+          recurrence: recurrence || 'ONCE',
+        },
+      })
+    } catch {
+      // Fallback: insert without new columns (if migration not yet applied)
+      newSchedule = await (prisma.teacherSchedule.create as Function)({
+        data: {
+          userId: user.id,
+          title,
+          description,
+          date: new Date(date),
+          time,
+          timeEnd: timeEnd || null,
+          notified: false,
+        },
+      })
+    }
 
     return NextResponse.json({ schedule: newSchedule })
   } catch (error) {
