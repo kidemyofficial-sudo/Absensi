@@ -30,7 +30,7 @@ export default function RegisterPage() {
       })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || 'Registrasi gagal')
-      router.push('/dashboard')
+      router.push('/waiting-approval')
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan')

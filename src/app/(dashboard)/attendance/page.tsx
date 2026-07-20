@@ -169,12 +169,18 @@ export default function AttendancePage() {
     if (selectedFile) {
       setMessage({ type: 'info', text: 'Mengunggah foto les...' })
       try {
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 15000)
+
         const formData = new FormData()
         formData.append('file', selectedFile)
         const uploadRes = await fetch('https://tmpfiles.org/api/v1/upload', {
           method: 'POST',
           body: formData,
+          signal: controller.signal,
         })
+        clearTimeout(timeoutId)
+
         if (uploadRes.ok) {
           const uploadData = await uploadRes.json()
           const rawUrl = uploadData.data?.url
@@ -184,6 +190,17 @@ export default function AttendancePage() {
         }
       } catch (err) {
         console.error('Failed to upload image:', err)
+      }
+
+      if (!uploadedFotoUrl) {
+        const proceedWithoutPhoto = window.confirm(
+          'Gagal mengunggah foto les (koneksi lambat/timeout). Apakah Anda ingin tetap mengirim laporan absensi tanpa foto?'
+        )
+        if (!proceedWithoutPhoto) {
+          setMessage({ type: 'error', text: 'Pengiriman absensi dibatalkan karena foto gagal diunggah.' })
+          setSaving(false)
+          return
+        }
       }
     }
 

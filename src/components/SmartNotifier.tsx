@@ -79,8 +79,8 @@ export default function SmartNotifier() {
           const diffMs = targetTime.getTime() - now.getTime()
           const diffMins = diffMs / 60000
 
-          // If starting in 9 to 10 minutes
-          if (diffMins >= 9.0 && diffMins <= 10.5) {
+          // If starting in 8 to 12 minutes
+          if (diffMins >= 8.0 && diffMins <= 12.0) {
             const notifyKey = `notified-${s.id}-${todayStr}`
             if (!notifiedKeysRef.current.has(notifyKey)) {
               notifiedKeysRef.current.add(notifyKey)
