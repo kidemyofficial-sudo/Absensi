@@ -15,17 +15,15 @@ export default function AuthLayout({
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-1">
-          <div className="inline-flex flex-col items-center justify-center">
-            <div className="relative w-80 h-20">
-              <Image
-                src="/image/kidemy logo.png"
-                alt="Kidemy Logo"
-                fill
-                className="object-contain"
-                priority
-              />
-            </div>
-          </div>
+          {/* Gunakan img biasa agar bisa pakai width 100% tanpa terbatas aspect ratio container */}
+          {/* Logo PNG memiliki transparent padding internal — kita beri width penuh agar nampak besar */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/image/kidemy logo.png"
+            alt="Kidemy Logo"
+            style={{ width: '260px', maxWidth: '100%', display: 'inline-block' }}
+            loading="eager"
+          />
         </div>
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
           {children}
