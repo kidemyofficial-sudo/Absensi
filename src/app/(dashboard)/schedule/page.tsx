@@ -1022,7 +1022,8 @@ Klik kolom untuk buat jadwal baru • Drag event untuk pindahkan • Seret pojok
           onClick={() => setIsModalOpen(false)}
         >
           <div
-            className="w-full max-w-md overflow-hidden glass-modal"
+            className="w-full max-w-md flex flex-col glass-modal"
+            style={{ maxHeight: '90vh' }}
             onClick={e => e.stopPropagation()}
           >
             <div className="bg-gradient-to-r from-indigo-500 to-violet-600 px-6 py-5 text-white flex justify-between items-start">
@@ -1040,7 +1041,7 @@ Klik kolom untuk buat jadwal baru • Drag event untuk pindahkan • Seret pojok
               </button>
             </div>
 
-            <form onSubmit={saveSchedule} className="p-6 space-y-4">
+            <form onSubmit={saveSchedule} className="p-6 space-y-4 overflow-y-auto flex-1">
               <div>
                 <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Tanggal</label>
                 <input
