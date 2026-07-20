@@ -56,7 +56,7 @@ export async function PATCH(
     }
 
     const body = await request.json()
-    const { date, time, timeEnd } = body
+    const { date, time, timeEnd, category, recurrence } = body
 
     const updated = await prisma.teacherSchedule.update({
       where: { id },
@@ -64,6 +64,8 @@ export async function PATCH(
         ...(date !== undefined && { date: new Date(date) }),
         ...(time !== undefined && { time }),
         ...(timeEnd !== undefined && { timeEnd: timeEnd || null }),
+        ...(category !== undefined && { category }),
+        ...(recurrence !== undefined && { recurrence }),
       },
     })
 

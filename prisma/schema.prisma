@@ -204,6 +204,8 @@ model TeacherSchedule {
   title       String
   description String?  // Contoh lokasi: "Joyo Hotel, Kaliurang"
   notified    Boolean  @default(false)
+  category    String   @default("JADWAL") // "JADWAL" atau "ACARA"
+  recurrence  String   @default("ONCE")   // "ONCE" atau "WEEKLY"
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

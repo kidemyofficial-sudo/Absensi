@@ -37,7 +37,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { title, description, date, time, timeEnd } = await request.json()
+    const { title, description, date, time, timeEnd, category, recurrence } = await request.json()
 
     if (!title || !date || !time) {
       return NextResponse.json({ error: 'Judul, tanggal, dan waktu mulai wajib diisi' }, { status: 400 })
@@ -49,9 +49,11 @@ export async function POST(request: Request) {
         title,
         description,
         date: new Date(date),
-        time, // jam mulai, e.g. "09:00" (HH:MM 24h)
-        timeEnd: timeEnd || null, // jam selesai, e.g. "10:30" - opsional
+        time,
+        timeEnd: timeEnd || null,
         notified: false,
+        category: category || 'JADWAL',
+        recurrence: recurrence || 'ONCE',
       },
     })
 

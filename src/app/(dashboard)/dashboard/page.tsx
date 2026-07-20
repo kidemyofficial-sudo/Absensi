@@ -265,13 +265,15 @@ export default async function DashboardPage() {
 
     type BranchTeacherRow = { cabangDaerah: string; _count: { student: number } }
     type GuruRevRow = { id: string; lessonId: string; pendapatanGuru: number; lesson: { tanggalLes: Date; jumlahMurid: number; namaMurid: string; jenisPembelajaran: string } }
+    type TodayScheduleRow = { id: string; title: string; time: string; timeEnd: string | null; category: string; recurrence: string }
 
     let branchTeachers: BranchTeacherRow[] = []
     let todayAttendances = 0
     let monthlyRevenues: GuruRevRow[] = []
+    let rawSchedules: TodayScheduleRow[] = []
 
     try {
-      ;[branchTeachers, todayAttendances, monthlyRevenues] = await Promise.all([
+      ;[branchTeachers, todayAttendances, monthlyRevenues, rawSchedules] = await Promise.all([
         prisma.branchTeacher.findMany({
           where: { userId: user.id },
           select: { cabangDaerah: true, _count: { select: { student: true } } },
@@ -281,8 +283,24 @@ export default async function DashboardPage() {
           where: { lesson: { guruId: user.id, tanggalLes: { gte: startOfMonth, lte: endOfMonth } } },
           include: { lesson: { select: { tanggalLes: true, jumlahMurid: true, namaMurid: true, jenisPembelajaran: true } } },
         }),
+        prisma.teacherSchedule.findMany({
+          where: { userId: user.id, category: 'JADWAL' },
+          select: { id: true, title: true, time: true, timeEnd: true, category: true, recurrence: true, date: true },
+          orderBy: { time: 'asc' },
+        }) as unknown as TodayScheduleRow[],
       ])
     } catch { /* DB cold start */ }
+
+    // Filter schedules for today: ONCE matching today's date OR WEEKLY matching today's weekday
+    const todayWeekday = now.getDay()
+    const todayStr = today.toISOString().split('T')[0]
+    const todaySchedules = (rawSchedules as (TodayScheduleRow & { date: Date })[]).filter(s => {
+      const sDate = new Date(s.date)
+      const sStr = sDate.toISOString().split('T')[0]
+      if (sStr === todayStr) return true
+      if (s.recurrence === 'WEEKLY') return sDate.getDay() === todayWeekday
+      return false
+    })
 
     const totalPendapatanGuru = monthlyRevenues.reduce((s, r) => s + r.pendapatanGuru, 0)
     const fmt = (n: number) =>
@@ -300,8 +318,8 @@ export default async function DashboardPage() {
           </p>
         </div>
 
-        {/* Top Grid: Cabang & Absensi */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+        {/* Top Grid: Cabang, Jadwal Hari Ini & Absensi */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
 
           {/* Cabang Daerah */}
           <div className="glass-card p-5">
@@ -330,6 +348,71 @@ export default async function DashboardPage() {
                     </span>
                   </li>
                 ))}
+              </ul>
+            )}
+          </div>
+
+          {/* Jadwal Mengajar Hari Ini */}
+          <div className="glass-card p-5 flex flex-col">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-2xl flex items-center justify-center shadow-[0_4px_12px_rgba(99,102,241,0.3)]">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                  </svg>
+                </div>
+                <h3 className="text-sm font-bold" style={{ color: '#1e1b4b' }}>Jadwal Mengajar Hari Ini</h3>
+              </div>
+              <Link
+                href="/schedule"
+                className="text-[10px] font-bold px-2.5 py-1 rounded-lg transition-all"
+                style={{ background: 'rgba(99,102,241,0.1)', color: '#6366f1' }}
+              >
+                + Atur
+              </Link>
+            </div>
+            {todaySchedules.length === 0 ? (
+              <div className="flex-1 flex flex-col items-center justify-center py-6 text-center">
+                <div className="w-12 h-12 rounded-2xl mb-3 flex items-center justify-center" style={{ background: 'rgba(99,102,241,0.08)' }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="#6366f1" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 9v7.5" />
+                  </svg>
+                </div>
+                <p className="text-xs font-medium italic" style={{ color: '#9ca3af' }}>Belum ada jadwal mengajar hari ini</p>
+                <Link
+                  href="/schedule"
+                  className="mt-3 text-xs font-bold px-3 py-1.5 rounded-xl transition-all"
+                  style={{ background: 'rgba(99,102,241,0.1)', color: '#6366f1' }}
+                >
+                  Buat Jadwal
+                </Link>
+              </div>
+            ) : (
+              <ul className="space-y-2 flex-1 overflow-y-auto">
+                {todaySchedules.map((s) => {
+                  const t = s.time
+                  const te = s.timeEnd
+                  const hFmt = (str: string) => {
+                    const m = str.match(/^(\d+):(\d+)$/)
+                    if (!m) return str
+                    let h = +m[1]; const min = +m[2]
+                    const p = h >= 12 ? 'PM' : 'AM'
+                    h = h > 12 ? h - 12 : h === 0 ? 12 : h
+                    return `${h}:${min.toString().padStart(2,'0')} ${p}`
+                  }
+                  return (
+                    <li key={s.id} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'rgba(99,102,241,0.06)' }}>
+                      <div className="flex-shrink-0 w-1.5 h-10 rounded-full" style={{ background: 'linear-gradient(to bottom, #6366f1, #8b5cf6)' }} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold truncate" style={{ color: '#1e1b4b' }}>{s.title}</p>
+                        <p className="text-[10px] font-semibold mt-0.5" style={{ color: '#8b5cf6' }}>
+                          {hFmt(t)}{te ? ` – ${hFmt(te)}` : ''}
+                          {s.recurrence === 'WEEKLY' && <span className="ml-1.5">🔁</span>}
+                        </p>
+                      </div>
+                    </li>
+                  )
+                })}
               </ul>
             )}
           </div>

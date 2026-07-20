@@ -16,6 +16,8 @@ interface Schedule {
   date: string
   time: string
   timeEnd: string | null
+  category: string   // 'JADWAL' | 'ACARA'
+  recurrence: string // 'ONCE' | 'WEEKLY'
 }
 
 const HOUR_HEIGHT = 68 // px per hour
@@ -120,6 +122,8 @@ export default function SchedulePage() {
   const [modalTimeEnd, setModalTimeEnd] = useState('10:00')
   const [modalTitle, setModalTitle] = useState('')
   const [modalDesc, setModalDesc] = useState('')
+  const [modalCategory, setModalCategory] = useState<'JADWAL' | 'ACARA'>('JADWAL')
+  const [modalRecurrence, setModalRecurrence] = useState<'ONCE' | 'WEEKLY'>('ONCE')
   const [isSaving, setIsSaving] = useState(false)
   const [modalError, setModalError] = useState('')
 
@@ -174,6 +178,8 @@ export default function SchedulePage() {
     setModalTimeEnd(endTime)
     setModalTitle('')
     setModalDesc('')
+    setModalCategory('JADWAL')
+    setModalRecurrence('ONCE')
     setModalError('')
     setIsModalOpen(true)
   }
@@ -258,6 +264,8 @@ export default function SchedulePage() {
           date: modalDate,
           time: modalTimeStart,
           timeEnd: modalTimeEnd || null,
+          category: modalCategory,
+          recurrence: modalRecurrence,
         }),
       })
       const data = await r.json()
@@ -425,13 +433,24 @@ export default function SchedulePage() {
   )
 
   const getSchedulesForDay = (day: Date) => {
-    const str = toLocalDateStr(day)
-    return schedules.filter(s => toLocalDateStr(parseStoredDate(s.date)) === str)
+    const dayStr = toLocalDateStr(day)
+    const dayOfWeek = day.getDay()
+    return schedules.filter(s => {
+      const sDate = parseStoredDate(s.date)
+      const sStr = toLocalDateStr(sDate)
+      if (sStr === dayStr) return true
+      if ((s.recurrence ?? 'ONCE') === 'WEEKLY') {
+        return sDate.getDay() === dayOfWeek && sDate.getTime() <= day.getTime()
+      }
+      return false
+    })
   }
 
-  const styleForId = (id: string) => {
-    const idx = parseInt(id.slice(-2), 16) % EVENT_COLORS.length
-    return EVENT_COLORS[idx]
+  const styleForCategory = (category: string) => {
+    if (category === 'JADWAL') {
+      return { bg: 'bg-indigo-50/90 border-indigo-200 text-indigo-700', raw: '#6366f1' }
+    }
+    return { bg: 'bg-rose-50/90 border-rose-200 text-rose-700', raw: '#e11d48' }
   }
 
   const GRADIENTS = [
@@ -816,7 +835,7 @@ export default function SchedulePage() {
                         if (isResizing && resizeEndMin !== null) endMin = resizeEndMin
                         const top = ((startMin - TIMELINE_START_HOUR * 60) / 60) * HOUR_HEIGHT
                         const height = Math.max(((endMin - startMin) / 60) * HOUR_HEIGHT, 32)
-                        const style = styleForId(evt.id)
+                        const style = styleForCategory(evt.category ?? 'JADWAL')
                         if (top < 0) return null
 
                         return (
@@ -833,6 +852,14 @@ export default function SchedulePage() {
                             className={`absolute left-1 right-1 rounded-xl p-2 shadow-sm border border-l-4 overflow-hidden z-10 transition-all select-none ${style.bg} ${isDragging ? 'opacity-40 cursor-grabbing' : 'cursor-grab hover:scale-[1.02] hover:shadow-md'} ${isResizing ? 'cursor-ns-resize' : ''}`}
                             style={{ top, height, borderLeftColor: style.raw }}
                           >
+                            <div className="flex items-center gap-1 mb-0.5">
+                              <span className="text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md" style={{ background: style.raw + '22', color: style.raw }}>
+                                {(evt.category ?? 'JADWAL') === 'JADWAL' ? '📚 Jadwal' : '🎉 Acara'}
+                              </span>
+                              {(evt.recurrence ?? 'ONCE') === 'WEEKLY' && (
+                                <span className="text-[8px] font-bold" style={{ color: style.raw }}>🔁</span>
+                              )}
+                            </div>
                             <p className="text-[10px] font-bold truncate leading-tight tracking-tight">{evt.title}</p>
                             <p className="text-[8px] font-semibold mt-0.5 truncate opacity-90 hidden sm:block">
                               {fmtTime(evt.time)}{evt.timeEnd ? ` – ${fmtTime(evt.timeEnd)}` : ''}
@@ -1055,6 +1082,58 @@ Klik kolom untuk buat jadwal baru • Drag event untuk pindahkan • Seret pojok
                   onChange={e => setModalTitle(e.target.value)}
                   className="glass-input text-sm"
                 />
+              </div>
+
+              {/* Category Selector */}
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Kategori</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {(['JADWAL', 'ACARA'] as const).map(cat => (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => setModalCategory(cat)}
+                      className="py-2.5 rounded-xl text-xs font-bold transition-all border-2"
+                      style={modalCategory === cat ? {
+                        background: cat === 'JADWAL' ? 'rgba(99,102,241,0.12)' : 'rgba(225,29,72,0.1)',
+                        borderColor: cat === 'JADWAL' ? '#6366f1' : '#e11d48',
+                        color: cat === 'JADWAL' ? '#6366f1' : '#e11d48',
+                      } : {
+                        background: 'rgba(255,255,255,0.5)',
+                        borderColor: 'rgba(229,231,235,0.6)',
+                        color: '#9ca3af',
+                      }}
+                    >
+                      {cat === 'JADWAL' ? '📚 Jadwal Mengajar' : '🎉 Acara'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Recurrence Selector */}
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Pengulangan</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {(['ONCE', 'WEEKLY'] as const).map(rec => (
+                    <button
+                      key={rec}
+                      type="button"
+                      onClick={() => setModalRecurrence(rec)}
+                      className="py-2.5 rounded-xl text-xs font-bold transition-all border-2"
+                      style={modalRecurrence === rec ? {
+                        background: 'rgba(99,102,241,0.12)',
+                        borderColor: '#6366f1',
+                        color: '#6366f1',
+                      } : {
+                        background: 'rgba(255,255,255,0.5)',
+                        borderColor: 'rgba(229,231,235,0.6)',
+                        color: '#9ca3af',
+                      }}
+                    >
+                      {rec === 'ONCE' ? '📅 Hari Ini Saja' : '🔁 Setiap Minggu'}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div>
