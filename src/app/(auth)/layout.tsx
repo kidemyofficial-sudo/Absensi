@@ -12,8 +12,8 @@ export default function AuthLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 px-4 py-12">
-      <div className="w-full max-w-md my-auto flex flex-col items-center">
+    <div className="min-h-screen bg-gray-50 px-4 pt-6 pb-10 flex flex-col items-center">
+      <div className="w-full max-w-md">
         <div className="text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -24,12 +24,11 @@ export default function AuthLayout({
               maxWidth: '100%',
               display: 'inline-block',
               marginBottom: '-28px',
-              marginTop: '-10px'
             }}
             loading="eager"
           />
         </div>
-        <div className="w-full bg-white rounded-2xl border border-gray-100 shadow-sm p-8 mt-2">
+        <div className="w-full bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
           {children}
         </div>
       </div>
