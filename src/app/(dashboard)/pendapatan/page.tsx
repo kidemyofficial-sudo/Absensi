@@ -96,9 +96,8 @@ export default async function PendapatanPage() {
             {user.role === 'OWNER' ? 'Estimasi Pendapatan Owner' : 'Estimasi Pendapatan'} {bulan}
           </h3>
         </div>
-        {/* Frame white to keep contrast for financial values */}
-        <div className="inline-block bg-white/95 backdrop-blur-sm border border-white/20 px-4 py-2.5 rounded-xl shadow-sm mb-2">
-          <p className="text-3xl font-bold" style={{ color: '#10b981' }}>{formatRupiah(totalPendapatan)}</p>
+        <div className="inline-block mb-2">
+          <p className="text-3xl font-extrabold" style={{ color: '#10b981' }}>{formatRupiah(totalPendapatan)}</p>
         </div>
         <p className="text-xs mt-1" style={{ color: '#8b5cf6' }}>
           {user.role === 'OWNER'

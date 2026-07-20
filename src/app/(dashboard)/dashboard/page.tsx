@@ -149,17 +149,17 @@ export default async function DashboardPage() {
               <span className="text-blue-100 text-xs">{monthName}</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
-              <div className="bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-sm border border-white/20">
-                <p className="text-gray-500 text-[10px] font-bold uppercase tracking-wider mb-1">Pendapatan Owner</p>
-                <p className="text-xl font-bold text-gray-900">{fmt(totalPendapatanOwner)}</p>
+              <div className="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/10">
+                <p className="text-blue-100/80 text-[10px] font-bold uppercase tracking-wider mb-1">Pendapatan Owner</p>
+                <p className="text-2xl font-bold text-white">{fmt(totalPendapatanOwner)}</p>
               </div>
-              <div className="bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-sm border border-white/20">
-                <p className="text-gray-500 text-[10px] font-bold uppercase tracking-wider mb-1">Total Bagi Guru</p>
-                <p className="text-xl font-bold text-gray-900">{fmt(totalPendapatanGuru)}</p>
+              <div className="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/10">
+                <p className="text-blue-100/80 text-[10px] font-bold uppercase tracking-wider mb-1">Total Bagi Guru</p>
+                <p className="text-2xl font-bold text-white">{fmt(totalPendapatanGuru)}</p>
               </div>
-              <div className="bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-sm border border-white/20">
-                <p className="text-gray-500 text-[10px] font-bold uppercase tracking-wider mb-1">Total Les</p>
-                <p className="text-xl font-bold text-gray-900">{totalLes} <span className="text-sm font-semibold text-gray-500">sesi</span></p>
+              <div className="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/10">
+                <p className="text-blue-100/80 text-[10px] font-bold uppercase tracking-wider mb-1">Total Les</p>
+                <p className="text-2xl font-bold text-white">{totalLes} <span className="text-sm font-semibold text-blue-100">sesi</span></p>
               </div>
             </div>
           </div>
@@ -377,10 +377,10 @@ export default async function DashboardPage() {
                 </div>
                 <span className="text-emerald-100 text-xs font-semibold uppercase tracking-wider">Estimasi Pendapatan</span>
               </div>
-              <div className="bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-sm border border-white/20 text-gray-900 inline-block min-w-[240px]">
-                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">{monthName}</p>
-                <p className="text-xl font-bold text-gray-900 mt-1">{fmt(totalPendapatanGuru)}</p>
-                <p className="text-[10px] text-gray-400 font-medium mt-1">Pembayaran ditransfer ke rekening terdaftar</p>
+              <div className="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/10 inline-block min-w-[240px]">
+                <p className="text-emerald-100/80 text-[10px] font-bold uppercase tracking-wider">{monthName}</p>
+                <p className="text-2xl font-bold text-white mt-1">{fmt(totalPendapatanGuru)}</p>
+                <p className="text-[10px] text-emerald-100/70 font-medium mt-1">Pembayaran ditransfer ke rekening terdaftar</p>
               </div>
             </div>
             <Link href="/pendapatan"
