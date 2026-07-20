@@ -201,7 +201,7 @@ const roleColors: Record<string, string> = {
   ORANG_TUA: 'linear-gradient(135deg, #10b981, #0d9488)',
 }
 
-function SidebarContent({ user, pathname, onNavigate, isCollapsed, setIsCollapsed }: { user: User; pathname: string; onNavigate?: () => void; isCollapsed?: boolean; setIsCollapsed?: (v: boolean) => void }) {
+function SidebarContent({ user, pathname, onNavigate, isCollapsed, setIsCollapsed, hideLogo }: { user: User; pathname: string; onNavigate?: () => void; isCollapsed?: boolean; setIsCollapsed?: (v: boolean) => void; hideLogo?: boolean }) {
   const [search, setSearch] = useState('')
   const navConfig = navConfigs[user.role] || ownerNav
   const roleLabel = roleLabels[user.role] || user.role
@@ -215,7 +215,8 @@ function SidebarContent({ user, pathname, onNavigate, isCollapsed, setIsCollapse
 
   return (
     <div className="flex flex-col h-full">
-      {/* Logo & Toggle */}
+      {/* Logo & Toggle - hidden in mobile mode (mobile has its own header) */}
+      {!hideLogo && (
       <div className={`px-5 py-5 flex items-center ${isCollapsed ? 'flex-col justify-center gap-2' : 'justify-between'}`} style={{ borderBottom: '1px solid rgba(229,231,235,0.35)' }}>
         <div className="flex items-center gap-3">
           <Image src="/image/kidemy.webp" alt="Kidemy" width={40} height={40}
@@ -250,6 +251,7 @@ function SidebarContent({ user, pathname, onNavigate, isCollapsed, setIsCollapse
           </button>
         )}
       </div>
+      )}
 
       {/* Search */}
       {!isCollapsed && (
@@ -380,52 +382,69 @@ function SidebarContent({ user, pathname, onNavigate, isCollapsed, setIsCollapse
   if (mobile) {
     return (
       <>
+        {/* Hamburger toggle button */}
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="p-2 rounded-xl transition-all"
           style={{ color: '#6b7280' }}
           onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(99,102,241,0.08)' }}
           onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+          aria-label="Buka menu"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            {isOpen ? (
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-            )}
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
           </svg>
         </button>
 
-        {isOpen && (
-          <>
-            <div
-              className="fixed inset-0 z-40 transition-opacity"
-              style={{ background: 'rgba(15,10,40,0.4)', backdropFilter: 'blur(4px)' }}
-              onClick={() => setIsOpen(false)}
-            />
-            <div className="fixed inset-y-0 left-0 w-72 z-50 flex flex-col shadow-2xl" style={sidebarStyle}>
-              <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(229,231,235,0.35)' }}>
-                <div className="flex items-center gap-2.5">
-                  <Image src="/image/kidemy.webp" alt="Kidemy" width={36} height={36} className="w-9 h-9 rounded-xl object-cover shadow-sm" />
-                  <div>
-                    <h1 className="text-sm font-bold" style={{ color: '#1e1b4b' }}>Sistem Absensi</h1>
-                    <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: '#8b5cf6' }}>{roleLabel}</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="p-1.5 rounded-lg transition-all"
-                  style={{ color: '#9ca3af' }}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+        {/* Backdrop */}
+        <div
+          className="fixed inset-0 z-40 transition-opacity duration-300"
+          style={{
+            background: 'rgba(15,10,40,0.45)',
+            backdropFilter: 'blur(4px)',
+            pointerEvents: isOpen ? 'auto' : 'none',
+            opacity: isOpen ? 1 : 0,
+          }}
+          onClick={() => setIsOpen(false)}
+        />
+
+        {/* Slide-in drawer */}
+        <div
+          className="fixed inset-y-0 left-0 w-72 z-50 flex flex-col shadow-2xl transition-transform duration-300 ease-in-out"
+          style={{
+            ...sidebarStyle,
+            transform: isOpen ? 'translateX(0)' : 'translateX(-100%)',
+          }}
+        >
+          {/* Mobile header: logo + close button */}
+          <div
+            className="flex items-center justify-between px-5 py-4 flex-shrink-0"
+            style={{ borderBottom: '1px solid rgba(229,231,235,0.35)' }}
+          >
+            <div className="flex items-center gap-2.5">
+              <Image src="/image/kidemy.webp" alt="Kidemy" width={36} height={36} className="w-9 h-9 rounded-xl object-cover shadow-sm" />
+              <div>
+                <h1 className="text-sm font-bold" style={{ color: '#1e1b4b' }}>Sistem Absensi</h1>
+                <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: '#8b5cf6' }}>{roleLabel}</p>
               </div>
-              <SidebarContent user={user} pathname={pathname} onNavigate={() => setIsOpen(false)} />
             </div>
-          </>
-        )}
+            <button
+              onClick={() => setIsOpen(false)}
+              className="p-2 rounded-xl transition-all"
+              style={{ color: '#9ca3af' }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(99,102,241,0.08)'; e.currentTarget.style.color = '#6366f1' }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#9ca3af' }}
+              aria-label="Tutup menu"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Nav content without logo (hideLogo=true) */}
+          <SidebarContent user={user} pathname={pathname} onNavigate={() => setIsOpen(false)} hideLogo />
+        </div>
       </>
     )
   }
