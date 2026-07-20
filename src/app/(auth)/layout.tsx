@@ -12,9 +12,10 @@ export default function AuthLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-gray-50 px-4 pt-6 pb-10 flex flex-col items-center">
+    <div className="min-h-screen bg-gray-50 px-4 pt-3 pb-8 flex flex-col items-center">
       <div className="w-full max-w-md">
-        <div className="text-center">
+        {/* Logo — PNG has large internal transparent padding top & bottom, use negative margins to crop it */}
+        <div className="text-center overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/image/kidemy logo.png"
@@ -23,7 +24,8 @@ export default function AuthLayout({
               width: '260px',
               maxWidth: '100%',
               display: 'inline-block',
-              marginBottom: '-28px',
+              marginTop: '-30px',
+              marginBottom: '-36px',
             }}
             loading="eager"
           />
