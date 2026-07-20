@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 interface User {
   id: string
@@ -358,9 +359,11 @@ function SidebarContent({ user, pathname, onNavigate, isCollapsed, setIsCollapse
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const roleLabel = roleLabels[user.role] || user.role
 
   useEffect(() => {
+    setMounted(true)
     const saved = localStorage.getItem('sidebar_collapsed')
     if (saved === 'true') {
       setIsCollapsed(true)
@@ -380,28 +383,15 @@ function SidebarContent({ user, pathname, onNavigate, isCollapsed, setIsCollapse
   }
 
   if (mobile) {
-    return (
+    // The drawer and backdrop are portaled to document.body to escape the
+    // backdropFilter stacking context on the <header> element.
+    const drawerPortal = mounted ? createPortal(
       <>
-        {/* Hamburger toggle button */}
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="p-2 rounded-xl transition-all"
-          style={{ color: '#6b7280' }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(99,102,241,0.08)' }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
-          aria-label="Buka menu"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-          </svg>
-        </button>
-
         {/* Backdrop */}
         <div
-          className="fixed inset-0 z-40 transition-opacity duration-300"
+          className="fixed inset-0 z-[9998] transition-opacity duration-300"
           style={{
-            background: 'rgba(15,10,40,0.45)',
-            backdropFilter: 'blur(4px)',
+            background: 'rgba(15,10,40,0.5)',
             pointerEvents: isOpen ? 'auto' : 'none',
             opacity: isOpen ? 1 : 0,
           }}
@@ -410,7 +400,7 @@ function SidebarContent({ user, pathname, onNavigate, isCollapsed, setIsCollapse
 
         {/* Slide-in drawer */}
         <div
-          className="fixed inset-y-0 left-0 w-72 z-50 flex flex-col shadow-2xl transition-transform duration-300 ease-in-out"
+          className="fixed inset-y-0 left-0 w-72 z-[9999] flex flex-col shadow-2xl transition-transform duration-300 ease-in-out"
           style={{
             ...sidebarStyle,
             transform: isOpen ? 'translateX(0)' : 'translateX(-100%)',
@@ -442,9 +432,29 @@ function SidebarContent({ user, pathname, onNavigate, isCollapsed, setIsCollapse
             </button>
           </div>
 
-          {/* Nav content without logo (hideLogo=true) */}
+          {/* Nav content without logo */}
           <SidebarContent user={user} pathname={pathname} onNavigate={() => setIsOpen(false)} hideLogo />
         </div>
+      </>,
+      document.body
+    ) : null
+
+    return (
+      <>
+        {/* Hamburger toggle button - stays inside header */}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="p-2 rounded-xl transition-all"
+          style={{ color: '#6b7280' }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(99,102,241,0.08)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+          aria-label="Buka menu"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+          </svg>
+        </button>
+        {drawerPortal}
       </>
     )
   }
