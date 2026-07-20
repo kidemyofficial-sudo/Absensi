@@ -423,10 +423,8 @@ export default async function DashboardPage() {
                 href={app.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 p-3.5 rounded-xl transition-all"
+                className="flex items-center gap-3 p-3.5 rounded-xl transition-all hover:bg-indigo-50"
                 style={{ background: 'rgba(99,102,241,0.04)' }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(99,102,241,0.08)' }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(99,102,241,0.04)' }}
               >
                 <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center shadow-sm flex-shrink-0" style={{ border: '1px solid rgba(229,231,235,0.5)' }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
