@@ -43,6 +43,8 @@ model User {
   lessons        Lesson[]
   notifications  Notification[]
   branchTeachers BranchTeacher[]
+  tasks          MyTask[]
+  schedules      TeacherSchedule[]
 }
 
 model Student {
@@ -176,4 +178,36 @@ model LessonRevenue {
 
   // Relations
   lesson Lesson @relation(fields: [lessonId], references: [id])
+}
+
+model MyTask {
+  id          String   @id @default(cuid())
+  userId      String
+  date        DateTime @db.Date
+  title       String
+  isCompleted Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relasi
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+}
+
+model TeacherSchedule {
+  id          String   @id @default(cuid())
+  userId      String
+  date        DateTime @db.Date
+  time        String   // Contoh: "09:30 AM" atau "14:15"
+  title       String
+  description String?  // Contoh lokasi: "Joyo Hotel, Kaliurang"
+  notified    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relasi
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
 }
