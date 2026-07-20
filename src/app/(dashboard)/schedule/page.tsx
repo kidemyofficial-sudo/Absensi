@@ -99,6 +99,17 @@ export default function SchedulePage() {
   const [isFullscreen, setIsFullscreen] = useState(false)
   const timelineRef = useRef<HTMLDivElement>(null)
 
+  // Drag & drop states
+  const [draggingId, setDraggingId] = useState<string | null>(null)
+  const [dragPreview, setDragPreview] = useState<{ colIdx: number; startMin: number; durationMin: number } | null>(null)
+  const dragOffsetMinRef = useRef<number>(0) // offset from top of event in minutes
+
+  // Resize states
+  const [resizingId, setResizingId] = useState<string | null>(null)
+  const resizeStartYRef = useRef<number>(0)
+  const resizeStartEndMinRef = useRef<number>(0)
+  const [resizeEndMin, setResizeEndMin] = useState<number | null>(null)
+
   // Task states
   const [newTaskTitle, setNewTaskTitle] = useState('')
 
@@ -262,6 +273,120 @@ export default function SchedulePage() {
       setIsSaving(false)
     }
   }
+
+  const updateSchedule = async (id: string, patch: { date?: string; time?: string; timeEnd?: string | null }) => {
+    try {
+      await fetch(`/api/schedules/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patch),
+      })
+      // Optimistic update already done, re-fetch to sync
+      fetchData()
+    } catch (err) {
+      console.error(err)
+      fetchData() // revert on error
+    }
+  }
+
+  // Drag handlers
+  const handleDragStart = (e: React.DragEvent, evt: Schedule) => {
+    const startMin = parseTimeToMinutes(evt.time)
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+    const scrollTop = timelineRef.current?.scrollTop ?? 0
+    const clickY = e.clientY - rect.top
+    dragOffsetMinRef.current = Math.round((clickY / HOUR_HEIGHT) * 60)
+    setDraggingId(evt.id)
+    const endMin = evt.timeEnd ? parseTimeToMinutes(evt.timeEnd) : startMin + 60
+    setDragPreview({ colIdx: -1, startMin, durationMin: endMin - startMin })
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', evt.id)
+  }
+
+  const handleDragEnd = () => {
+    setDraggingId(null)
+    setDragPreview(null)
+  }
+
+  const handleColumnDragOver = (e: React.DragEvent, colIdx: number) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+    const scrollTop = timelineRef.current?.scrollTop ?? 0
+    const yInCol = e.clientY - rect.top + scrollTop
+    const rawMin = TIMELINE_START_HOUR * 60 + (yInCol / HOUR_HEIGHT) * 60 - dragOffsetMinRef.current
+    const snappedMin = Math.round(rawMin / 15) * 15
+    const clampedMin = Math.max(TIMELINE_START_HOUR * 60, Math.min((TIMELINE_END_HOUR - 1) * 60, snappedMin))
+    setDragPreview(prev => prev ? { ...prev, colIdx, startMin: clampedMin } : null)
+  }
+
+  const handleColumnDrop = (e: React.DragEvent, day: Date, colIdx: number) => {
+    e.preventDefault()
+    const id = e.dataTransfer.getData('text/plain')
+    if (!id || !dragPreview) return
+
+    const evt = schedules.find(s => s.id === id)
+    if (!evt) return
+
+    const startMin = dragPreview.startMin
+    const endMin = startMin + dragPreview.durationMin
+    const hh = (m: number) => Math.floor(m / 60).toString().padStart(2, '0')
+    const mm = (m: number) => (m % 60).toString().padStart(2, '0')
+    const newTime = `${hh(startMin)}:${mm(startMin)}`
+    const newTimeEnd = `${hh(endMin)}:${mm(endMin)}`
+    const newDate = toLocalDateStr(day)
+
+    // Optimistic update
+    setSchedules(prev => prev.map(s => s.id === id ? { ...s, date: day.toISOString(), time: newTime, timeEnd: newTimeEnd } : s))
+    setDraggingId(null)
+    setDragPreview(null)
+
+    updateSchedule(id, { date: newDate, time: newTime, timeEnd: newTimeEnd })
+  }
+
+  // Resize handlers
+  const handleResizeStart = (e: React.MouseEvent, evt: Schedule) => {
+    e.stopPropagation()
+    e.preventDefault()
+    const endMin = evt.timeEnd ? parseTimeToMinutes(evt.timeEnd) : parseTimeToMinutes(evt.time) + 60
+    resizeStartYRef.current = e.clientY
+    resizeStartEndMinRef.current = endMin
+    setResizingId(evt.id)
+    setResizeEndMin(endMin)
+  }
+
+  useEffect(() => {
+    if (!resizingId) return
+    const onMove = (e: MouseEvent) => {
+      const delta = e.clientY - resizeStartYRef.current
+      const deltaMin = Math.round((delta / HOUR_HEIGHT) * 60 / 15) * 15
+      const newEnd = Math.max(resizeStartEndMinRef.current + 15, resizeStartEndMinRef.current + deltaMin)
+      const clamped = Math.min(TIMELINE_END_HOUR * 60, newEnd)
+      setResizeEndMin(clamped)
+    }
+    const onUp = (e: MouseEvent) => {
+      const delta = e.clientY - resizeStartYRef.current
+      const deltaMin = Math.round((delta / HOUR_HEIGHT) * 60 / 15) * 15
+      const newEnd = Math.max(resizeStartEndMinRef.current + 15, resizeStartEndMinRef.current + deltaMin)
+      const clamped = Math.min(TIMELINE_END_HOUR * 60, newEnd)
+      const hh = (m: number) => Math.floor(m / 60).toString().padStart(2, '0')
+      const mm = (m: number) => (m % 60).toString().padStart(2, '0')
+      const newTimeEnd = `${hh(clamped)}:${mm(clamped)}`
+      // Optimistic update
+      setSchedules(prev => prev.map(s => s.id === resizingId ? { ...s, timeEnd: newTimeEnd } : s))
+      const id = resizingId
+      setResizingId(null)
+      setResizeEndMin(null)
+      updateSchedule(id, { timeEnd: newTimeEnd })
+    }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+    return () => {
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resizingId])
 
   const deleteSchedule = async (id: string) => {
     try {
@@ -644,6 +769,8 @@ export default function SchedulePage() {
                         background: isToday ? 'rgba(99,102,241,0.03)' : 'transparent',
                       }}
                       onClick={e => handleTimelineColumnClick(day, e)}
+                      onDragOver={e => handleColumnDragOver(e, colIdx)}
+                      onDrop={e => handleColumnDrop(e, day, colIdx)}
                     >
                       {/* Grid lines */}
                       {timelineHours.map((h, i) => (
@@ -668,10 +795,25 @@ export default function SchedulePage() {
                         </div>
                       )}
 
+                      {/* Drag preview ghost */}
+                      {dragPreview && dragPreview.colIdx === colIdx && draggingId && (
+                        <div
+                          className="absolute left-1 right-1 rounded-xl border-2 border-dashed border-indigo-400 z-30 pointer-events-none"
+                          style={{
+                            top: ((dragPreview.startMin - TIMELINE_START_HOUR * 60) / 60) * HOUR_HEIGHT,
+                            height: Math.max((dragPreview.durationMin / 60) * HOUR_HEIGHT, 32),
+                            background: 'rgba(99,102,241,0.12)',
+                          }}
+                        />
+                      )}
+
                       {/* Event Cards inside timeline */}
                       {dayEvts.map(evt => {
+                        const isDragging = draggingId === evt.id
+                        const isResizing = resizingId === evt.id
                         const startMin = parseTimeToMinutes(evt.time)
-                        const endMin = evt.timeEnd ? parseTimeToMinutes(evt.timeEnd) : startMin + 60
+                        let endMin = evt.timeEnd ? parseTimeToMinutes(evt.timeEnd) : startMin + 60
+                        if (isResizing && resizeEndMin !== null) endMin = resizeEndMin
                         const top = ((startMin - TIMELINE_START_HOUR * 60) / 60) * HOUR_HEIGHT
                         const height = Math.max(((endMin - startMin) / 60) * HOUR_HEIGHT, 32)
                         const style = styleForId(evt.id)
@@ -680,17 +822,29 @@ export default function SchedulePage() {
                         return (
                           <div
                             key={evt.id}
+                            draggable
+                            onDragStart={e => handleDragStart(e, evt)}
+                            onDragEnd={handleDragEnd}
                             onClick={e => {
+                              if (isDragging) return
                               e.stopPropagation()
                               setActiveSchedule(evt)
                             }}
-                            className={`absolute left-1 right-1 rounded-xl p-2 cursor-pointer shadow-sm border border-l-4 overflow-hidden z-10 transition-all hover:scale-[1.02] hover:shadow-md ${style.bg}`}
+                            className={`absolute left-1 right-1 rounded-xl p-2 shadow-sm border border-l-4 overflow-hidden z-10 transition-all select-none ${style.bg} ${isDragging ? 'opacity-40 cursor-grabbing' : 'cursor-grab hover:scale-[1.02] hover:shadow-md'} ${isResizing ? 'cursor-ns-resize' : ''}`}
                             style={{ top, height, borderLeftColor: style.raw }}
                           >
                             <p className="text-[10px] font-bold truncate leading-tight tracking-tight">{evt.title}</p>
                             <p className="text-[8px] font-semibold mt-0.5 truncate opacity-90 hidden sm:block">
                               {fmtTime(evt.time)}{evt.timeEnd ? ` – ${fmtTime(evt.timeEnd)}` : ''}
                             </p>
+                            {/* Resize handle */}
+                            <div
+                              className="absolute bottom-0 left-0 right-0 h-3 flex items-center justify-center cursor-ns-resize group"
+                              onMouseDown={e => handleResizeStart(e, evt)}
+                              onClick={e => e.stopPropagation()}
+                            >
+                              <div className="w-8 h-1 rounded-full opacity-40 group-hover:opacity-80 transition-opacity" style={{ background: style.raw }} />
+                            </div>
                           </div>
                         )
                       })}
@@ -702,7 +856,7 @@ export default function SchedulePage() {
 
             {!isFullscreen && (
               <div className="px-5 py-3 border-t border-gray-150/40 text-[10px] text-gray-400 text-center font-semibold" style={{ background: 'rgba(255,255,255,0.4)' }}>
-                Klik area kosong pada kolom hari untuk membuat rencana kegiatan • Klik jadwal untuk detail/edit
+Klik kolom untuk buat jadwal baru • Drag event untuk pindahkan • Seret pojok bawah event untuk ubah durasi
               </div>
             )}
           </div>
