@@ -199,7 +199,8 @@ model TeacherSchedule {
   id          String   @id @default(cuid())
   userId      String
   date        DateTime @db.Date
-  time        String   // Contoh: "09:30 AM" atau "14:15"
+  time        String   // Jam mulai: "09:30" (format 24h) atau "09:30 AM"
+  timeEnd     String?  // Jam selesai: "11:00" (format 24h) - opsional
   title       String
   description String?  // Contoh lokasi: "Joyo Hotel, Kaliurang"
   notified    Boolean  @default(false)

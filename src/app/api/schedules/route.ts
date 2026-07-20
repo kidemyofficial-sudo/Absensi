@@ -37,10 +37,10 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { title, description, date, time } = await request.json()
+    const { title, description, date, time, timeEnd } = await request.json()
 
     if (!title || !date || !time) {
-      return NextResponse.json({ error: 'Judul, tanggal, dan waktu wajib diisi' }, { status: 400 })
+      return NextResponse.json({ error: 'Judul, tanggal, dan waktu mulai wajib diisi' }, { status: 400 })
     }
 
     const newSchedule = await prisma.teacherSchedule.create({
@@ -49,7 +49,8 @@ export async function POST(request: Request) {
         title,
         description,
         date: new Date(date),
-        time, // e.g. "08:15 AM"
+        time, // jam mulai, e.g. "09:00" (HH:MM 24h)
+        timeEnd: timeEnd || null, // jam selesai, e.g. "10:30" - opsional
         notified: false,
       },
     })
