@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
 
 export const metadata: Metadata = {
   title: 'Masuk ke Akun',
@@ -12,16 +11,12 @@ export default function AuthLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-gray-50 px-4 pt-4 pb-6 flex flex-col items-center">
+    <div
+      className="min-h-screen glass-bg px-4 pt-6 pb-8 flex flex-col items-center justify-center"
+    >
       <div className="w-full max-w-md">
-        {/*
-          Logo PNG is 500x500 (square). The visible "Kidemy Learn & Grow" graphic
-          sits in the middle ~40% of the image, with ~30% transparent padding top and bottom.
-          At display width 260px → total height = 260px.
-          Transparent top = ~78px, visible content = ~104px, transparent bottom = ~78px.
-          We crop with a fixed-height container + overflow-hidden + negative marginTop.
-        */}
-        <div style={{ height: '110px', overflow: 'hidden', textAlign: 'center', marginBottom: '12px' }}>
+        {/* Logo */}
+        <div style={{ height: '110px', overflow: 'hidden', textAlign: 'center', marginBottom: '20px' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/image/kidemy logo.png"
@@ -31,13 +26,31 @@ export default function AuthLayout({
               maxWidth: '100%',
               display: 'inline-block',
               marginTop: '-72px',
+              filter: 'drop-shadow(0 4px 12px rgba(99,102,241,0.15))',
             }}
             loading="eager"
           />
         </div>
-        <div className="w-full bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+
+        {/* Glass Card */}
+        <div
+          style={{
+            background: 'rgba(255,255,255,0.75)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
+            border: '1px solid rgba(255,255,255,0.55)',
+            borderRadius: '24px',
+            boxShadow: '0 20px 60px rgba(99,102,241,0.14), 0 4px 16px rgba(0,0,0,0.06)',
+            padding: '36px 32px',
+          }}
+        >
           {children}
         </div>
+
+        {/* Footer hint */}
+        <p className="text-center text-xs mt-6" style={{ color: '#9ca3af' }}>
+          © 2024 Kidemy · Sistem Absensi Les Privat
+        </p>
       </div>
     </div>
   )

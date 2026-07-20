@@ -71,6 +71,8 @@ export default function GuruPage() {
     }
   }
 
+  const isSuccess = message.includes('berhasil')
+
   return (
     <div>
       <ConfirmDialog
@@ -84,65 +86,95 @@ export default function GuruPage() {
       />
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Guru</h1>
-          <p className="text-sm text-gray-500 mt-1">Kelola data guru pengampu</p>
+          <h1 className="text-2xl font-bold" style={{ color: '#1e1b4b' }}>Guru</h1>
+          <p className="text-sm mt-1" style={{ color: '#6b7280' }}>Kelola data guru pengampu</p>
         </div>
         <button
           onClick={() => { setShowForm(!showForm); setFormData({ name: '', phone: '', password: '' }) }}
-          className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-xl hover:bg-blue-700 text-sm font-medium transition-colors"
+          className="btn-primary"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-          {showForm ? 'Batal' : 'Tambah Guru'}
+          {showForm ? (
+            <>
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Batal
+            </>
+          ) : (
+            <>
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              Tambah Guru
+            </>
+          )}
         </button>
       </div>
 
       {message && (
-        <div className={`mb-5 p-3.5 rounded-xl text-sm font-medium ${
-          message.includes('berhasil')
-            ? 'bg-green-50 text-green-700 border border-green-200'
-            : 'bg-red-50 text-red-700 border border-red-200'
-        }`}>
+        <div
+          className="mb-5 p-3.5 rounded-xl text-sm font-medium"
+          style={{
+            background: isSuccess ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)',
+            color: isSuccess ? '#065f46' : '#991b1b',
+            border: `1px solid ${isSuccess ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}`,
+          }}
+        >
           {message}
         </div>
       )}
 
       {showForm && (
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm mb-6">
-          <h3 className="text-base font-semibold text-gray-900 mb-4">Tambah Guru Baru</h3>
+        <div className="glass-card p-6 mb-6">
+          <h3 className="text-base font-bold mb-4" style={{ color: '#1e1b4b' }}>Tambah Guru Baru</h3>
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Nama</label>
-                <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required
-                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white transition-all"
-                  placeholder="Nama guru" />
+                <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4b5563' }}>Nama</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                  className="glass-input"
+                  placeholder="Nama guru"
+                />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Nomor Telepon</label>
-                <input type="tel" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} required
-                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white transition-all"
-                  placeholder="08xxxxxxxxxx" />
+                <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4b5563' }}>Nomor Telepon</label>
+                <input
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  required
+                  className="glass-input"
+                  placeholder="08xxxxxxxxxx"
+                />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
-                <input type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} required minLength={6}
-                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white transition-all"
-                  placeholder="Minimal 6 karakter" />
+                <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4b5563' }}>Password</label>
+                <input
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  required
+                  minLength={6}
+                  className="glass-input"
+                  placeholder="Minimal 6 karakter"
+                />
               </div>
             </div>
-            <button type="submit" className="bg-green-600 text-white px-5 py-2.5 rounded-xl hover:bg-green-700 text-sm font-medium transition-colors">
+            <button type="submit" className="btn-primary" style={{ background: 'linear-gradient(135deg,#10b981,#059669)', boxShadow: '0 4px 15px rgba(16,185,129,0.25)' }}>
               Simpan
             </button>
           </form>
         </div>
       )}
 
-      <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm mb-6">
+      <div className="glass-card p-4 mb-6">
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="#9ca3af" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
             </svg>
           </div>
@@ -151,53 +183,53 @@ export default function GuruPage() {
             placeholder="Cari nama atau telepon guru..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            className="glass-input pl-9"
           />
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="glass-card overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-400 text-sm">Loading...</div>
+          <div className="p-8 text-center text-sm" style={{ color: '#9ca3af' }}>Loading...</div>
         ) : teachers.length === 0 ? (
-          <div className="p-8 text-center text-gray-400 text-sm">Tidak ada guru ditemukan</div>
+          <div className="p-8 text-center text-sm" style={{ color: '#9ca3af' }}>Tidak ada guru ditemukan</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="glass-table w-full">
               <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="px-5 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
-                  <th className="px-5 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telepon</th>
-                  <th className="px-5 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cabang Daerah Diampu</th>
-                  <th className="px-5 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Terdaftar</th>
-                  <th className="px-5 py-3.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                <tr>
+                  <th>Nama</th>
+                  <th>Telepon</th>
+                  <th>Cabang Daerah Diampu</th>
+                  <th>Terdaftar</th>
+                  <th className="text-right">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody>
                 {teachers.map((teacher) => (
-                  <tr key={teacher.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-5 py-3.5 text-sm font-medium text-gray-900 whitespace-nowrap">{teacher.name}</td>
-                    <td className="px-5 py-3.5 text-sm text-gray-600 whitespace-nowrap">{teacher.phone}</td>
-                    <td className="px-5 py-3.5 text-sm whitespace-nowrap">
+                  <tr key={teacher.id}>
+                    <td className="font-bold whitespace-nowrap" style={{ color: '#1e1b4b' }}>{teacher.name}</td>
+                    <td className="whitespace-nowrap" style={{ color: '#4b5563' }}>{teacher.phone}</td>
+                    <td className="whitespace-nowrap">
                       {teacher.branchTeachers && teacher.branchTeachers.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
                           {teacher.branchTeachers.map((bt) => (
-                            <span key={bt.cabangDaerah} className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded-lg text-xs font-medium">
+                            <span key={bt.cabangDaerah} className="px-2.5 py-0.5 rounded-lg text-xs font-semibold" style={{ background: 'rgba(99,102,241,0.1)', color: '#6366f1' }}>
                               {bt.cabangDaerah}
                             </span>
                           ))}
                         </div>
                       ) : (
-                        <span className="text-gray-300">-</span>
+                        <span style={{ color: '#9ca3af' }}>-</span>
                       )}
                     </td>
-                    <td className="px-5 py-3.5 text-sm text-gray-500 whitespace-nowrap">
+                    <td className="whitespace-nowrap" style={{ color: '#4b5563' }}>
                       {new Date(teacher.createdAt).toLocaleDateString('id-ID')}
                     </td>
-                    <td className="px-5 py-3.5 text-sm text-right whitespace-nowrap">
+                    <td className="text-right whitespace-nowrap">
                       <button
                         onClick={() => setDeleteConfirm({ id: teacher.id, name: teacher.name })}
-                        className="text-red-500 hover:text-red-700 font-medium text-xs"
+                        className="px-2.5 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-lg font-bold text-xs transition-colors"
                       >
                         Hapus
                       </button>

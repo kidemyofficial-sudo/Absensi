@@ -142,138 +142,193 @@ export default function StudentsPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Siswa</h1>
-        <p className="text-sm text-gray-500 mt-1">Manajemen data siswa</p>
+        <h1 className="text-2xl font-bold" style={{ color: '#1e1b4b' }}>Siswa</h1>
+        <p className="text-sm mt-1" style={{ color: '#6b7280' }}>Manajemen data siswa</p>
       </div>
 
-      <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm mb-6">
+      {/* Filter panel */}
+      <div className="glass-card p-4 mb-6">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="#9ca3af" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
               </svg>
             </div>
-            <input type="text" placeholder="Cari nama, TTL, atau sekolah..." value={search} onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" />
+            <input
+              type="text"
+              placeholder="Cari nama, TTL, atau sekolah..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="glass-input pl-9"
+            />
           </div>
           {user?.role === 'OWNER' && (
-            <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1) }}
-              className="px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white transition-all">
+            <select
+              value={statusFilter}
+              onChange={(e) => { setStatusFilter(e.target.value); setPage(1) }}
+              className="glass-input sm:w-44"
+            >
               <option value="">Semua Status</option>
               <option value="PENDING">Menunggu ACC</option>
               <option value="APPROVED">Disetujui</option>
               <option value="REJECTED">Ditolak</option>
             </select>
           )}
-          <select value={cabangFilter} onChange={(e) => { setCabangFilter(e.target.value); setPage(1) }}
-            className="px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white transition-all">
+          <select
+            value={cabangFilter}
+            onChange={(e) => { setCabangFilter(e.target.value); setPage(1) }}
+            className="glass-input sm:w-44"
+          >
             <option value="">Semua Cabang</option>
             {cabangs.map((c) => (<option key={c} value={c}>{c}</option>))}
           </select>
         </div>
       </div>
 
+      {/* Assign modal */}
       {assignModal && (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-6 rounded-2xl w-full max-w-md shadow-xl border border-gray-100">
-            <h3 className="text-base font-semibold text-gray-900 mb-4">
-              Assign Cabang Daerah - {assignModal.name}
-            </h3>
+        <div
+          className="fixed inset-0 flex items-center justify-center z-50 p-4"
+          style={{ background: 'rgba(15,10,40,0.45)', backdropFilter: 'blur(6px)' }}
+        >
+          <div className="glass-modal p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-base font-bold" style={{ color: '#1e1b4b' }}>
+                Assign Cabang Daerah
+              </h3>
+              <button
+                onClick={() => setAssignModal(null)}
+                className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+                style={{ color: '#9ca3af' }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <p className="text-xs mb-4" style={{ color: '#6b7280' }}>Siswa: <strong style={{ color: '#1e1b4b' }}>{assignModal.name}</strong></p>
+
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1.5">Provinsi</label>
-                <select value={assignData.provinsi} onChange={(e) => setAssignData({ ...assignData, provinsi: e.target.value, kotaKabupaten: '' })}
-                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white transition-all">
+                <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4b5563' }}>Provinsi</label>
+                <select
+                  value={assignData.provinsi}
+                  onChange={(e) => setAssignData({ ...assignData, provinsi: e.target.value, kotaKabupaten: '' })}
+                  className="glass-input"
+                >
                   <option value="">Pilih Provinsi</option>
                   {provinsiList.map((p) => (<option key={p} value={p}>{p}</option>))}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1.5">Kota / Kabupaten</label>
-                <select value={assignData.kotaKabupaten} onChange={(e) => setAssignData({ ...assignData, kotaKabupaten: e.target.value })}
+                <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4b5563' }}>Kota / Kabupaten</label>
+                <select
+                  value={assignData.kotaKabupaten}
+                  onChange={(e) => setAssignData({ ...assignData, kotaKabupaten: e.target.value })}
                   disabled={!assignData.provinsi}
-                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white transition-all disabled:bg-gray-50">
+                  className="glass-input"
+                  style={!assignData.provinsi ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                >
                   <option value="">Pilih Kota/Kabupaten</option>
                   {(assignData.provinsi ? kotaKabupatenByProvinsi[assignData.provinsi as Provinsi] || [] : []).map((k) => (<option key={k} value={k}>{k}</option>))}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1.5">Guru Pengampu (opsional)</label>
-                <select value={assignData.teacherId} onChange={(e) => setAssignData({ ...assignData, teacherId: e.target.value })}
-                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white transition-all">
+                <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4b5563' }}>Guru Pengampu (opsional)</label>
+                <select
+                  value={assignData.teacherId}
+                  onChange={(e) => setAssignData({ ...assignData, teacherId: e.target.value })}
+                  className="glass-input"
+                >
                   <option value="">Pilih Guru</option>
                   {teachers.map((teacher) => (<option key={teacher.id} value={teacher.id}>{teacher.name}</option>))}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1.5">Mata Pelajaran (opsional)</label>
-                <select value={assignData.mataPelajaran} onChange={(e) => setAssignData({ ...assignData, mataPelajaran: e.target.value })}
-                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white transition-all">
+                <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4b5563' }}>Mata Pelajaran (opsional)</label>
+                <select
+                  value={assignData.mataPelajaran}
+                  onChange={(e) => setAssignData({ ...assignData, mataPelajaran: e.target.value })}
+                  className="glass-input"
+                >
                   <option value="">Pilih Mata Pelajaran</option>
                   {mataPelajaranList.map((mp) => (<option key={mp} value={mp}>{mp}</option>))}
                 </select>
               </div>
-              <div className="flex gap-2 pt-2">
-                <button onClick={handleAssign} className="flex-1 bg-blue-600 text-white py-2.5 rounded-xl hover:bg-blue-700 text-sm font-medium transition-colors">Simpan</button>
-                <button onClick={() => setAssignModal(null)} className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-xl hover:bg-gray-200 text-sm font-medium transition-colors">Batal</button>
+              <div className="flex gap-3 pt-2">
+                <button onClick={handleAssign} className="btn-primary flex-1">Simpan</button>
+                <button onClick={() => setAssignModal(null)} className="btn-secondary flex-1">Batal</button>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      {/* Main glass card table wrapper */}
+      <div className="glass-card overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-400 text-sm">Loading...</div>
+          <div className="p-8 text-center text-sm" style={{ color: '#9ca3af' }}>Loading...</div>
         ) : students.length === 0 ? (
-          <div className="p-8 text-center text-gray-400 text-sm">Tidak ada siswa ditemukan</div>
+          <div className="p-8 text-center text-sm" style={{ color: '#9ca3af' }}>Tidak ada siswa ditemukan</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="glass-table w-full min-w-[800px]">
               <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="px-5 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
-                  <th className="px-5 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">TTL</th>
-                  <th className="px-5 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cabang</th>
-                  <th className="px-5 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Orang Tua</th>
-                  <th className="px-5 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-5 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Guru</th>
+                <tr>
+                  <th>Nama</th>
+                  <th>TTL</th>
+                  <th>Cabang</th>
+                  <th>Orang Tua</th>
+                  <th>Status</th>
+                  <th>Guru</th>
                   {user?.role === 'OWNER' && (
-                    <th className="px-5 py-3.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                    <th className="text-right">Aksi</th>
                   )}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody>
                 {students.map((student) => (
-                  <tr key={student.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-5 py-3.5 text-sm font-medium text-gray-900">{student.name}</td>
-                    <td className="px-5 py-3.5 text-sm text-gray-600">{student.ttl}</td>
-                    <td className="px-5 py-3.5 text-sm text-gray-600">{student.cabangDaerah || '-'}</td>
-                    <td className="px-5 py-3.5 text-sm text-gray-600">{student.parent?.name || '-'}</td>
-                    <td className="px-5 py-3.5 text-sm">
-                      <span className={`px-2.5 py-1 rounded-lg text-xs font-medium ${
-                        student.status === 'APPROVED' ? 'bg-green-100 text-green-800'
-                          : student.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800'
-                          : 'bg-red-100 text-red-800'
+                  <tr key={student.id}>
+                    <td className="font-bold" style={{ color: '#1e1b4b' }}>{student.name}</td>
+                    <td style={{ color: '#4b5563' }}>{student.ttl}</td>
+                    <td style={{ color: '#4b5563' }}>{student.cabangDaerah || '-'}</td>
+                    <td className="font-medium" style={{ color: '#374151' }}>{student.parent?.name || '-'}</td>
+                    <td>
+                      <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${
+                        student.status === 'APPROVED' ? 'badge-green'
+                          : student.status === 'PENDING' ? 'badge-yellow'
+                          : 'badge-red'
                       }`}>
                         {student.status === 'APPROVED' ? 'Disetujui' : student.status === 'PENDING' ? 'Menunggu' : 'Ditolak'}
                       </span>
                     </td>
-                    <td className="px-5 py-3.5 text-sm text-gray-600">
+                    <td style={{ color: '#4b5563' }}>
                       {student.branchTeachers.length > 0 ? student.branchTeachers.map((bt) => bt.user.name).join(', ') : '-'}
                     </td>
                     {user?.role === 'OWNER' && (
-                      <td className="px-5 py-3.5 text-sm text-right">
+                      <td className="text-right">
                         {student.status === 'PENDING' && (
-                          <>
-                            <button onClick={() => handleApprove(student.id, 'APPROVED')} className="text-green-600 hover:text-green-800 mr-2 font-medium text-xs">ACC</button>
-                            <button onClick={() => handleApprove(student.id, 'REJECTED')} className="text-red-500 hover:text-red-700 font-medium text-xs">Tolak</button>
-                          </>
+                          <div className="inline-flex gap-2">
+                            <button
+                              onClick={() => handleApprove(student.id, 'APPROVED')}
+                              className="px-2.5 py-1 rounded-lg font-bold text-xs bg-emerald-100 hover:bg-emerald-200 text-emerald-800 transition-colors"
+                            >
+                              ACC
+                            </button>
+                            <button
+                              onClick={() => handleApprove(student.id, 'REJECTED')}
+                              className="px-2.5 py-1 rounded-lg font-bold text-xs bg-rose-100 hover:bg-rose-200 text-rose-800 transition-colors"
+                            >
+                              Tolak
+                            </button>
+                          </div>
                         )}
                         {student.status === 'APPROVED' && (
-                          <button onClick={() => { setAssignModal(student); setAssignData({ provinsi: '', kotaKabupaten: '', teacherId: '', mataPelajaran: '' }) }}
-                            className="text-blue-600 hover:text-blue-800 font-medium text-xs">
+                          <button
+                            onClick={() => { setAssignModal(student); setAssignData({ provinsi: '', kotaKabupaten: '', teacherId: '', mataPelajaran: '' }) }}
+                            className="px-3 py-1.5 rounded-lg font-bold text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-100 transition-colors"
+                          >
                             {student.cabangDaerah ? 'Edit' : 'Assign'}
                           </button>
                         )}
@@ -285,26 +340,30 @@ export default function StudentsPage() {
             </table>
           </div>
         )}
+
+        {/* Pagination */}
         {!loading && students.length > 0 && (
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-5 py-4 border-t border-gray-100">
-            <p className="text-xs text-gray-500">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-5 py-4" style={{ borderTop: '1px solid rgba(229,231,235,0.4)' }}>
+            <p className="text-xs" style={{ color: '#9ca3af' }}>
               Menampilkan {students.length} dari {pagination.total} siswa
             </p>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setPage(pagination.page - 1)}
                 disabled={pagination.page <= 1}
-                className="px-3 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-secondary"
+                style={{ padding: '0.45rem 0.85rem', fontSize: '0.75rem' }}
               >
                 Sebelumnya
               </button>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs font-semibold" style={{ color: '#4b5563' }}>
                 Halaman {pagination.page} / {pagination.totalPages}
               </span>
               <button
                 onClick={() => setPage(pagination.page + 1)}
                 disabled={pagination.page >= pagination.totalPages}
-                className="px-3 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-secondary"
+                style={{ padding: '0.45rem 0.85rem', fontSize: '0.75rem' }}
               >
                 Berikutnya
               </button>

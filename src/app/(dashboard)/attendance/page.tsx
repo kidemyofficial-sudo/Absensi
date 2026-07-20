@@ -223,15 +223,15 @@ export default function AttendancePage() {
   }
 
   if (loading) {
-    return <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm text-center text-gray-400 text-sm">Loading...</div>
+    return <div className="glass-card p-8 text-center text-sm" style={{ color: '#9ca3af' }}>Loading...</div>
   }
 
   if (user?.role === 'ORANG_TUA') {
     return (
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Input Absensi Les</h1>
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-          <p className="text-gray-600 text-sm">Orang tua tidak dapat menginput absensi les. Silakan melihat laporan di halaman Laporan.</p>
+        <h1 className="text-2xl font-bold mb-6" style={{ color: '#1e1b4b' }}>Input Absensi Les</h1>
+        <div className="glass-card p-6">
+          <p className="text-sm" style={{ color: '#6b7280' }}>Orang tua tidak dapat menginput absensi les. Silakan melihat laporan di halaman Laporan.</p>
         </div>
       </div>
     )
@@ -240,9 +240,9 @@ export default function AttendancePage() {
   if (user?.role === 'OWNER') {
     return (
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Input Absensi Les</h1>
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-          <p className="text-gray-600 text-sm">Owner tidak menginput absensi les. Silakan melihat rekap di halaman Laporan.</p>
+        <h1 className="text-2xl font-bold mb-6" style={{ color: '#1e1b4b' }}>Input Absensi Les</h1>
+        <div className="glass-card p-6">
+          <p className="text-sm" style={{ color: '#6b7280' }}>Owner tidak menginput absensi les. Silakan melihat rekap di halaman Laporan.</p>
         </div>
       </div>
     )
@@ -252,35 +252,35 @@ export default function AttendancePage() {
     s.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const inputClass = "w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white transition-all text-sm"
-  const selectClass = "w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white transition-all text-sm"
+  const inputClass = "glass-input text-sm"
+  const selectClass = "glass-input text-sm"
 
   return (
     <div className="max-w-4xl mx-auto">
       {/* HEADER */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Input Absensi Les</h1>
-        <p className="text-sm text-gray-500 mt-1">Cari murid lalu isi laporan aktivitas les harian</p>
+        <h1 className="text-2xl font-bold" style={{ color: '#1e1b4b' }}>Input Absensi Les</h1>
+        <p className="text-sm mt-1" style={{ color: '#6b7280' }}>Cari murid lalu isi laporan aktivitas les harian</p>
       </div>
 
       {/* STATE 3: HALAMAN SUKSES DENGAN DUA TOMBOL WHATSAPP */}
       {submittedLinks ? (
-        <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm text-center max-w-xl mx-auto space-y-6">
-          <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="glass-card p-8 text-center max-w-xl mx-auto space-y-6">
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto" style={{ background: 'linear-gradient(135deg,#10b981,#059669)', boxShadow: '0 8px 24px rgba(16,185,129,0.3)' }}>
+            <svg className="w-8 h-8" fill="none" stroke="white" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
             </svg>
           </div>
 
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-gray-900">Absensi Berhasil Disimpan!</h2>
-            <p className="text-sm text-gray-500 max-w-md mx-auto">
-              Laporan absensi untuk <strong className="text-gray-700">{selectedStudent?.name}</strong> telah tercatat di sistem. 
+            <h2 className="text-2xl font-bold" style={{ color: '#1e1b4b' }}>Absensi Berhasil Disimpan!</h2>
+            <p className="text-sm max-w-md mx-auto" style={{ color: '#6b7280' }}>
+              Laporan absensi untuk <strong style={{ color: '#374151' }}>{selectedStudent?.name}</strong> telah tercatat di sistem. 
               Silakan kirimkan laporan ini kepada wali murid dan admin melalui tombol WhatsApp di bawah.
             </p>
           </div>
 
-          <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-xl text-xs text-left">
+          <div className="px-4 py-3 rounded-xl text-xs text-left" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', color: '#92400e' }}>
             <strong>Catatan:</strong> Jika tab WhatsApp tidak terbuka secara otomatis, Anda dapat mengklik tombol di bawah ini secara manual untuk mengirim laporan.
           </div>
 
@@ -290,7 +290,8 @@ export default function AttendancePage() {
                 href={submittedLinks.parent}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2.5 w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium text-sm transition-all shadow-sm shadow-emerald-200 hover:-translate-y-0.5"
+                className="flex items-center justify-center gap-2.5 w-full py-3 text-white rounded-xl font-semibold text-sm transition-all hover:-translate-y-0.5"
+                style={{ background: 'linear-gradient(135deg,#10b981,#059669)', boxShadow: '0 4px 15px rgba(16,185,129,0.35)' }}
               >
                 <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
                   <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.18 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.968C16.64 1.97 14.185.94 11.553.94c-5.445 0-9.87 4.37-9.874 9.8.001 2.07.545 4.093 1.58 5.864L2.247 20.8l4.4-1.646zm11.83-6.182c-.3-.149-1.774-.863-2.048-.962-.274-.1-.474-.149-.674.15-.2.299-.774.962-.948 1.16-.174.2-.349.224-.649.075-.3-.15-1.264-.462-2.408-1.472-.89-.785-1.49-1.755-1.665-2.053-.174-.299-.018-.46.131-.609.135-.134.3-.349.449-.523.149-.174.2-.299.3-.498.1-.2.05-.374-.025-.524-.075-.15-.674-1.603-.923-2.199-.243-.58-.49-.5-.674-.51-.174-.01-.374-.01-.573-.01-.2 0-.524.075-.798.374-.274.299-1.047 1.022-1.047 2.492 0 1.47 1.071 2.889 1.221 3.088.15.2 2.107 3.2 5.104 4.492.713.307 1.27.491 1.704.629.717.227 1.369.195 1.884.118.574-.085 1.774-.718 2.023-1.411.249-.693.249-1.289.174-1.411-.075-.122-.274-.199-.573-.348z"/>
@@ -298,7 +299,7 @@ export default function AttendancePage() {
                 Kirim Laporan ke Wali Murid ({selectedStudent?.parent?.name})
               </a>
             ) : (
-              <div className="text-sm text-red-500 bg-red-50 py-2.5 rounded-xl border border-red-100">
+              <div className="text-sm py-2.5 rounded-xl text-center" style={{ background: 'rgba(239,68,68,0.08)', color: '#991b1b', border: '1px solid rgba(239,68,68,0.15)' }}>
                 Wali murid tidak memiliki nomor WhatsApp yang terdaftar.
               </div>
             )}
@@ -307,7 +308,8 @@ export default function AttendancePage() {
               href={submittedLinks.admin}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2.5 w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium text-sm transition-all shadow-sm shadow-emerald-200 hover:-translate-y-0.5"
+              className="flex items-center justify-center gap-2.5 w-full py-3 text-white rounded-xl font-semibold text-sm transition-all hover:-translate-y-0.5"
+              style={{ background: 'linear-gradient(135deg,#10b981,#059669)', boxShadow: '0 4px 15px rgba(16,185,129,0.35)' }}
             >
               <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
                 <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.18 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.968C16.64 1.97 14.185.94 11.553.94c-5.445 0-9.87 4.37-9.874 9.8.001 2.07.545 4.093 1.58 5.864L2.247 20.8l4.4-1.646zm11.83-6.182c-.3-.149-1.774-.863-2.048-.962-.274-.1-.474-.149-.674.15-.2.299-.774.962-.948 1.16-.174.2-.349.224-.649.075-.3-.15-1.264-.462-2.408-1.472-.89-.785-1.49-1.755-1.665-2.053-.174-.299-.018-.46.131-.609.135-.134.3-.349.449-.523.149-.174.2-.299.3-.498.1-.2.05-.374-.025-.524-.075-.15-.674-1.603-.923-2.199-.243-.58-.49-.5-.674-.51-.174-.01-.374-.01-.573-.01-.2 0-.524.075-.798.374-.274.299-1.047 1.022-1.047 2.492 0 1.47 1.071 2.889 1.221 3.088.15.2 2.107 3.2 5.104 4.492.713.307 1.27.491 1.704.629.717.227 1.369.195 1.884.118.574-.085 1.774-.718 2.023-1.411.249-.693.249-1.289.174-1.411-.075-.122-.274-.199-.573-.348z"/>
@@ -318,7 +320,8 @@ export default function AttendancePage() {
 
           <button
             onClick={handleResetForm}
-            className="w-full py-2.5 bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200 rounded-xl text-sm font-medium transition-colors"
+            className="btn-secondary w-full"
+            style={{ padding: '0.65rem 1rem' }}
           >
             Kembali ke Daftar Murid
           </button>
@@ -327,11 +330,11 @@ export default function AttendancePage() {
         <>
           {/* STATE 1: GURU PILIH MURID DULU */}
           {!selectedStudent ? (
-            <div className="space-y-6">
-              {/* Kolom Pencarian */}
-              <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
+            <div className="space-y-5">
+              {/* Search Bar */}
+              <div className="glass-card p-4 flex flex-col md:flex-row gap-4 items-center justify-between">
                 <div className="w-full md:w-96 relative">
-                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400">
+                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center" style={{ color: '#9ca3af' }}>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
@@ -341,56 +344,58 @@ export default function AttendancePage() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Cari nama murid..."
-                    className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white transition-all text-sm"
+                    className="glass-input pl-10 text-sm"
                   />
                 </div>
-                <div className="text-xs text-gray-400">
-                  Total Murid: {students.length}
+                <div className="text-xs font-medium" style={{ color: '#9ca3af' }}>
+                  Total Murid: <span style={{ color: '#6366f1' }}>{students.length}</span>
                 </div>
               </div>
 
               {/* Grid Murid */}
               {filteredStudents.length === 0 ? (
-                <div className="bg-white p-12 rounded-2xl border border-gray-100 shadow-sm text-center text-gray-400 text-sm">
+                <div className="glass-card p-12 text-center text-sm" style={{ color: '#9ca3af' }}>
                   {students.length === 0 
                     ? "Belum ada murid yang ditugaskan ke Anda. Silakan hubungi admin/owner."
                     : "Murid dengan nama tersebut tidak ditemukan."}
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {filteredStudents.map((student) => (
                     <div 
                       key={student.id} 
-                      className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-200 border-l-4 border-l-blue-500"
+                      className="glass-card p-5 flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5"
+                      style={{ borderLeft: '3px solid #6366f1' }}
                     >
                       <div>
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center font-bold text-sm">
+                          <div className="w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-sm text-white flex-shrink-0" style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
                             {student.name.charAt(0).toUpperCase()}
                           </div>
                           <div>
-                            <h3 className="font-bold text-gray-900 text-sm line-clamp-1">{student.name}</h3>
-                            <span className="inline-block mt-0.5 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-blue-50 text-blue-700">
+                            <h3 className="font-bold text-sm line-clamp-1" style={{ color: '#1e1b4b' }}>{student.name}</h3>
+                            <span className="inline-block mt-0.5 px-2 py-0.5 rounded-lg text-[10px] font-semibold" style={{ background: 'rgba(99,102,241,0.1)', color: '#6366f1' }}>
                               {student.cabangDaerah || 'Belum ada cabang'}
                             </span>
                           </div>
                         </div>
 
-                        <div className="mt-4 pt-3 border-t border-gray-50 space-y-1.5">
-                          <div className="flex items-center justify-between text-xs text-gray-500">
-                            <span>Wali:</span>
-                            <span className="font-medium text-gray-700">{student.parent?.name || '-'}</span>
+                        <div className="mt-4 pt-3 space-y-1.5" style={{ borderTop: '1px solid rgba(229,231,235,0.4)' }}>
+                          <div className="flex items-center justify-between text-xs">
+                            <span style={{ color: '#9ca3af' }}>Wali:</span>
+                            <span className="font-medium" style={{ color: '#374151' }}>{student.parent?.name || '-'}</span>
                           </div>
-                          <div className="flex items-center justify-between text-xs text-gray-500">
-                            <span>WhatsApp:</span>
-                            <span className="font-medium text-gray-700">{student.parent?.phone || '-'}</span>
+                          <div className="flex items-center justify-between text-xs">
+                            <span style={{ color: '#9ca3af' }}>WhatsApp:</span>
+                            <span className="font-medium" style={{ color: '#374151' }}>{student.parent?.phone || '-'}</span>
                           </div>
                         </div>
                       </div>
 
                       <button
                         onClick={() => handleSelectStudent(student)}
-                        className="mt-5 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
+                        className="btn-primary mt-4 w-full text-xs"
+                        style={{ padding: '0.5rem 1rem' }}
                       >
                         Pilih & Absen
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -406,48 +411,49 @@ export default function AttendancePage() {
             /* STATE 2: FORMULIR ABSENSI SETELAH PILIH MURID */
             <div className="space-y-5">
               {/* Highlight Murid Terpilih */}
-              <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="glass-card p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4" style={{ borderLeft: '3px solid #6366f1' }}>
                 <div className="flex items-center gap-3.5">
-                  <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-base shadow-sm">
+                  <div className="w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-base text-white flex-shrink-0" style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', boxShadow: '0 4px 12px rgba(99,102,241,0.3)' }}>
                     {selectedStudent.name.charAt(0).toUpperCase()}
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h4 className="font-bold text-gray-900 text-base">{selectedStudent.name}</h4>
-                      <span className="px-2 py-0.5 rounded bg-blue-200/60 text-blue-800 text-[10px] font-bold">
+                      <h4 className="font-bold text-base" style={{ color: '#1e1b4b' }}>{selectedStudent.name}</h4>
+                      <span className="px-2 py-0.5 rounded-lg text-[10px] font-bold" style={{ background: 'rgba(99,102,241,0.1)', color: '#6366f1' }}>
                         {selectedStudent.cabangDaerah || 'Umum'}
                       </span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      Wali: <strong className="text-gray-700">{selectedStudent.parent?.name || '-'}</strong> | WA: <strong className="text-gray-700">{selectedStudent.parent?.phone || '-'}</strong>
+                    <p className="text-xs mt-0.5" style={{ color: '#6b7280' }}>
+                      Wali: <strong style={{ color: '#374151' }}>{selectedStudent.parent?.name || '-'}</strong> | WA: <strong style={{ color: '#374151' }}>{selectedStudent.parent?.phone || '-'}</strong>
                     </p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={handleResetSelection}
-                  className="px-4 py-2 border border-blue-200 bg-white text-blue-600 hover:bg-blue-50 text-xs font-semibold rounded-xl transition-all self-start sm:self-auto"
+                  className="btn-secondary text-xs self-start sm:self-auto"
+                  style={{ padding: '0.45rem 0.85rem' }}
                 >
                   Ganti Murid
                 </button>
               </div>
 
-              <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-xl text-sm">
+              <div className="px-4 py-3 rounded-xl text-sm" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', color: '#92400e' }}>
                 <strong>Perhatian:</strong> Jika terjadi kendala, harap segera konfirmasi ke admin dan catat manual.
               </div>
 
               {message.text && (
-                <div className={`p-4 rounded-xl text-sm font-medium ${
-                  message.type === 'success'
-                    ? 'bg-green-50 text-green-700 border border-green-200'
-                    : 'bg-red-50 text-red-700 border border-red-200'
-                }`}>
+                <div className="p-4 rounded-xl text-sm font-medium" style={{
+                  background: message.type === 'success' ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)',
+                  color: message.type === 'success' ? '#065f46' : '#991b1b',
+                  border: `1px solid ${message.type === 'success' ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}`,
+                }}>
                   {message.text}
                 </div>
               )}
 
               <form onSubmit={handleSubmit} className="space-y-5">
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-5">
+                <div className="glass-card p-6 space-y-5">
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1.5">Tanggal Les <span className="text-red-500">*</span></label>
@@ -465,18 +471,18 @@ export default function AttendancePage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Nama Tutor <span className="text-red-500">*</span></label>
-                      <input type="text" value={user?.name || ''} readOnly className={inputClass.replace('bg-white', 'bg-gray-50')} />
+                      <label className="block text-sm font-semibold mb-1.5" style={{ color: '#4b5563' }}>Nama Tutor <span className="text-red-500">*</span></label>
+                      <input type="text" value={user?.name || ''} readOnly className={inputClass} style={{ background: 'rgba(243,244,246,0.5)', cursor: 'not-allowed' }} />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">WhatsApp Tutor <span className="text-red-500">*</span></label>
-                      <input type="text" value={user?.phone || ''} readOnly className={inputClass.replace('bg-white', 'bg-gray-50')} />
+                      <label className="block text-sm font-semibold mb-1.5" style={{ color: '#4b5563' }}>WhatsApp Tutor <span className="text-red-500">*</span></label>
+                      <input type="text" value={user?.phone || ''} readOnly className={inputClass} style={{ background: 'rgba(243,244,246,0.5)', cursor: 'not-allowed' }} />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Mata Pelajaran/Topik <span className="text-red-500">*</span></label>
+                      <label className="block text-sm font-semibold mb-1.5" style={{ color: '#4b5563' }}>Mata Pelajaran/Topik <span className="text-red-500">*</span></label>
                       <select value={jenisPembelajaran} onChange={(e) => { setJenisPembelajaran(e.target.value); if (e.target.value !== 'Lainnya') setJenisLainnya('') }} required className={selectClass}>
                         <option value="">Pilih Mata Pelajaran</option>
                         {JENIS_PEMBELAJARAN.map((j) => (<option key={j} value={j}>{j}</option>))}
@@ -484,7 +490,7 @@ export default function AttendancePage() {
                       {jenisPembelajaran === 'Lainnya' && (
                         <input type="text" value={jenisLainnya} onChange={(e) => setJenisLainnya(e.target.value)}
                           placeholder="Tulis nama mata pelajaran..." required
-                          className="w-full mt-2 px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white transition-all text-sm" />
+                          className={`${inputClass} mt-2`} />
                       )}
                     </div>
                     <div>
@@ -542,12 +548,10 @@ export default function AttendancePage() {
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <button type="submit" disabled={saving}
-                    className="bg-blue-600 text-white px-6 py-2.5 rounded-xl hover:bg-blue-700 disabled:opacity-50 text-sm font-medium transition-colors">
+                  <button type="submit" disabled={saving} className="btn-primary">
                     {saving ? 'Menyimpan...' : 'Submit & Kirim Laporan'}
                   </button>
-                  <button type="button" onClick={handleResetSelection}
-                    className="bg-white text-gray-700 px-6 py-2.5 rounded-xl hover:bg-gray-50 text-sm font-medium text-center border border-gray-200 transition-colors">
+                  <button type="button" onClick={handleResetSelection} className="btn-secondary">
                     Batal
                   </button>
                 </div>

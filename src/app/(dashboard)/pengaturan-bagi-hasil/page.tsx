@@ -129,58 +129,62 @@ export default function PengaturanBagiHasilPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-gray-500 text-sm">Memuat data...</p>
+      <div className="glass-card p-8 text-center text-sm" style={{ color: '#9ca3af' }}>
+        Loading...
       </div>
     )
   }
 
+  const isSuccess = message.includes('Berhasil')
+
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Pengaturan Bagi Hasil</h1>
-        <p className="text-sm text-gray-500 mt-1">Atur biaya per siswa dan persentase bagi hasil per guru</p>
+        <h1 className="text-2xl font-bold" style={{ color: '#1e1b4b' }}>Pengaturan Bagi Hasil</h1>
+        <p className="text-sm mt-1" style={{ color: '#6b7280' }}>Atur biaya per siswa dan persentase bagi hasil per guru</p>
       </div>
 
       {students.length === 0 ? (
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-          <p className="text-sm text-gray-500">Belum ada siswa yang terdaftar.</p>
+        <div className="glass-card p-6">
+          <p className="text-sm" style={{ color: '#9ca3af' }}>Belum ada siswa yang terdaftar.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="glass-card overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="glass-table w-full">
               <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Siswa</th>
-                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cabang</th>
-                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Guru</th>
-                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Biaya/Siswa</th>
-                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">% Owner</th>
-                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">% Guru</th>
-                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                <tr>
+                  <th>Nama Siswa</th>
+                  <th>Cabang</th>
+                  <th>Guru</th>
+                  <th>Biaya/Siswa</th>
+                  <th>% Owner</th>
+                  <th>% Guru</th>
+                  <th>Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody>
                 {students.map((student) => (
-                  <tr key={student.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-5 py-3.5 text-sm font-medium text-gray-900">{student.name}</td>
-                    <td className="px-5 py-3.5 text-sm text-gray-600">{student.cabangDaerah || '-'}</td>
-                    <td className="px-5 py-3.5 text-sm text-gray-600">
+                  <tr key={student.id}>
+                    <td className="font-bold" style={{ color: '#1e1b4b' }}>{student.name}</td>
+                    <td style={{ color: '#4b5563' }}>{student.cabangDaerah || '-'}</td>
+                    <td style={{ color: '#4b5563' }}>
                       {student.branchTeachers.length > 0
                         ? student.branchTeachers.map((bt) => bt.user.name).join(', ')
                         : '-'}
                     </td>
-                    <td className="px-5 py-3.5 text-sm text-gray-600">{formatRupiah(student.biayaPerSiswa)}</td>
-                    <td className="px-5 py-3.5 text-sm text-blue-600 font-medium">
+                    <td style={{ color: '#4b5563' }}>{formatRupiah(student.biayaPerSiswa)}</td>
+                    <td className="font-bold" style={{ color: '#6366f1' }}>
                       {student.branchTeachers.length > 0 ? `${student.branchTeachers[0].persentaseOwner}%` : '40%'}
                     </td>
-                    <td className="px-5 py-3.5 text-sm text-green-600 font-medium">
+                    <td className="font-bold" style={{ color: '#10b981' }}>
                       {student.branchTeachers.length > 0 ? `${student.branchTeachers[0].persentaseGuru}%` : '60%'}
                     </td>
-                    <td className="px-5 py-3.5">
-                      <button onClick={() => openEdit(student)}
-                        className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                    <td>
+                      <button
+                        onClick={() => openEdit(student)}
+                        className="px-3 py-1.5 rounded-lg font-bold text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-100 transition-colors"
+                      >
                         Edit
                       </button>
                     </td>
@@ -194,31 +198,35 @@ export default function PengaturanBagiHasilPage() {
 
       {/* Edit Modal */}
       {editing && (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg">
-            <div className="px-6 py-4 border-b border-gray-100">
-              <h3 className="text-base font-semibold text-gray-900">Edit Bagi Hasil - {editing.name}</h3>
-              <p className="text-xs text-gray-500 mt-0.5">{editing.cabangDaerah || 'Belum ada cabang'}</p>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(15,10,40,0.45)', backdropFilter: 'blur(6px)' }}
+        >
+          <div className="glass-modal w-full max-w-lg overflow-hidden">
+            <div className="px-6 py-4.5" style={{ borderBottom: '1px solid rgba(229,231,235,0.4)' }}>
+              <h3 className="text-base font-bold" style={{ color: '#1e1b4b' }}>Edit Bagi Hasil</h3>
+              <p className="text-xs mt-0.5" style={{ color: '#6b7280' }}>Siswa: <strong style={{ color: '#1e1b4b' }}>{editing.name}</strong> • {editing.cabangDaerah || 'Belum ada cabang'}</p>
             </div>
-            <div className="px-6 py-5 space-y-5">
+            <div className="px-6 py-5 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Biaya Per Siswa (Rp)</label>
+                <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4b5563' }}>Biaya Per Siswa (Rp)</label>
                 <input
-                  type="number" value={editBiaya}
+                  type="number"
+                  value={editBiaya}
                   onChange={(e) => setEditBiaya(Number(e.target.value))}
                   min={0}
-                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white transition-all"
+                  className="glass-input"
                 />
               </div>
 
               {editing.branchTeachers.length > 0 && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Guru / Mata Pelajaran</label>
+                    <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4b5563' }}>Guru / Mata Pelajaran</label>
                     <select
                       value={editBranchTeacherId}
                       onChange={(e) => handleBranchTeacherChange(e.target.value)}
-                      className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white transition-all"
+                      className="glass-input"
                     >
                       {editing.branchTeachers.map((bt) => (
                         <option key={bt.id} value={bt.id}>
@@ -230,61 +238,68 @@ export default function PengaturanBagiHasilPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Persentase Owner (%)</label>
+                      <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4b5563' }}>Persentase Owner (%)</label>
                       <input
                         type="number"
                         value={editPersentaseOwner}
                         onChange={(e) => setEditPersentaseOwner(Number(e.target.value))}
                         min={1}
                         max={99}
-                        className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white transition-all"
+                        className="glass-input"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Persentase Guru (%)</label>
+                      <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4b5563' }}>Persentase Guru (%)</label>
                       <input
                         type="number"
                         value={editPersentaseGuru}
                         onChange={(e) => setEditPersentaseGuru(Number(e.target.value))}
                         min={1}
                         max={99}
-                        className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white transition-all"
+                        className="glass-input"
                       />
                     </div>
                   </div>
 
-                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Contoh Perhitungan:</h4>
-                    <p className="text-sm text-gray-600">1 siswa x {formatRupiah(editBiaya)} = {formatRupiah(editBiaya)}</p>
-                    <p className="text-sm text-blue-600">
-                      Owner: {formatRupiah(Math.floor((editBiaya * editPersentaseOwner) / 100))} ({editPersentaseOwner}%)
+                  {/* Calculations breakdown - solid background for neat readability */}
+                  <div className="p-4 rounded-xl border border-white/50 space-y-1" style={{ background: 'rgba(255,255,255,0.6)' }}>
+                    <h4 className="text-xs font-bold" style={{ color: '#1e1b4b' }}>Simulasi Perhitungan Pendapatan:</h4>
+                    <p className="text-xs" style={{ color: '#4b5563' }}>1 sesi les x {formatRupiah(editBiaya)} = {formatRupiah(editBiaya)}</p>
+                    <p className="text-xs font-bold" style={{ color: '#6366f1' }}>
+                      Bagian Owner: {formatRupiah(Math.floor((editBiaya * editPersentaseOwner) / 100))} ({editPersentaseOwner}%)
                     </p>
-                    <p className="text-sm text-green-600">
-                      Guru: {formatRupiah(Math.floor((editBiaya * editPersentaseGuru) / 100))} ({editPersentaseGuru}%)
+                    <p className="text-xs font-bold" style={{ color: '#10b981' }}>
+                      Bagian Guru: {formatRupiah(Math.floor((editBiaya * editPersentaseGuru) / 100))} ({editPersentaseGuru}%)
                     </p>
-                    <p className={`text-xs mt-2 ${editPersentaseOwner + editPersentaseGuru === 100 ? 'text-gray-500' : 'text-red-600'}`}>
-                      Total persentase: {editPersentaseOwner + editPersentaseGuru}%
+                    <p className={`text-[10px] font-bold mt-2 ${editPersentaseOwner + editPersentaseGuru === 100 ? 'text-gray-400' : 'text-rose-600'}`}>
+                      Total akumulasi persentase: {editPersentaseOwner + editPersentaseGuru}%
                     </p>
                   </div>
                 </>
               )}
 
               {editing.branchTeachers.length === 0 && (
-                <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-100">
-                  <p className="text-sm text-yellow-700">Siswa ini belum memiliki guru cabang, jadi hanya biaya per siswa yang bisa diubah.</p>
+                <div className="p-4 rounded-xl border border-amber-100" style={{ background: 'rgba(245,158,11,0.08)', color: '#92400e' }}>
+                  <p className="text-xs">Siswa ini belum memiliki guru cabang, jadi hanya biaya per siswa yang bisa diubah.</p>
                 </div>
               )}
 
               {message && (
-                <div className={`text-sm font-medium ${message.includes('Berhasil') ? 'text-green-600' : 'text-red-600'}`}>
+                <div
+                  className="p-3 rounded-xl text-xs font-bold border"
+                  style={{
+                    background: isSuccess ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)',
+                    color: isSuccess ? '#065f46' : '#991b1b',
+                    borderColor: isSuccess ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)',
+                  }}
+                >
                   {message}
                 </div>
               )}
             </div>
-            <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
-              <button onClick={closeEdit} className="px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-xl transition-colors">Batal</button>
-              <button onClick={handleSave} disabled={saving}
-                className="bg-blue-600 text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 disabled:opacity-50 text-sm font-medium transition-colors">
+            <div className="px-6 py-4 flex justify-end gap-3" style={{ borderTop: '1px solid rgba(229,231,235,0.4)', background: 'rgba(255,255,255,0.3)' }}>
+              <button onClick={closeEdit} className="btn-secondary">Batal</button>
+              <button onClick={handleSave} disabled={saving} className="btn-primary">
                 {saving ? 'Menyimpan...' : 'Simpan'}
               </button>
             </div>

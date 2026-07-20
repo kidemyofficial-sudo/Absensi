@@ -328,24 +328,24 @@ export default function SchedulePage() {
           background: transparent;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #e2e8f0;
+          background: rgba(99, 102, 241, 0.2);
           border-radius: 9999px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #cbd5e1;
+          background: rgba(99, 102, 241, 0.4);
         }
       `}</style>
 
-      {/* ── Header ── */}
+      {/* Header */}
       <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">K Schedule</h1>
-          <p className="text-sm text-gray-500 mt-1">Platform manajemen waktu belajar &amp; agenda harian Guru</p>
+          <h1 className="text-2xl font-bold" style={{ color: '#1e1b4b' }}>K Schedule</h1>
+          <p className="text-sm mt-1" style={{ color: '#6b7280' }}>Platform manajemen waktu belajar &amp; agenda harian Guru</p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={() => openModal(selectedDateStr)}
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-2.5 rounded-xl hover:from-blue-700 hover:to-indigo-700 text-sm font-medium transition-all shadow-[0_4px_12px_rgba(99,102,241,0.2)] hover:shadow-[0_6px_16px_rgba(99,102,241,0.3)] hover:scale-[1.01] active:scale-[0.99]"
+            className="btn-primary"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -355,7 +355,7 @@ export default function SchedulePage() {
         </div>
       </div>
 
-      {/* ── Layout Grid ── */}
+      {/* Layout Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* 2-Column Left Workspace */}
@@ -364,9 +364,9 @@ export default function SchedulePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
             {/* Calendar widget */}
-            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
+            <div className="glass-card p-5 flex flex-col">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-sm font-semibold text-gray-900">{MONTH_NAMES[calMonth]} {calYear}</h3>
+                <h3 className="text-sm font-bold" style={{ color: '#1e1b4b' }}>{MONTH_NAMES[calMonth]} {calYear}</h3>
                 <div className="flex items-center gap-1">
                   {[[-1, 'M15 19l-7-7 7-7'], [1, 'M9 5l7 7-7 7']].map(([dir, path]) => (
                     <button
@@ -383,7 +383,7 @@ export default function SchedulePage() {
                           setCalMonth(next)
                         }
                       }}
-                      className="p-1.5 hover:bg-gray-50 rounded-lg text-gray-400 hover:text-gray-700 transition-colors"
+                      className="p-1.5 rounded-lg hover:bg-indigo-50 text-gray-400 hover:text-indigo-600 transition-all"
                     >
                       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d={String(path)} />
@@ -413,15 +413,23 @@ export default function SchedulePage() {
                       onClick={() => handleCalendarClick(day)}
                       className={`p-2 text-xs font-semibold rounded-xl relative flex items-center justify-center transition-all ${
                         isSel
-                          ? 'bg-blue-600 text-white shadow-sm'
+                          ? 'text-white'
                           : isToday
-                          ? 'bg-blue-50 text-blue-600 border border-blue-100 font-bold'
-                          : 'text-gray-600 hover:bg-gray-50'
+                          ? 'font-bold'
+                          : 'text-gray-600 hover:bg-indigo-50/40'
                       }`}
+                      style={isSel ? {
+                        background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                        boxShadow: '0 4px 12px rgba(99,102,241,0.3)',
+                      } : isToday ? {
+                        background: 'rgba(99,102,241,0.1)',
+                        color: '#6366f1',
+                        border: '1px solid rgba(99,102,241,0.2)',
+                      } : {}}
                     >
                       {day.getDate()}
                       {hasEvt && !isSel && (
-                        <span className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-blue-500 rounded-full" />
+                        <span className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full" style={{ background: '#6366f1' }} />
                       )}
                     </button>
                   )
@@ -430,17 +438,17 @@ export default function SchedulePage() {
             </div>
 
             {/* Daily Tasks widget */}
-            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col" style={{ maxHeight: 290 }}>
+            <div className="glass-card p-5 flex flex-col" style={{ maxHeight: 290 }}>
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: 'rgba(99,102,241,0.1)', color: '#6366f1' }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                     </svg>
                   </div>
-                  <h3 className="text-sm font-semibold text-gray-900">Rencana Tugas</h3>
+                  <h3 className="text-sm font-bold" style={{ color: '#1e1b4b' }}>Rencana Tugas</h3>
                 </div>
-                <span className="text-[10px] bg-blue-50 text-blue-600 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                <span className="text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider" style={{ background: 'rgba(99,102,241,0.1)', color: '#6366f1' }}>
                   {selectedDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
                 </span>
               </div>
@@ -451,11 +459,12 @@ export default function SchedulePage() {
                   placeholder="Tambahkan tugas hari ini..."
                   value={newTaskTitle}
                   onChange={e => setNewTaskTitle(e.target.value)}
-                  className="flex-1 text-xs px-3.5 py-2 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-gray-50 focus:bg-white text-gray-900 transition-all"
+                  className="glass-input flex-1 py-2 text-xs"
                 />
                 <button
                   type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-xl transition-all shadow-sm flex-shrink-0"
+                  className="btn-primary p-2"
+                  style={{ borderRadius: '12px' }}
                 >
                   <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -470,15 +479,15 @@ export default function SchedulePage() {
                   <div className="text-center py-6 text-xs text-gray-400 font-medium italic">Tidak ada tugas hari ini</div>
                 ) : (
                   tasks.map(t => (
-                    <div key={t.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100/50 transition-colors text-xs">
+                    <div key={t.id} className="flex items-center justify-between p-2.5 rounded-xl hover:bg-white/40 transition-colors text-xs" style={{ background: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.5)' }}>
                       <label className="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0">
                         <input
                           type="checkbox"
                           checked={t.isCompleted}
                           onChange={() => toggleTask(t.id, t.isCompleted)}
-                          className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500/20"
+                          className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500/20"
                         />
-                        <span className={`truncate text-gray-800 ${t.isCompleted ? 'line-through text-gray-400 font-normal' : 'font-semibold'}`}>
+                        <span className={`truncate text-gray-800 font-medium ${t.isCompleted ? 'line-through text-gray-400' : ''}`}>
                           {t.title}
                         </span>
                       </label>
@@ -495,19 +504,19 @@ export default function SchedulePage() {
           </div>
 
           {/* Timeline widget */}
-          <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col transition-all duration-300 ${
-            isFullscreen ? 'fixed inset-0 z-50 rounded-none border-0 bg-white' : ''
+          <div className={`glass-card overflow-hidden flex flex-col transition-all duration-300 ${
+            isFullscreen ? 'fixed inset-0 z-50 rounded-none border-0 bg-white/95 backdrop-blur-2xl' : ''
           }`}>
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0 bg-white">
+            <div className="flex items-center justify-between px-5 py-4 flex-shrink-0" style={{ borderBottom: '1px solid rgba(229,231,235,0.4)' }}>
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center text-indigo-600" style={{ background: 'rgba(99,102,241,0.1)' }}>
                   <svg xmlns="http://www.w3.org/2000/svg" className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-900">Timeline Jadwal</h3>
-                  <p className="text-[10px] text-gray-500 mt-0.5 font-medium">
+                  <h3 className="text-sm font-bold" style={{ color: '#1e1b4b' }}>Timeline Jadwal</h3>
+                  <p className="text-[10px] mt-0.5 font-semibold" style={{ color: '#8b5cf6' }}>
                     {weekDays[0].toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
                     &nbsp;–&nbsp;
                     {weekDays[6].toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -518,11 +527,12 @@ export default function SchedulePage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setWeekStart(getWeekStart(new Date()))}
-                  className="text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-xl transition-all"
+                  className="text-xs font-bold px-3 py-1.5 rounded-xl transition-all"
+                  style={{ background: 'rgba(99,102,241,0.1)', color: '#6366f1' }}
                 >
                   Hari Ini
                 </button>
-                <div className="flex border border-gray-100 rounded-xl overflow-hidden">
+                <div className="flex rounded-xl overflow-hidden border border-white/50" style={{ background: 'rgba(255,255,255,0.5)' }}>
                   {(['M15 19l-7-7 7-7', 'M9 5l7 7-7 7'] as const).map((path, dir) => (
                     <button
                       key={path}
@@ -531,7 +541,7 @@ export default function SchedulePage() {
                         d.setDate(d.getDate() + (dir === 0 ? -7 : 7))
                         setWeekStart(d)
                       }}
-                      className="p-2 hover:bg-gray-50 text-gray-400 hover:text-gray-600 border-r border-gray-100 last:border-0 transition-colors"
+                      className="p-2 hover:bg-indigo-50 text-gray-400 hover:text-indigo-600 border-r border-white/40 last:border-0 transition-colors"
                     >
                       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d={path} />
@@ -541,7 +551,8 @@ export default function SchedulePage() {
                 </div>
                 <button
                   onClick={() => setIsFullscreen(f => !f)}
-                  className="p-2 border border-gray-100 hover:bg-gray-50 text-gray-400 hover:text-gray-600 rounded-xl transition-colors"
+                  className="p-2 hover:bg-indigo-50 text-gray-400 hover:text-indigo-600 rounded-xl transition-colors"
+                  style={{ background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(229,231,235,0.2)' }}
                   title={isFullscreen ? 'Keluar Layar Penuh' : 'Layar Penuh'}
                 >
                   {isFullscreen ? (
@@ -558,27 +569,31 @@ export default function SchedulePage() {
             </div>
 
             {/* Day headers column layout */}
-            <div className="flex border-b border-gray-100 bg-gray-50/50 flex-shrink-0">
+            <div className="flex flex-shrink-0" style={{ borderBottom: '1px solid rgba(229,231,235,0.4)', background: 'rgba(255,255,255,0.3)' }}>
               <div className="w-14 flex-shrink-0" />
               {weekDays.map((day, idx) => {
                 const isToday = toLocalDateStr(day) === toLocalDateStr(new Date())
                 const isSel = toLocalDateStr(day) === selectedDateStr
 
                 return (
-                  <div key={idx} className="flex-1 text-center py-3 border-l border-gray-100 min-w-0">
+                  <div key={idx} className="flex-1 text-center py-3 border-l border-white/30 min-w-0">
                     <p className="text-[10px] text-gray-400 font-semibold uppercase">{DAY_LABELS[idx]}</p>
                     <button
                       onClick={() => {
                         setSelectedDate(day)
                         openModal(toLocalDateStr(day))
                       }}
-                      className={`w-8 h-8 rounded-xl text-xs font-bold mx-auto mt-1 flex items-center justify-center transition-all ${
-                        isToday
-                          ? 'bg-blue-600 text-white shadow-[0_4px_10px_rgba(59,130,246,0.3)]'
-                          : isSel
-                          ? 'bg-blue-50 text-blue-600 font-extrabold'
-                          : 'hover:bg-gray-150/50 text-gray-700'
-                      }`}
+                      className="w-8 h-8 rounded-xl text-xs font-bold mx-auto mt-1 flex items-center justify-center transition-all"
+                      style={isToday ? {
+                        background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
+                        color: 'white',
+                        boxShadow: '0 4px 10px rgba(99,102,241,0.3)',
+                      } : isSel ? {
+                        background: 'rgba(99,102,241,0.1)',
+                        color: '#6366f1',
+                      } : {
+                        color: '#4b5563',
+                      }}
                     >
                       {day.getDate()}
                     </button>
@@ -592,21 +607,21 @@ export default function SchedulePage() {
               ref={timelineRef}
               className={`overflow-y-auto overflow-x-hidden flex-1 custom-scrollbar ${isFullscreen ? '' : 'h-[400px]'}`}
             >
-              <div className="flex relative">
+              <div className="flex relative bg-white/20">
                 {/* Hours labels on gutter */}
-                <div className="w-14 flex-shrink-0 bg-white">
+                <div className="w-14 flex-shrink-0" style={{ background: 'rgba(255,255,255,0.4)', borderRight: '1px solid rgba(229,231,235,0.3)' }}>
                   {timelineHours.map(h => (
                     <div
                       key={h}
                       style={{ height: HOUR_HEIGHT }}
-                      className="border-t border-gray-50 flex items-start justify-end pr-3 pt-1"
+                      className="border-t border-white/30 flex items-start justify-end pr-3 pt-1"
                     >
                       <span className="text-[9px] text-gray-400 font-semibold tracking-wider">
                         {h === 12 ? '12 PM' : h > 12 ? `${h - 12} PM` : `${h} AM`}
                       </span>
                     </div>
                   ))}
-                  <div style={{ height: HOUR_HEIGHT }} className="border-t border-gray-50" />
+                  <div style={{ height: HOUR_HEIGHT }} className="border-t border-white/30" />
                 </div>
 
                 {/* Day Columns */}
@@ -622,18 +637,23 @@ export default function SchedulePage() {
                   return (
                     <div
                       key={colIdx}
-                      className={`flex-1 relative border-l border-gray-100 cursor-pointer hover:bg-indigo-50/10 transition-colors ${
-                        isToday ? 'bg-blue-50/10' : ''
-                      }`}
-                      style={{ height: totalH }}
+                      className="flex-1 relative cursor-pointer hover:bg-indigo-50/10 transition-colors"
+                      style={{
+                        height: totalH,
+                        borderLeft: '1px solid rgba(229,231,235,0.3)',
+                        background: isToday ? 'rgba(99,102,241,0.03)' : 'transparent',
+                      }}
                       onClick={e => handleTimelineColumnClick(day, e)}
                     >
                       {/* Grid lines */}
                       {timelineHours.map((h, i) => (
                         <div
                           key={h}
-                          className={`absolute w-full border-t ${h % 2 === 0 ? 'border-gray-150/70' : 'border-gray-50'}`}
-                          style={{ top: i * HOUR_HEIGHT }}
+                          className="absolute w-full border-t"
+                          style={{
+                            top: i * HOUR_HEIGHT,
+                            borderColor: h % 2 === 0 ? 'rgba(229,231,235,0.6)' : 'rgba(229,231,235,0.25)',
+                          }}
                         />
                       ))}
 
@@ -664,7 +684,7 @@ export default function SchedulePage() {
                               e.stopPropagation()
                               setActiveSchedule(evt)
                             }}
-                            className={`absolute left-1 right-1 rounded-xl p-2 cursor-pointer shadow-sm border border-l-4 overflow-hidden z-10 transition-all hover:scale-[1.01] hover:shadow-md ${style.bg}`}
+                            className={`absolute left-1 right-1 rounded-xl p-2 cursor-pointer shadow-sm border border-l-4 overflow-hidden z-10 transition-all hover:scale-[1.02] hover:shadow-md ${style.bg}`}
                             style={{ top, height, borderLeftColor: style.raw }}
                           >
                             <p className="text-[10px] font-bold truncate leading-tight tracking-tight">{evt.title}</p>
@@ -681,8 +701,8 @@ export default function SchedulePage() {
             </div>
 
             {!isFullscreen && (
-              <div className="px-5 py-3 bg-gray-50/50 border-t border-gray-100 text-[10px] text-gray-400 text-center font-medium">
-                Klik area kosong pada kolom hari untuk membuat rencana kegiatan • Klik jadwal untuk edit
+              <div className="px-5 py-3 border-t border-gray-150/40 text-[10px] text-gray-400 text-center font-semibold" style={{ background: 'rgba(255,255,255,0.4)' }}>
+                Klik area kosong pada kolom hari untuk membuat rencana kegiatan • Klik jadwal untuk detail/edit
               </div>
             )}
           </div>
@@ -691,10 +711,10 @@ export default function SchedulePage() {
         {/* Right Column Workspace */}
         <div className="space-y-6">
 
-          {/* ── Scheduled (Nearest) ── */}
-          <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+          {/* Scheduled (Nearest) */}
+          <div className="glass-card p-5">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-sm font-semibold text-gray-900">Scheduled (Terdekat)</h3>
+              <h3 className="text-sm font-bold text-gray-900">Scheduled (Terdekat)</h3>
               <span className="relative flex h-2.5 w-2.5">
                 <span className="animate-ping absolute h-full w-full rounded-full bg-green-400 opacity-75" />
                 <span className="relative rounded-full h-2.5 w-2.5 bg-green-500" />
@@ -705,45 +725,48 @@ export default function SchedulePage() {
               <div className="space-y-4">
                 <div>
                   <h4 className="font-bold text-gray-900 text-base leading-snug">{nearestSchedule.title}</h4>
-                  <p className="text-[9px] text-blue-600 mt-1 uppercase tracking-wider font-extrabold">Agenda Guru</p>
+                  <p className="text-[9px] text-indigo-600 mt-1 uppercase tracking-wider font-extrabold">Agenda Guru</p>
                 </div>
-                <div className="space-y-3 border-t border-b border-gray-100/80 py-4 text-xs text-gray-600">
+                <div className="space-y-3 py-4 text-xs text-gray-600" style={{ borderTop: '1px solid rgba(229,231,235,0.4)', borderBottom: '1px solid rgba(229,231,235,0.4)' }}>
                   {[
                     {
-                      bg: 'bg-orange-50 text-orange-600',
+                      bg: 'rgba(245,158,11,0.1)',
+                      color: '#d97706',
                       icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
                       text: parseStoredDate(nearestSchedule.date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' }),
                       sub: 'Tanggal Acara',
                     },
                     {
-                      bg: 'bg-blue-50 text-blue-600',
+                      bg: 'rgba(99,102,241,0.1)',
+                      color: '#6366f1',
                       icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
                       text: `${fmtTime(nearestSchedule.time)}${nearestSchedule.timeEnd ? ` – ${fmtTime(nearestSchedule.timeEnd)}` : ''}`,
                       sub: 'Waktu (Notifikasi 15 mnt sebelumnya)',
                     },
                     ...(nearestSchedule.description ? [{
-                      bg: 'bg-red-50 text-red-600',
+                      bg: 'rgba(244,63,94,0.1)',
+                      color: '#e11d48',
                       icon: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z',
                       text: nearestSchedule.description,
                       sub: 'Lokasi / Detail',
                     }] : []),
                   ].map((item, i) => (
                     <div key={i} className="flex items-center gap-3">
-                      <div className={`w-8 h-8 ${item.bg} rounded-xl flex items-center justify-center flex-shrink-0`}>
-                        <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: item.bg }}>
+                        <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke={item.color} strokeWidth={1.5}>
                           <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
                         </svg>
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-800 leading-none">{item.text}</p>
-                        <p className="text-[9px] text-gray-400 mt-1">{item.sub}</p>
+                        <p className="font-bold text-gray-800 leading-none">{item.text}</p>
+                        <p className="text-[9px] text-gray-400 mt-1 font-medium">{item.sub}</p>
                       </div>
                     </div>
                   ))}
                 </div>
                 <button
                   onClick={() => deleteSchedule(nearestSchedule.id)}
-                  className="w-full bg-red-50 hover:bg-red-100 text-red-600 font-semibold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all"
+                  className="w-full bg-rose-50 hover:bg-rose-100 text-rose-800 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all border border-rose-100/50"
                 >
                   <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -756,12 +779,12 @@ export default function SchedulePage() {
             )}
           </div>
 
-          {/* ── Upcoming Events ── */}
-          <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col" style={{ maxHeight: 380 }}>
+          {/* Upcoming Events */}
+          <div className="glass-card p-5 flex flex-col" style={{ maxHeight: 380 }}>
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-sm font-semibold text-gray-900">Upcoming Events</h3>
+              <h3 className="text-sm font-bold text-gray-900">Upcoming Events</h3>
               {upcomingEvents.length > 0 && (
-                <span className="text-[10px] bg-gray-100 text-gray-600 px-2.5 py-0.5 rounded-full font-bold">
+                <span className="text-[10px] px-2.5 py-0.5 rounded-full font-bold" style={{ background: 'rgba(99,102,241,0.1)', color: '#6366f1' }}>
                   {upcomingEvents.length}
                 </span>
               )}
@@ -810,26 +833,27 @@ export default function SchedulePage() {
         </div>
       </div>
 
-      {/* ── Modal Create ── */}
+      {/* Modal Create */}
       {isModalOpen && (
         <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(15,10,40,0.45)', backdropFilter: 'blur(6px)' }}
           onClick={() => setIsModalOpen(false)}
         >
           <div
-            className="bg-white rounded-3xl shadow-2xl w-full max-w-md border border-gray-150 overflow-hidden hover:scale-[1.005] transition-transform duration-300"
+            className="w-full max-w-md overflow-hidden glass-modal"
             onClick={e => e.stopPropagation()}
           >
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-5 text-white flex justify-between items-start">
+            <div className="bg-gradient-to-r from-indigo-500 to-violet-600 px-6 py-5 text-white flex justify-between items-start">
               <div>
-                <h2 className="text-base font-semibold tracking-tight">📅 Buat Rencana Kegiatan</h2>
-                <p className="text-blue-100 text-xs mt-0.5">Atur jadwal belajar atau agenda personal Anda</p>
+                <h2 className="text-base font-bold tracking-tight text-white">📅 Buat Rencana Kegiatan</h2>
+                <p className="text-indigo-100 text-xs mt-0.5">Atur jadwal belajar atau agenda personal Anda</p>
               </div>
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="p-1.5 rounded-xl bg-white/20 hover:bg-white/30 transition-colors mt-0.5"
               >
-                <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
@@ -837,56 +861,56 @@ export default function SchedulePage() {
 
             <form onSubmit={saveSchedule} className="p-6 space-y-4">
               <div>
-                <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Tanggal</label>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Tanggal</label>
                 <input
                   type="date"
                   value={modalDate}
                   onChange={e => setModalDate(e.target.value)}
-                  className="w-full text-sm px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-gray-800 bg-white"
+                  className="glass-input text-sm"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Jam Mulai</label>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Jam Mulai</label>
                   <input
                     type="time"
                     value={modalTimeStart}
                     onChange={e => setModalTimeStart(e.target.value)}
-                    className="w-full text-sm px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-gray-800 bg-white"
+                    className="glass-input text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Jam Selesai</label>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Jam Selesai</label>
                   <input
                     type="time"
                     value={modalTimeEnd}
                     onChange={e => setModalTimeEnd(e.target.value)}
-                    className="w-full text-sm px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-gray-800 bg-white"
+                    className="glass-input text-sm"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Judul Agenda</label>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Judul Agenda</label>
                 <input
                   type="text"
                   required
                   placeholder="Mengajar Matematika, Persiapan Materi, dll..."
                   value={modalTitle}
                   onChange={e => setModalTitle(e.target.value)}
-                  className="w-full text-sm px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-gray-800 bg-white"
+                  className="glass-input text-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Lokasi / Detail (Opsional)</label>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Lokasi / Detail (Opsional)</label>
                 <input
                   type="text"
                   placeholder="Joyo Hotel, Kaliurang / Rumah Murid"
                   value={modalDesc}
                   onChange={e => setModalDesc(e.target.value)}
-                  className="w-full text-sm px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-gray-800 bg-white"
+                  className="glass-input text-sm"
                 />
               </div>
 
@@ -898,14 +922,14 @@ export default function SchedulePage() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold py-2.5 rounded-xl text-sm transition-colors"
+                  className="btn-secondary flex-1"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-2.5 rounded-xl text-sm shadow-md transition-all disabled:opacity-50"
+                  className="btn-primary flex-1"
                 >
                   {isSaving ? 'Menyimpan...' : 'Simpan Jadwal'}
                 </button>
@@ -915,26 +939,27 @@ export default function SchedulePage() {
         </div>
       )}
 
-      {/* ── Modal Detail ── */}
+      {/* Modal Detail */}
       {activeSchedule && (
         <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(15,10,40,0.45)', backdropFilter: 'blur(6px)' }}
           onClick={() => setActiveSchedule(null)}
         >
           <div
-            className="bg-white rounded-3xl shadow-2xl w-full max-w-sm border border-gray-150 overflow-hidden hover:scale-[1.005] transition-transform duration-300"
+            className="w-full max-w-sm overflow-hidden glass-modal"
             onClick={e => e.stopPropagation()}
           >
             <div className="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-5 text-white flex justify-between items-start">
               <div>
-                <h2 className="text-base font-semibold pr-2 leading-snug tracking-tight">{activeSchedule.title}</h2>
+                <h2 className="text-base font-bold pr-2 leading-snug tracking-tight text-white">{activeSchedule.title}</h2>
                 <p className="text-indigo-100 text-xs mt-0.5">Detail Rencana Jadwal</p>
               </div>
               <button
                 onClick={() => setActiveSchedule(null)}
                 className="p-1.5 rounded-xl bg-white/20 hover:bg-white/30 flex-shrink-0 transition-colors mt-0.5"
               >
-                <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
@@ -943,33 +968,36 @@ export default function SchedulePage() {
             <div className="p-6 space-y-4 text-sm">
               {[
                 {
-                  bg: 'bg-orange-50 text-orange-600',
+                  bg: 'rgba(245,158,11,0.1)',
+                  color: '#d97706',
                   icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
                   text: parseStoredDate(activeSchedule.date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
                   sub: 'Tanggal Acara',
                 },
                 {
-                  bg: 'bg-blue-50 text-blue-600',
+                  bg: 'rgba(99,102,241,0.1)',
+                  color: '#6366f1',
                   icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
                   text: `${fmtTime(activeSchedule.time)}${activeSchedule.timeEnd ? ` – ${fmtTime(activeSchedule.timeEnd)}` : ''}`,
                   sub: 'Waktu (Notifikasi 15 mnt sebelumnya)',
                 },
                 ...(activeSchedule.description ? [{
-                  bg: 'bg-rose-50 text-rose-600',
+                  bg: 'rgba(244,63,94,0.1)',
+                  color: '#e11d48',
                   icon: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z',
                   text: activeSchedule.description,
                   sub: 'Lokasi / Detail',
                 }] : []),
               ].map((item, i) => (
                 <div key={i} className="flex items-start gap-3.5">
-                  <div className={`w-8 h-8 ${item.bg} rounded-xl flex items-center justify-center flex-shrink-0`}>
-                    <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: item.bg }}>
+                    <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke={item.color} strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
                     </svg>
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-800 leading-snug">{item.text}</p>
-                    <p className="text-[10px] text-gray-400 mt-1">{item.sub}</p>
+                    <p className="font-bold text-gray-800 leading-snug">{item.text}</p>
+                    <p className="text-[10px] text-gray-400 mt-1 font-medium">{item.sub}</p>
                   </div>
                 </div>
               ))}
@@ -977,13 +1005,13 @@ export default function SchedulePage() {
               <div className="pt-2 grid grid-cols-2 gap-3">
                 <button
                   onClick={() => setActiveSchedule(null)}
-                  className="border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold py-2.5 rounded-xl text-sm transition-colors"
+                  className="btn-secondary"
                 >
                   Tutup
                 </button>
                 <button
                   onClick={() => deleteSchedule(activeSchedule.id)}
-                  className="bg-red-50 hover:bg-red-100 text-red-600 font-semibold py-2.5 rounded-xl text-sm flex items-center justify-center gap-1.5 transition-all duration-200"
+                  className="w-full bg-rose-50 hover:bg-rose-100 text-rose-800 font-bold py-2.5 rounded-xl text-sm flex items-center justify-center gap-1.5 transition-all duration-200 border border-rose-100/50"
                 >
                   <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

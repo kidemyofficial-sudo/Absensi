@@ -122,6 +122,8 @@ export default function CabangDaerahPage() {
       bt.mataPelajaran.toLowerCase().includes(search.toLowerCase()))
   )
 
+  const isSuccess = message.includes('berhasil')
+
   return (
     <div>
       <ConfirmDialog
@@ -135,79 +137,94 @@ export default function CabangDaerahPage() {
       />
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Cabang Daerah</h1>
-          <p className="text-sm text-gray-500 mt-1">Kelola cabang daerah dan guru pengampu</p>
+          <h1 className="text-2xl font-bold" style={{ color: '#1e1b4b' }}>Cabang Daerah</h1>
+          <p className="text-sm mt-1" style={{ color: '#6b7280' }}>Kelola cabang daerah dan guru pengampu</p>
         </div>
         <button
           onClick={() => { setShowForm(!showForm); setFormData({ provinsi: '', kotaKabupaten: '', teacherId: '', mataPelajaran: '' }) }}
-          className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-xl hover:bg-blue-700 text-sm font-medium transition-colors"
+          className="btn-primary"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-          {showForm ? 'Batal' : 'Tambah Cabang'}
+          {showForm ? (
+            <>
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Batal
+            </>
+          ) : (
+            <>
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              Tambah Cabang
+            </>
+          )}
         </button>
       </div>
 
       {message && (
-        <div className={`mb-5 p-3.5 rounded-xl text-sm font-medium ${
-          message.includes('berhasil')
-            ? 'bg-green-50 text-green-700 border border-green-200'
-            : 'bg-red-50 text-red-700 border border-red-200'
-        }`}>
+        <div
+          className="mb-5 p-3.5 rounded-xl text-sm font-medium"
+          style={{
+            background: isSuccess ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)',
+            color: isSuccess ? '#065f46' : '#991b1b',
+            border: `1px solid ${isSuccess ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}`,
+          }}
+        >
           {message}
         </div>
       )}
 
       {showForm && (
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm mb-6">
-          <h3 className="text-base font-semibold text-gray-900 mb-4">Tambah Cabang Daerah Baru</h3>
+        <div className="glass-card p-6 mb-6">
+          <h3 className="text-base font-bold mb-4" style={{ color: '#1e1b4b' }}>Tambah Cabang Daerah Baru</h3>
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Provinsi</label>
+                <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4b5563' }}>Provinsi</label>
                 <select
                   value={formData.provinsi}
                   onChange={(e) => setFormData({ ...formData, provinsi: e.target.value, kotaKabupaten: '' })}
                   required
-                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white transition-all"
+                  className="glass-input"
                 >
                   <option value="">Pilih Provinsi</option>
                   {provinsiList.map((p) => (<option key={p} value={p}>{p}</option>))}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Kota / Kabupaten</label>
+                <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4b5563' }}>Kota / Kabupaten</label>
                 <select
                   value={formData.kotaKabupaten}
                   onChange={(e) => setFormData({ ...formData, kotaKabupaten: e.target.value })}
                   required
                   disabled={!formData.provinsi}
-                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white transition-all disabled:bg-gray-50 disabled:text-gray-400"
+                  className="glass-input"
+                  style={!formData.provinsi ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
                 >
                   <option value="">Pilih Kota/Kabupaten</option>
                   {kotaList.map((k) => (<option key={k} value={k}>{k}</option>))}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Guru Pengampu</label>
+                <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4b5563' }}>Guru Pengampu</label>
                 <select
                   value={formData.teacherId}
                   onChange={(e) => setFormData({ ...formData, teacherId: e.target.value })}
                   required
-                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white transition-all"
+                  className="glass-input"
                 >
                   <option value="">Pilih Guru</option>
                   {teachers.map((t) => (<option key={t.id} value={t.id}>{t.name}</option>))}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Mata Pelajaran</label>
+                <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4b5563' }}>Mata Pelajaran</label>
                 <select
                   value={formData.mataPelajaran}
                   onChange={(e) => setFormData({ ...formData, mataPelajaran: e.target.value })}
                   required
-                  className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white transition-all"
+                  className="glass-input"
                 >
                   <option value="">Pilih Mata Pelajaran</option>
                   {mataPelajaranList.map((mp) => (<option key={mp} value={mp}>{mp}</option>))}
@@ -215,21 +232,21 @@ export default function CabangDaerahPage() {
               </div>
             </div>
             {formData.kotaKabupaten && formData.provinsi && (
-              <p className="text-sm text-gray-500 mb-4">
-                Cabang Daerah: <span className="font-medium text-gray-900">{formData.kotaKabupaten}, {formData.provinsi}</span>
+              <p className="text-xs mb-4" style={{ color: '#9ca3af' }}>
+                Cabang Daerah: <span className="font-semibold" style={{ color: '#1e1b4b' }}>{formData.kotaKabupaten}, {formData.provinsi}</span>
               </p>
             )}
-            <button type="submit" className="bg-green-600 text-white px-5 py-2.5 rounded-xl hover:bg-green-700 text-sm font-medium transition-colors">
+            <button type="submit" className="btn-primary" style={{ background: 'linear-gradient(135deg,#10b981,#059669)', boxShadow: '0 4px 15px rgba(16,185,129,0.25)' }}>
               Simpan
             </button>
           </form>
         </div>
       )}
 
-      <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm mb-6">
+      <div className="glass-card p-4 mb-6">
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="#9ca3af" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
             </svg>
           </div>
@@ -238,38 +255,42 @@ export default function CabangDaerahPage() {
             placeholder="Cari nama cabang, guru, mata pelajaran..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            className="glass-input pl-9"
           />
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-3.5">
         {loading ? (
-          <div className="bg-white p-8 text-center text-gray-400 rounded-2xl border border-gray-100 shadow-sm text-sm">Loading...</div>
+          <div className="glass-card p-8 text-center text-sm" style={{ color: '#9ca3af' }}>Loading...</div>
         ) : filteredCabangs.length === 0 ? (
-          <div className="bg-white p-8 text-center text-gray-400 rounded-2xl border border-gray-100 shadow-sm text-sm">Tidak ada cabang daerah ditemukan</div>
+          <div className="glass-card p-8 text-center text-sm" style={{ color: '#9ca3af' }}>Tidak ada cabang daerah ditemukan</div>
         ) : (
           filteredCabangs.map(([cabangDaerah, bts]) => {
             const totalMurid = bts.reduce((sum, bt) => sum + bt.student.length, 0)
             const isExpanded = expandedCabang === cabangDaerah
 
             return (
-              <div key={cabangDaerah} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div key={cabangDaerah} className="glass-card overflow-hidden">
                 <div
-                  className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                  className="p-4 cursor-pointer hover:bg-white/40 transition-colors"
                   onClick={() => { setExpandedCabang(isExpanded ? null : cabangDaerah); setExpandedGuru(null) }}
                 >
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center flex-wrap gap-2">
                     <div>
-                      <h4 className="text-sm font-semibold text-gray-900">{cabangDaerah}</h4>
-                      <p className="text-xs text-gray-500 mt-0.5">{bts[0]?.provinsi} - {bts[0]?.kotaKabupaten}</p>
+                      <h4 className="text-sm font-bold" style={{ color: '#1e1b4b' }}>{cabangDaerah}</h4>
+                      <p className="text-xs" style={{ color: '#6b7280' }}>{bts[0]?.provinsi} - {bts[0]?.kotaKabupaten}</p>
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="text-right">
-                        <p className="text-xs text-gray-500">{bts.length} guru</p>
-                        <p className="text-xs text-gray-500">{totalMurid} murid</p>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-lg mr-1.5" style={{ background: 'rgba(99,102,241,0.1)', color: '#6366f1' }}>
+                          {bts.length} guru
+                        </span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-lg" style={{ background: 'rgba(16,185,129,0.1)', color: '#10b981' }}>
+                          {totalMurid} murid
+                        </span>
                       </div>
-                      <svg xmlns="http://www.w3.org/2000/svg" className={`w-4 h-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <svg xmlns="http://www.w3.org/2000/svg" className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="#9ca3af" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                       </svg>
                     </div>
@@ -277,32 +298,34 @@ export default function CabangDaerahPage() {
                 </div>
 
                 {isExpanded && (
-                  <div className="border-t border-gray-100 p-4">
-                    <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Daftar Guru</h5>
-                    <div className="space-y-2">
+                  <div className="p-4 space-y-3" style={{ borderTop: '1px solid rgba(229,231,235,0.4)', background: 'rgba(255,255,255,0.2)' }}>
+                    <h5 className="text-[10px] font-bold uppercase tracking-wider" style={{ color: '#9ca3af' }}>Daftar Guru Pengampu</h5>
+                    <div className="grid grid-cols-1 gap-2.5">
                       {bts.map((bt) => {
                         const isGuruExpanded = expandedGuru === bt.id
                         return (
-                          <div key={bt.id} className="bg-gray-50 rounded-xl overflow-hidden">
+                          <div key={bt.id} className="rounded-xl overflow-hidden border border-white/40" style={{ background: 'rgba(255,255,255,0.5)' }}>
                             <div
-                              className="p-3 cursor-pointer hover:bg-gray-100 transition-colors"
+                              className="p-3 cursor-pointer hover:bg-white/60 transition-colors"
                               onClick={() => setExpandedGuru(isGuruExpanded ? null : bt.id)}
                             >
-                              <div className="flex justify-between items-center">
+                              <div className="flex justify-between items-center flex-wrap gap-2">
                                 <div className="flex items-center gap-3">
-                                  <svg xmlns="http://www.w3.org/2000/svg" className={`w-3 h-3 text-gray-400 transition-transform ${isGuruExpanded ? 'rotate-90' : ''}`} fill="currentColor" viewBox="0 0 24 24">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className={`w-3.5 h-3.5 transition-transform ${isGuruExpanded ? 'rotate-90' : ''}`} fill="currentColor" viewBox="0 0 24 24" style={{ color: '#9ca3af' }}>
                                     <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z" />
                                   </svg>
                                   <div>
-                                    <p className="text-sm font-medium text-gray-900">{bt.user.name}</p>
-                                    <p className="text-xs text-gray-500">{bt.mataPelajaran}</p>
+                                    <p className="text-sm font-semibold" style={{ color: '#1e1b4b' }}>{bt.user.name}</p>
+                                    <p className="text-xs" style={{ color: '#6b7280' }}>{bt.mataPelajaran}</p>
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                  <span className="text-xs text-gray-500 bg-white px-2 py-0.5 rounded-lg">{bt.student.length} siswa</span>
+                                  <span className="text-[10px] font-semibold bg-white border border-white/50 px-2 py-0.5 rounded-lg" style={{ color: '#4b5563' }}>
+                                    {bt.student.length} siswa
+                                  </span>
                                   <button
                                     onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(bt.id) }}
-                                    className="text-xs text-red-500 hover:text-red-700 font-medium"
+                                    className="px-2 py-1 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-lg font-bold text-xs transition-colors"
                                   >
                                     Hapus
                                   </button>
@@ -310,22 +333,25 @@ export default function CabangDaerahPage() {
                               </div>
                             </div>
                             {isGuruExpanded && (
-                              <div className="px-3 pb-3">
-                                <div className="bg-white rounded-xl p-3">
-                                  <p className="text-xs text-gray-500 mb-2">
-                                    Mata Pelajaran: <span className="font-medium text-gray-900">{bt.mataPelajaran}</span>
+                              <div className="px-3 pb-3" style={{ background: 'rgba(255,255,255,0.2)' }}>
+                                <div className="bg-white/80 backdrop-blur-sm border border-white/50 rounded-xl p-3.5 mt-1">
+                                  <p className="text-xs mb-2" style={{ color: '#6b7280' }}>
+                                    Mata Pelajaran: <span className="font-semibold" style={{ color: '#1e1b4b' }}>{bt.mataPelajaran}</span>
                                   </p>
                                   {bt.student.length === 0 ? (
-                                    <p className="text-xs text-gray-400 italic">Belum ada siswa terdaftar</p>
+                                    <p className="text-xs italic" style={{ color: '#9ca3af' }}>Belum ada siswa terdaftar</p>
                                   ) : (
-                                    <ul className="space-y-1">
-                                      {bt.student.map((s) => (
-                                        <li key={s.id} className="flex items-center gap-2 text-xs text-gray-700">
-                                          <span className="w-1 h-1 bg-gray-300 rounded-full" />
-                                          {s.name}
-                                        </li>
-                                      ))}
-                                    </ul>
+                                    <div>
+                                      <p className="text-[10px] font-bold uppercase tracking-wider mb-1.5" style={{ color: '#9ca3af' }}>Siswa Terdaftar:</p>
+                                      <ul className="space-y-1">
+                                        {bt.student.map((s) => (
+                                          <li key={s.id} className="flex items-center gap-2 text-xs font-semibold" style={{ color: '#374151' }}>
+                                            <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#6366f1' }} />
+                                            {s.name}
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
                                   )}
                                 </div>
                               </div>

@@ -23,25 +23,41 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="h-screen bg-gray-50 flex overflow-hidden">
+    <div className="h-screen flex overflow-hidden glass-bg">
       <Sidebar user={user} />
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        <header className="bg-white border-b border-gray-200 h-14 flex items-center justify-between px-4 sm:px-6 flex-shrink-0">
+        {/* Glass Header */}
+        <header
+          style={{
+            background: 'rgba(255,255,255,0.70)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            borderBottom: '1px solid rgba(229,231,235,0.45)',
+            flexShrink: 0,
+          }}
+          className="h-14 flex items-center justify-between px-4 sm:px-6 shadow-sm"
+        >
           <div className="sm:hidden">
             <Sidebar user={user} mobile />
           </div>
-          <div className="hidden sm:block"></div>
+          <div className="hidden sm:block" />
           <div className="flex items-center gap-3">
             {user.role === 'ORANG_TUA' && <NotificationBell />}
-            <div className="flex items-center gap-2.5 pl-3 border-l border-gray-200">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium text-blue-700">{user.name.charAt(0).toUpperCase()}</span>
+            {/* Avatar */}
+            <div className="flex items-center gap-2.5 pl-3" style={{ borderLeft: '1px solid rgba(209,213,219,0.5)' }}>
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center"
+                style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
+              >
+                <span className="text-sm font-semibold text-white">{user.name.charAt(0).toUpperCase()}</span>
               </div>
-              <span className="text-sm font-medium text-gray-700 hidden sm:inline">{user.name}</span>
+              <span className="text-sm font-medium hidden sm:inline" style={{ color: '#374151' }}>{user.name}</span>
             </div>
             <LogoutButton />
           </div>
         </header>
+
+        {/* Main Content */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
           {children}
         </main>

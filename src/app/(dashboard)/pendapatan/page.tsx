@@ -70,10 +70,10 @@ export default async function PendapatanPage() {
   return (
     <div>
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Pendapatan</h1>
-          <p className="text-sm text-gray-500 mt-1">Detail pendapatan bulanan</p>
+          <h1 className="text-2xl font-bold" style={{ color: '#1e1b4b' }}>Pendapatan</h1>
+          <p className="text-sm mt-1" style={{ color: '#6b7280' }}>Detail pendapatan bulanan</p>
         </div>
         <PendapatanPrintButton
           revenues={serializedRevenues}
@@ -85,19 +85,22 @@ export default async function PendapatanPage() {
       </div>
 
       {/* Summary card */}
-      <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm mb-6">
+      <div className="glass-card p-6 mb-6">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <div className="w-10 h-10 rounded-2xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#10b981,#059669)', boxShadow: '0 4px 15px rgba(16,185,129,0.2)' }}>
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h3 className="text-base font-semibold text-gray-900">
+          <h3 className="text-base font-bold" style={{ color: '#1e1b4b' }}>
             {user.role === 'OWNER' ? 'Estimasi Pendapatan Owner' : 'Estimasi Pendapatan'} {bulan}
           </h3>
         </div>
-        <p className="text-3xl font-bold text-green-600 mb-2">{formatRupiah(totalPendapatan)}</p>
-        <p className="text-sm text-gray-500">
+        {/* Frame white to keep contrast for financial values */}
+        <div className="inline-block bg-white/95 backdrop-blur-sm border border-white/20 px-4 py-2.5 rounded-xl shadow-sm mb-2">
+          <p className="text-3xl font-bold" style={{ color: '#10b981' }}>{formatRupiah(totalPendapatan)}</p>
+        </div>
+        <p className="text-xs mt-1" style={{ color: '#8b5cf6' }}>
           {user.role === 'OWNER'
             ? 'Pendapatan bersih bagian Owner dari seluruh operasional les.'
             : 'Pembayaran dilakukan langsung ke rekening Anda.'}
@@ -105,58 +108,58 @@ export default async function PendapatanPage() {
       </div>
 
       {/* Detail table */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100">
-          <h3 className="text-base font-semibold text-gray-900">Detail Per Les</h3>
+      <div className="glass-card overflow-hidden">
+        <div className="px-6 py-4.5" style={{ borderBottom: '1px solid rgba(229,231,235,0.45)' }}>
+          <h3 className="text-base font-bold" style={{ color: '#1e1b4b' }}>Detail Per Les</h3>
         </div>
-        <div className="p-6">
+        <div className="p-0 sm:p-4">
           {revenues.length === 0 ? (
-            <p className="text-sm text-gray-500">Belum ada data les bulan ini.</p>
+            <p className="p-6 text-sm text-center" style={{ color: '#9ca3af' }}>Belum ada data les bulan ini.</p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="glass-table min-w-[800px] w-full">
                 <thead>
-                  <tr className="border-b border-gray-100">
+                  <tr>
                     {user.role === 'OWNER' ? (
                       <>
-                        <th className="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
-                        <th className="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Les</th>
-                        <th className="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Guru</th>
-                        <th className="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Murid</th>
-                        <th className="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah Siswa</th>
-                        <th className="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Biaya</th>
-                        <th className="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bagi Hasil Owner</th>
-                        <th className="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bagi Hasil Guru</th>
+                        <th>Tanggal</th>
+                        <th>Jenis Les</th>
+                        <th>Guru</th>
+                        <th>Murid</th>
+                        <th>Jumlah Siswa</th>
+                        <th>Total Biaya</th>
+                        <th>Bagi Hasil Owner</th>
+                        <th>Bagi Hasil Guru</th>
                       </>
                     ) : (
                       <>
-                        <th className="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
-                        <th className="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Les</th>
-                        <th className="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Murid</th>
-                        <th className="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah Siswa</th>
-                        <th className="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Salary</th>
+                        <th>Tanggal</th>
+                        <th>Jenis Les</th>
+                        <th>Murid</th>
+                        <th>Jumlah Siswa</th>
+                        <th>Salary</th>
                       </>
                     )}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody>
                   {revenues.map((rev) => (
-                    <tr key={rev.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3.5 text-sm text-gray-900">{formatDate(rev.lesson.tanggalLes)}</td>
-                      <td className="px-4 py-3.5 text-sm text-gray-600">{rev.lesson.jenisPembelajaran}</td>
+                    <tr key={rev.id}>
+                      <td className="whitespace-nowrap font-medium" style={{ color: '#374151' }}>{formatDate(rev.lesson.tanggalLes)}</td>
+                      <td style={{ color: '#4b5563' }}>{rev.lesson.jenisPembelajaran}</td>
                       {user.role === 'OWNER' && (
-                        <td className="px-4 py-3.5 text-sm text-gray-900">{rev.lesson.namaGuru}</td>
+                        <td className="font-medium" style={{ color: '#1e1b4b' }}>{rev.lesson.namaGuru}</td>
                       )}
-                      <td className="px-4 py-3.5 text-sm text-gray-900">{rev.lesson.namaMurid}</td>
-                      <td className="px-4 py-3.5 text-sm text-gray-600">{rev.lesson.jumlahMurid}</td>
+                      <td className="font-medium" style={{ color: '#1e1b4b' }}>{rev.lesson.namaMurid}</td>
+                      <td style={{ color: '#4b5563' }}>{rev.lesson.jumlahMurid}</td>
                       {user.role === 'OWNER' ? (
                         <>
-                          <td className="px-4 py-3.5 text-sm text-gray-600">{formatRupiah(rev.biayaTotal)}</td>
-                          <td className="px-4 py-3.5 text-sm font-medium text-blue-600">{formatRupiah(rev.pendapatanOwner)}</td>
-                          <td className="px-4 py-3.5 text-sm font-medium text-green-600">{formatRupiah(rev.pendapatanGuru)}</td>
+                          <td style={{ color: '#4b5563' }}>{formatRupiah(rev.biayaTotal)}</td>
+                          <td className="font-bold" style={{ color: '#6366f1' }}>{formatRupiah(rev.pendapatanOwner)}</td>
+                          <td className="font-bold" style={{ color: '#10b981' }}>{formatRupiah(rev.pendapatanGuru)}</td>
                         </>
                       ) : (
-                        <td className="px-4 py-3.5 text-sm font-medium text-green-600">{formatRupiah(rev.pendapatanGuru)}</td>
+                        <td className="font-bold" style={{ color: '#10b981' }}>{formatRupiah(rev.pendapatanGuru)}</td>
                       )}
                     </tr>
                   ))}

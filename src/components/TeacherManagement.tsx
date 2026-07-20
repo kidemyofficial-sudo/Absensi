@@ -62,6 +62,8 @@ export default function TeacherManagement() {
     }
   }
 
+  const isSuccess = message.includes('berhasil')
+
   return (
     <>
       <ConfirmDialog
@@ -75,66 +77,71 @@ export default function TeacherManagement() {
       />
 
       {message && (
-        <div className={`mb-4 p-3 rounded-xl text-sm font-medium border ${
-          message.includes('berhasil')
-            ? 'bg-green-50 text-green-700 border-green-200'
-            : 'bg-red-50 text-red-700 border-red-200'
-        }`}>
+        <div
+          className="mb-4 p-3.5 rounded-xl text-sm font-medium border"
+          style={{
+            background: isSuccess ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)',
+            color: isSuccess ? '#065f46' : '#991b1b',
+            borderColor: isSuccess ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)',
+          }}
+        >
           {message}
         </div>
       )}
 
       <div className="flex justify-between items-center mb-4">
-        <p className="text-sm text-gray-500">Total: {teachers.length} guru</p>
+        <p className="text-xs font-semibold" style={{ color: '#9ca3af' }}>Total: <span style={{ color: '#6366f1' }}>{teachers.length}</span> guru</p>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 text-sm font-medium transition-colors"
+          className="btn-primary py-2 text-xs"
+          style={{ borderRadius: '12px' }}
         >
           {showForm ? 'Batal' : 'Tambah Guru'}
         </button>
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-gray-50 p-4 rounded-2xl border border-gray-100 mb-4">
+        <form onSubmit={handleSubmit} className="p-4 rounded-xl border border-white/50 mb-4" style={{ background: 'rgba(255,255,255,0.4)' }}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Nama</label>
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4b5563' }}>Nama</label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
-                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white transition-all"
+                className="glass-input"
                 placeholder="Nama guru"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Nomor Telepon</label>
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4b5563' }}>Nomor Telepon</label>
               <input
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 required
-                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white transition-all"
+                className="glass-input"
                 placeholder="08xxxxxxxxxx"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4b5563' }}>Password</label>
               <input
                 type="password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 required
                 minLength={6}
-                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white transition-all"
+                className="glass-input"
                 placeholder="Minimal 6 karakter"
               />
             </div>
           </div>
           <button
             type="submit"
-            className="bg-green-600 text-white px-4 py-2 rounded-xl hover:bg-green-700 text-sm font-medium transition-colors"
+            className="btn-primary py-2 text-xs"
+            style={{ background: 'linear-gradient(135deg,#10b981,#059669)', boxShadow: '0 4px 15px rgba(16,185,129,0.25)', borderRadius: '12px' }}
           >
             Simpan
           </button>
@@ -142,32 +149,32 @@ export default function TeacherManagement() {
       )}
 
       {loading ? (
-        <p className="text-gray-400 text-sm">Loading...</p>
+        <p className="text-center py-6 text-sm" style={{ color: '#9ca3af' }}>Loading...</p>
       ) : teachers.length === 0 ? (
-        <p className="text-gray-400 text-sm">Belum ada guru terdaftar</p>
+        <p className="text-center py-6 text-sm" style={{ color: '#9ca3af' }}>Belum ada guru terdaftar</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="glass-table w-full">
             <thead>
-              <tr className="border-b border-gray-100">
-                <th className="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
-                <th className="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telepon</th>
-                <th className="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Terdaftar</th>
-                <th className="px-4 py-3.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+              <tr>
+                <th>Nama</th>
+                <th>Telepon</th>
+                <th>Terdaftar</th>
+                <th className="text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody>
               {teachers.map((teacher) => (
-                <tr key={teacher.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3.5 text-sm text-gray-900 font-medium">{teacher.name}</td>
-                  <td className="px-4 py-3.5 text-sm text-gray-600">{teacher.phone}</td>
-                  <td className="px-4 py-3.5 text-sm text-gray-500">
+                <tr key={teacher.id}>
+                  <td className="font-bold" style={{ color: '#1e1b4b' }}>{teacher.name}</td>
+                  <td style={{ color: '#4b5563' }}>{teacher.phone}</td>
+                  <td style={{ color: '#6b7280' }}>
                     {new Date(teacher.createdAt).toLocaleDateString('id-ID')}
                   </td>
-                  <td className="px-4 py-3.5 text-right">
+                  <td className="text-right">
                     <button
                       onClick={() => setDeleteConfirm({ id: teacher.id, name: teacher.name })}
-                      className="text-sm text-red-600 hover:text-red-800 font-medium transition-colors"
+                      className="px-2 py-1 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-lg font-bold text-xs transition-colors"
                     >
                       Hapus
                     </button>

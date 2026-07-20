@@ -68,20 +68,20 @@ export default function ReportsPage() {
   const guruNames = [...new Set(lessons.map((l) => l.namaGuru))].sort()
   const jenisList = [...new Set(lessons.map((l) => l.jenisPembelajaran))].sort()
 
-  if (!user) return <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm text-center text-gray-400 text-sm">Loading...</div>
+  if (!user) return <div className="glass-card p-8 text-center text-sm" style={{ color: '#9ca3af' }}>Loading...</div>
 
-  const inputClass = "w-full sm:w-auto px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white transition-all"
+  const inputClass = "glass-input text-sm w-full sm:w-auto"
 
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Laporan</h1>
-          <p className="text-sm text-gray-500 mt-1">Rekap absensi les</p>
+          <h1 className="text-2xl font-bold" style={{ color: '#1e1b4b' }}>Laporan</h1>
+          <p className="text-sm mt-1" style={{ color: '#6b7280' }}>Rekap absensi les</p>
         </div>
         <div className="flex items-center gap-3">
           {lessons.length > 0 && (
-            <button onClick={exportCSV} className="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2.5 rounded-xl hover:bg-green-700 text-sm font-medium transition-colors">
+            <button onClick={exportCSV} className="btn-primary" style={{ background: 'linear-gradient(135deg,#10b981,#059669)', boxShadow: '0 4px 15px rgba(16,185,129,0.3)' }}>
               <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
               </svg>
@@ -99,31 +99,31 @@ export default function ReportsPage() {
       </div>
 
       {user.role === 'OWNER' && (
-        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm mb-6">
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
+        <div className="glass-card p-4 mb-6">
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end flex-wrap">
             <div className="w-full sm:w-auto">
-              <label className="block text-xs font-medium text-gray-500 mb-1.5">Dari Tanggal</label>
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: '#6b7280' }}>Dari Tanggal</label>
               <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className={inputClass} />
             </div>
             <div className="w-full sm:w-auto">
-              <label className="block text-xs font-medium text-gray-500 mb-1.5">Sampai Tanggal</label>
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: '#6b7280' }}>Sampai Tanggal</label>
               <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className={inputClass} />
             </div>
             <div className="w-full sm:w-auto">
-              <label className="block text-xs font-medium text-gray-500 mb-1.5">Guru</label>
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: '#6b7280' }}>Guru</label>
               <select value={guruFilter} onChange={(e) => setGuruFilter(e.target.value)} className={inputClass}>
                 <option value="">Semua Guru</option>
                 {guruNames.map((g) => (<option key={g} value={g}>{g}</option>))}
               </select>
             </div>
             <div className="w-full sm:w-auto">
-              <label className="block text-xs font-medium text-gray-500 mb-1.5">Jenis Pembelajaran</label>
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: '#6b7280' }}>Jenis Pembelajaran</label>
               <select value={jenisFilter} onChange={(e) => setJenisFilter(e.target.value)} className={inputClass}>
                 <option value="">Semua Jenis</option>
                 {jenisList.map((j) => (<option key={j} value={j}>{j}</option>))}
               </select>
             </div>
-            <button onClick={handleSearch} className="w-full sm:w-auto bg-blue-600 text-white px-4 py-2.5 rounded-xl hover:bg-blue-700 text-sm font-medium transition-colors">
+            <button onClick={handleSearch} className="btn-primary w-full sm:w-auto">
               Cari
             </button>
           </div>
@@ -131,34 +131,35 @@ export default function ReportsPage() {
       )}
 
       {loading ? (
-        <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm text-center text-gray-400 text-sm">Loading...</div>
+        <div className="glass-card p-8 text-center text-sm" style={{ color: '#9ca3af' }}>Loading...</div>
       ) : lessons.length === 0 ? (
-        <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm text-center text-gray-400 text-sm">Tidak ada data les</div>
+        <div className="glass-card p-8 text-center text-sm" style={{ color: '#9ca3af' }}>Tidak ada data les</div>
       ) : (
         <>
-          <div className="hidden lg:block bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          {/* Desktop Table */}
+          <div className="hidden lg:block glass-card overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1200px]">
+              <table className="glass-table min-w-[1200px]">
                 <thead>
-                  <tr className="border-b border-gray-100">
+                  <tr>
                     {['Tanggal','Guru','Jenis','Lokasi','Kelas','Murid','Nama Murid','Jam','Wali Murid','Catatan'].map((h) => (
-                      <th key={h} className={`px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${h === 'Murid' ? 'text-center' : ''}`}>{h}</th>
+                      <th key={h} className={h === 'Murid' ? 'text-center' : ''}>{h}</th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody>
                   {lessons.map((lesson) => (
-                    <tr key={lesson.id} className="hover:bg-gray-50 cursor-pointer transition-colors" onClick={() => setSelectedLesson(lesson)}>
-                      <td className="px-4 py-3 text-sm whitespace-nowrap text-gray-900">{new Date(lesson.tanggalLes).toLocaleDateString('id-ID')}</td>
-                      <td className="px-4 py-3 text-sm text-gray-900">{lesson.namaGuru}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{lesson.jenisPembelajaran}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{lesson.lokasiMengajar}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{lesson.kelasMurid || '-'}</td>
-                      <td className="px-4 py-3 text-sm text-center text-gray-600">{lesson.jumlahMurid}</td>
-                      <td className="px-4 py-3 text-sm text-gray-900">{lesson.namaMurid}</td>
-                      <td className="px-4 py-3 text-sm whitespace-nowrap text-gray-600">{lesson.jamMulai} - {lesson.jamSelesai}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{lesson.namaWaliMurid}</td>
-                      <td className="px-4 py-3 text-sm max-w-[200px] truncate text-gray-600">{lesson.catatanMateri}</td>
+                    <tr key={lesson.id} className="cursor-pointer" onClick={() => setSelectedLesson(lesson)}>
+                      <td className="whitespace-nowrap">{new Date(lesson.tanggalLes).toLocaleDateString('id-ID')}</td>
+                      <td>{lesson.namaGuru}</td>
+                      <td>{lesson.jenisPembelajaran}</td>
+                      <td>{lesson.lokasiMengajar}</td>
+                      <td>{lesson.kelasMurid || '-'}</td>
+                      <td className="text-center">{lesson.jumlahMurid}</td>
+                      <td>{lesson.namaMurid}</td>
+                      <td className="whitespace-nowrap">{lesson.jamMulai} - {lesson.jamSelesai}</td>
+                      <td>{lesson.namaWaliMurid}</td>
+                      <td className="max-w-[180px] truncate">{lesson.catatanMateri}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -166,23 +167,24 @@ export default function ReportsPage() {
             </div>
           </div>
 
+          {/* Mobile Cards */}
           <div className="lg:hidden space-y-3">
             {lessons.map((lesson) => (
-              <div key={lesson.id} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm" onClick={() => setSelectedLesson(lesson)}>
+              <div key={lesson.id} className="glass-card p-4 cursor-pointer" onClick={() => setSelectedLesson(lesson)}>
                 <div className="flex justify-between items-start mb-2">
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{lesson.namaMurid}</p>
-                    <p className="text-xs text-gray-500">{lesson.namaGuru}</p>
+                    <p className="text-sm font-bold" style={{ color: '#1e1b4b' }}>{lesson.namaMurid}</p>
+                    <p className="text-xs" style={{ color: '#6b7280' }}>{lesson.namaGuru}</p>
                   </div>
-                  <span className="text-xs text-gray-400">{new Date(lesson.tanggalLes).toLocaleDateString('id-ID')}</span>
+                  <span className="text-xs" style={{ color: '#9ca3af' }}>{new Date(lesson.tanggalLes).toLocaleDateString('id-ID')}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div><span className="text-gray-400">Jenis:</span> <span className="text-gray-600">{lesson.jenisPembelajaran}</span></div>
-                  <div><span className="text-gray-400">Lokasi:</span> <span className="text-gray-600">{lesson.lokasiMengajar}</span></div>
-                  <div><span className="text-gray-400">Jam:</span> <span className="text-gray-600">{lesson.jamMulai} - {lesson.jamSelesai}</span></div>
-                  <div><span className="text-gray-400">Murid:</span> <span className="text-gray-600">{lesson.jumlahMurid} orang</span></div>
+                  <div><span style={{ color: '#9ca3af' }}>Jenis:</span> <span style={{ color: '#374151' }}>{lesson.jenisPembelajaran}</span></div>
+                  <div><span style={{ color: '#9ca3af' }}>Lokasi:</span> <span style={{ color: '#374151' }}>{lesson.lokasiMengajar}</span></div>
+                  <div><span style={{ color: '#9ca3af' }}>Jam:</span> <span style={{ color: '#374151' }}>{lesson.jamMulai} - {lesson.jamSelesai}</span></div>
+                  <div><span style={{ color: '#9ca3af' }}>Murid:</span> <span style={{ color: '#374151' }}>{lesson.jumlahMurid} orang</span></div>
                 </div>
-                {lesson.catatanMateri && <p className="text-xs text-gray-500 mt-2 line-clamp-2">{lesson.catatanMateri}</p>}
+                {lesson.catatanMateri && <p className="text-xs mt-2 line-clamp-2" style={{ color: '#6b7280' }}>{lesson.catatanMateri}</p>}
               </div>
             ))}
           </div>
@@ -190,12 +192,23 @@ export default function ReportsPage() {
       )}
 
       {selectedLesson && (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto border border-gray-100">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(15,10,40,0.45)', backdropFilter: 'blur(6px)' }}
+        >
+          <div
+            className="max-w-lg w-full max-h-[90vh] overflow-y-auto glass-modal"
+          >
             <div className="p-6">
               <div className="flex justify-between items-start mb-5">
-                <h3 className="text-base font-semibold text-gray-900">Detail Les</h3>
-                <button onClick={() => setSelectedLesson(null)} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                <h3 className="text-base font-bold" style={{ color: '#1e1b4b' }}>Detail Les</h3>
+                <button
+                  onClick={() => setSelectedLesson(null)}
+                  className="p-1.5 rounded-xl transition-all"
+                  style={{ color: '#9ca3af' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(99,102,241,0.08)'; e.currentTarget.style.color = '#6366f1' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#9ca3af' }}
+                >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                   </svg>
@@ -204,12 +217,12 @@ export default function ReportsPage() {
               <div className="space-y-3.5 text-sm">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <span className="text-xs text-gray-400 block mb-0.5">Tanggal</span>
-                    <p className="font-medium text-gray-900">{new Date(selectedLesson.tanggalLes).toLocaleDateString('id-ID')}</p>
+                    <span className="text-xs block mb-0.5" style={{ color: '#9ca3af' }}>Tanggal</span>
+                    <p className="font-semibold" style={{ color: '#1e1b4b' }}>{new Date(selectedLesson.tanggalLes).toLocaleDateString('id-ID')}</p>
                   </div>
                   <div>
-                    <span className="text-xs text-gray-400 block mb-0.5">Jam</span>
-                    <p className="font-medium text-gray-900">{selectedLesson.jamMulai} - {selectedLesson.jamSelesai}</p>
+                    <span className="text-xs block mb-0.5" style={{ color: '#9ca3af' }}>Jam</span>
+                    <p className="font-semibold" style={{ color: '#1e1b4b' }}>{selectedLesson.jamMulai} - {selectedLesson.jamSelesai}</p>
                   </div>
                 </div>
                 {[
@@ -219,47 +232,49 @@ export default function ReportsPage() {
                   ['Lokasi Mengajar', selectedLesson.lokasiMengajar],
                 ].map(([label, value]) => (
                   <div key={label}>
-                    <span className="text-xs text-gray-400 block mb-0.5">{label}</span>
-                    <p className="font-medium text-gray-900">{value}</p>
+                    <span className="text-xs block mb-0.5" style={{ color: '#9ca3af' }}>{label}</span>
+                    <p className="font-semibold" style={{ color: '#1e1b4b' }}>{value}</p>
                   </div>
                 ))}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <span className="text-xs text-gray-400 block mb-0.5">Kelas Murid</span>
-                    <p className="font-medium text-gray-900">{selectedLesson.kelasMurid || '-'}</p>
+                    <span className="text-xs block mb-0.5" style={{ color: '#9ca3af' }}>Kelas Murid</span>
+                    <p className="font-semibold" style={{ color: '#1e1b4b' }}>{selectedLesson.kelasMurid || '-'}</p>
                   </div>
                   <div>
-                    <span className="text-xs text-gray-400 block mb-0.5">Jumlah Murid</span>
-                    <p className="font-medium text-gray-900">{selectedLesson.jumlahMurid}</p>
+                    <span className="text-xs block mb-0.5" style={{ color: '#9ca3af' }}>Jumlah Murid</span>
+                    <p className="font-semibold" style={{ color: '#1e1b4b' }}>{selectedLesson.jumlahMurid}</p>
                   </div>
                 </div>
                 <div>
-                  <span className="text-xs text-gray-400 block mb-0.5">Nama Murid</span>
-                  <p className="font-medium text-gray-900">{selectedLesson.namaMurid}</p>
+                  <span className="text-xs block mb-0.5" style={{ color: '#9ca3af' }}>Nama Murid</span>
+                  <p className="font-semibold" style={{ color: '#1e1b4b' }}>{selectedLesson.namaMurid}</p>
                 </div>
                 <div>
-                  <span className="text-xs text-gray-400 block mb-0.5">Catatan / Materi</span>
-                  <p className="font-medium text-gray-900 whitespace-pre-wrap">{selectedLesson.catatanMateri}</p>
+                  <span className="text-xs block mb-0.5" style={{ color: '#9ca3af' }}>Catatan / Materi</span>
+                  <p className="font-medium whitespace-pre-wrap" style={{ color: '#374151' }}>{selectedLesson.catatanMateri}</p>
                 </div>
                 {selectedLesson.fotoUrl && (
                   <div>
-                    <span className="text-xs text-gray-400 block mb-0.5">Foto</span>
-                    <p className="font-medium text-gray-900">{selectedLesson.fotoUrl}</p>
+                    <span className="text-xs block mb-0.5" style={{ color: '#9ca3af' }}>Foto</span>
+                    <p className="font-medium" style={{ color: '#374151' }}>{selectedLesson.fotoUrl}</p>
                   </div>
                 )}
                 <div>
-                  <span className="text-xs text-gray-400 block mb-0.5">Wali Murid</span>
-                  <p className="font-medium text-gray-900">{selectedLesson.namaWaliMurid}</p>
+                  <span className="text-xs block mb-0.5" style={{ color: '#9ca3af' }}>Wali Murid</span>
+                  <p className="font-semibold" style={{ color: '#1e1b4b' }}>{selectedLesson.namaWaliMurid}</p>
                 </div>
                 {selectedLesson.whatsappWaliMurid && (
                   <div>
-                    <span className="text-xs text-gray-400 block mb-0.5">WhatsApp Wali Murid</span>
-                    <p className="font-medium text-gray-900">{selectedLesson.whatsappWaliMurid}</p>
+                    <span className="text-xs block mb-0.5" style={{ color: '#9ca3af' }}>WhatsApp Wali Murid</span>
+                    <p className="font-semibold" style={{ color: '#1e1b4b' }}>{selectedLesson.whatsappWaliMurid}</p>
                   </div>
                 )}
               </div>
               <div className="mt-6 flex justify-end">
-                <button onClick={() => setSelectedLesson(null)} className="bg-gray-100 text-gray-700 px-4 py-2.5 rounded-xl hover:bg-gray-200 text-sm font-medium transition-colors">Tutup</button>
+                <button onClick={() => setSelectedLesson(null)} className="btn-secondary">
+                  Tutup
+                </button>
               </div>
             </div>
           </div>

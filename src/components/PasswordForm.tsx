@@ -37,13 +37,8 @@ export default function PasswordForm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ currentPassword, newPassword }),
       })
-
       const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Gagal ubah password')
-      }
-
+      if (!res.ok) throw new Error(data.error || 'Gagal ubah password')
       setMessage('Password berhasil diubah!')
       setCurrentPassword('')
       setNewPassword('')
@@ -55,14 +50,19 @@ export default function PasswordForm() {
     }
   }
 
+  const isSuccess = message.includes('berhasil')
+
   return (
     <>
       {message && (
-        <div className={`mb-4 p-3 rounded-lg text-sm font-medium ${
-          message.includes('berhasil')
-            ? 'bg-green-50 text-green-700 border border-green-200'
-            : 'bg-red-50 text-red-700 border border-red-200'
-        }`}>
+        <div
+          className="mb-4 p-3.5 rounded-xl text-sm font-medium"
+          style={{
+            background: isSuccess ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)',
+            color: isSuccess ? '#065f46' : '#991b1b',
+            border: `1px solid ${isSuccess ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}`,
+          }}
+        >
           {message}
         </div>
       )}
@@ -70,14 +70,14 @@ export default function PasswordForm() {
       <form onSubmit={handleSubmit}>
         <div className="space-y-4 max-w-md">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Password Saat Ini</label>
+            <label className="block text-sm font-semibold mb-1.5" style={{ color: '#374151' }}>Password Saat Ini</label>
             <div className="relative">
               <input
                 type={showCurrentPassword ? 'text' : 'password'}
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 required
-                className="w-full px-3.5 py-2.5 pr-12 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white transition-all"
+                className="glass-input pr-12"
               />
               <PasswordVisibilityToggle
                 visible={showCurrentPassword}
@@ -88,7 +88,7 @@ export default function PasswordForm() {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Password Baru</label>
+            <label className="block text-sm font-semibold mb-1.5" style={{ color: '#374151' }}>Password Baru</label>
             <div className="relative">
               <input
                 type={showNewPassword ? 'text' : 'password'}
@@ -96,7 +96,7 @@ export default function PasswordForm() {
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
                 minLength={8}
-                className="w-full px-3.5 py-2.5 pr-12 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white transition-all"
+                className="glass-input pr-12"
               />
               <PasswordVisibilityToggle
                 visible={showNewPassword}
@@ -108,7 +108,7 @@ export default function PasswordForm() {
             <PasswordStrength password={newPassword} className="mt-3" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Konfirmasi Password Baru</label>
+            <label className="block text-sm font-semibold mb-1.5" style={{ color: '#374151' }}>Konfirmasi Password Baru</label>
             <div className="relative">
               <input
                 type={showConfirmPassword ? 'text' : 'password'}
@@ -116,7 +116,7 @@ export default function PasswordForm() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 minLength={8}
-                className="w-full px-3.5 py-2.5 pr-12 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white transition-all"
+                className="glass-input pr-12"
               />
               <PasswordVisibilityToggle
                 visible={showConfirmPassword}
@@ -126,11 +126,7 @@ export default function PasswordForm() {
               />
             </div>
           </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="bg-blue-600 text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 disabled:opacity-50 text-sm font-medium transition-colors"
-          >
+          <button type="submit" disabled={loading} className="btn-primary">
             {loading ? 'Mengubah...' : 'Ubah Password'}
           </button>
         </div>

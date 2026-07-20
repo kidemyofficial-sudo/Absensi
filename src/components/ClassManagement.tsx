@@ -80,6 +80,8 @@ export default function ClassManagement() {
     return acc
   }, {} as Record<string, BranchTeacher[]>)
 
+  const isSuccess = message.includes('berhasil')
+
   return (
     <>
       <ConfirmDialog
@@ -93,48 +95,52 @@ export default function ClassManagement() {
       />
 
       {message && (
-        <div className={`mb-4 p-3 rounded-xl text-sm font-medium border ${
-          message.includes('berhasil')
-            ? 'bg-green-50 text-green-700 border-green-200'
-            : 'bg-red-50 text-red-700 border-red-200'
-        }`}>
+        <div
+          className="mb-4 p-3.5 rounded-xl text-sm font-medium border"
+          style={{
+            background: isSuccess ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)',
+            color: isSuccess ? '#065f46' : '#991b1b',
+            borderColor: isSuccess ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)',
+          }}
+        >
           {message}
         </div>
       )}
 
       <div className="flex justify-between items-center mb-4">
-        <p className="text-sm text-gray-500">
-          Total: {Object.keys(groupedByCabang).length} cabang, {branchTeachers.length} mapping guru
+        <p className="text-xs font-semibold" style={{ color: '#9ca3af' }}>
+          Total: <span style={{ color: '#6366f1' }}>{Object.keys(groupedByCabang).length}</span> cabang, <span style={{ color: '#6366f1' }}>{branchTeachers.length}</span> guru
         </p>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 text-sm font-medium transition-colors"
+          className="btn-primary py-2 text-xs"
+          style={{ borderRadius: '12px' }}
         >
           {showForm ? 'Batal' : 'Tambah Cabang Daerah'}
         </button>
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-gray-50 p-4 rounded-2xl border border-gray-100 mb-4">
+        <form onSubmit={handleSubmit} className="p-4 rounded-xl border border-white/50 mb-4" style={{ background: 'rgba(255,255,255,0.4)' }}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Nama Cabang Daerah</label>
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4b5563' }}>Nama Cabang Daerah</label>
               <input
                 type="text"
                 value={formData.cabangDaerah}
                 onChange={(e) => setFormData({ ...formData, cabangDaerah: e.target.value })}
                 required
-                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white transition-all"
+                className="glass-input"
                 placeholder="contoh: Jakarta Pusat, Bandung Utara"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Guru Pengampu</label>
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4b5563' }}>Guru Pengampu</label>
               <select
                 value={formData.teacherId}
                 onChange={(e) => setFormData({ ...formData, teacherId: e.target.value })}
                 required
-                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white transition-all"
+                className="glass-input"
               >
                 <option value="">Pilih Guru</option>
                 {teachers.map((t) => (
@@ -145,7 +151,8 @@ export default function ClassManagement() {
           </div>
           <button
             type="submit"
-            className="bg-green-600 text-white px-4 py-2 rounded-xl hover:bg-green-700 text-sm font-medium transition-colors"
+            className="btn-primary py-2 text-xs"
+            style={{ background: 'linear-gradient(135deg,#10b981,#059669)', boxShadow: '0 4px 15px rgba(16,185,129,0.25)', borderRadius: '12px' }}
           >
             Simpan
           </button>
@@ -153,24 +160,24 @@ export default function ClassManagement() {
       )}
 
       {loading ? (
-        <p className="text-gray-400 text-sm">Loading...</p>
+        <p className="text-center py-6 text-sm" style={{ color: '#9ca3af' }}>Loading...</p>
       ) : Object.keys(groupedByCabang).length === 0 ? (
-        <p className="text-gray-400 text-sm">Belum ada cabang daerah yang dibuat</p>
+        <p className="text-center py-6 text-sm" style={{ color: '#9ca3af' }}>Belum ada cabang daerah yang dibuat</p>
       ) : (
         <div className="space-y-4">
           {Object.entries(groupedByCabang).map(([cabangDaerah, bts]) => (
-            <div key={cabangDaerah} className="border border-gray-100 rounded-2xl p-4">
-              <h4 className="font-semibold text-gray-900 mb-3">Cabang Daerah {cabangDaerah}</h4>
+            <div key={cabangDaerah} className="border border-white/50 rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.3)' }}>
+              <h4 className="font-bold mb-3 text-sm" style={{ color: '#1e1b4b' }}>Cabang Daerah {cabangDaerah}</h4>
               <div className="space-y-2">
                 {bts.map((bt) => (
-                  <div key={bt.id} className="flex justify-between items-center bg-gray-50 p-3 rounded-xl">
+                  <div key={bt.id} className="flex justify-between items-center p-3 rounded-xl border border-white/40" style={{ background: 'rgba(255,255,255,0.5)' }}>
                     <div>
-                      <p className="font-medium text-gray-900 text-sm">{bt.user.name}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">{bt.student.length} siswa terdaftar</p>
+                      <p className="font-semibold text-sm" style={{ color: '#1e1b4b' }}>{bt.user.name}</p>
+                      <p className="text-xs mt-0.5" style={{ color: '#8b5cf6' }}>{bt.student.length} siswa terdaftar</p>
                     </div>
                     <button
                       onClick={() => setDeleteConfirmId(bt.id)}
-                      className="text-sm text-red-600 hover:text-red-800 font-medium transition-colors"
+                      className="px-2 py-1 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-lg font-bold text-xs transition-colors"
                     >
                       Hapus
                     </button>

@@ -60,44 +60,44 @@ export default async function DashboardPage() {
       <div className="pb-10">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Selamat datang kembali, <span className="font-semibold text-gray-700">{user.name}</span> 👋
+          <h1 className="text-2xl font-bold" style={{ color: '#1e1b4b' }}>Dashboard</h1>
+          <p className="text-sm mt-1" style={{ color: '#6b7280' }}>
+            Selamat datang kembali, <span className="font-semibold" style={{ color: '#4b5563' }}>{user.name}</span> 👋
           </p>
         </div>
 
         {/* Stat Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {/* Siswa Aktif */}
-          <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all group">
+          <div className="glass-card p-5 hover:shadow-[0_16px_48px_rgba(99,102,241,0.18)] transition-all">
             <div className="flex items-center justify-between mb-4">
               <div className="w-11 h-11 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-[0_4px_12px_rgba(99,102,241,0.3)]">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-5.5 h-5.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5.5 h-5.5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
                 </svg>
               </div>
-              <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-lg uppercase tracking-wider">Aktif</span>
+              <span className="text-[10px] font-bold px-2 py-1 rounded-lg uppercase tracking-wider" style={{ background: 'rgba(99,102,241,0.1)', color: '#6366f1' }}>Aktif</span>
             </div>
-            <p className="text-xs font-semibold text-gray-400 mb-0.5">Siswa Aktif</p>
-            <p className="text-3xl font-bold text-gray-900 tracking-tight">{totalStudents}</p>
+            <p className="text-xs font-semibold mb-0.5" style={{ color: '#9ca3af' }}>Siswa Aktif</p>
+            <p className="text-3xl font-bold tracking-tight" style={{ color: '#1e1b4b' }}>{totalStudents}</p>
           </div>
 
           {/* Menunggu ACC */}
-          <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all group">
+          <div className="glass-card p-5 hover:shadow-[0_16px_48px_rgba(245,158,11,0.18)] transition-all">
             <div className="flex items-center justify-between mb-4">
               <div className="w-11 h-11 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-[0_4px_12px_rgba(245,158,11,0.3)]">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-5.5 h-5.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5.5 h-5.5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
               {pendingStudents > 0 && (
-                <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-lg uppercase tracking-wider animate-pulse">Review!</span>
+                <span className="text-[10px] font-bold px-2 py-1 rounded-lg uppercase tracking-wider animate-pulse" style={{ background: 'rgba(245,158,11,0.1)', color: '#d97706' }}>Review!</span>
               )}
             </div>
-            <p className="text-xs font-semibold text-gray-400 mb-0.5">Menunggu ACC</p>
-            <p className="text-3xl font-bold text-gray-900 tracking-tight">{pendingStudents}</p>
+            <p className="text-xs font-semibold mb-0.5" style={{ color: '#9ca3af' }}>Menunggu ACC</p>
+            <p className="text-3xl font-bold tracking-tight" style={{ color: '#1e1b4b' }}>{pendingStudents}</p>
             {pendingStudents > 0 && (
-              <Link href="/students?status=PENDING" className="mt-2 inline-flex items-center gap-1 text-xs text-amber-600 hover:text-amber-800 font-semibold transition-colors">
+              <Link href="/students?status=PENDING" className="mt-2 inline-flex items-center gap-1 text-xs font-semibold transition-colors" style={{ color: '#d97706' }}>
                 Review sekarang
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
@@ -107,31 +107,31 @@ export default async function DashboardPage() {
           </div>
 
           {/* Total Guru */}
-          <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all group">
+          <div className="glass-card p-5 hover:shadow-[0_16px_48px_rgba(16,185,129,0.18)] transition-all">
             <div className="flex items-center justify-between mb-4">
               <div className="w-11 h-11 bg-gradient-to-br from-emerald-400 to-teal-600 rounded-2xl flex items-center justify-center shadow-[0_4px_12px_rgba(16,185,129,0.3)]">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-5.5 h-5.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5.5 h-5.5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                 </svg>
               </div>
-              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg uppercase tracking-wider">Guru</span>
+              <span className="text-[10px] font-bold px-2 py-1 rounded-lg uppercase tracking-wider" style={{ background: 'rgba(16,185,129,0.1)', color: '#10b981' }}>Guru</span>
             </div>
-            <p className="text-xs font-semibold text-gray-400 mb-0.5">Total Guru</p>
-            <p className="text-3xl font-bold text-gray-900 tracking-tight">{totalTeachers}</p>
+            <p className="text-xs font-semibold mb-0.5" style={{ color: '#9ca3af' }}>Total Guru</p>
+            <p className="text-3xl font-bold tracking-tight" style={{ color: '#1e1b4b' }}>{totalTeachers}</p>
           </div>
 
           {/* Absensi Hari Ini */}
-          <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all group">
+          <div className="glass-card p-5 hover:shadow-[0_16px_48px_rgba(139,92,246,0.18)] transition-all">
             <div className="flex items-center justify-between mb-4">
               <div className="w-11 h-11 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-[0_4px_12px_rgba(139,92,246,0.3)]">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-5.5 h-5.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5.5 h-5.5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                 </svg>
               </div>
-              <span className="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded-lg uppercase tracking-wider">Hari Ini</span>
+              <span className="text-[10px] font-bold px-2 py-1 rounded-lg uppercase tracking-wider" style={{ background: 'rgba(139,92,246,0.1)', color: '#8b5cf6' }}>Hari Ini</span>
             </div>
-            <p className="text-xs font-semibold text-gray-400 mb-0.5">Absensi Hari Ini</p>
-            <p className="text-3xl font-bold text-gray-900 tracking-tight">{todayAttendance}</p>
+            <p className="text-xs font-semibold mb-0.5" style={{ color: '#9ca3af' }}>Absensi Hari Ini</p>
+            <p className="text-3xl font-bold tracking-tight" style={{ color: '#1e1b4b' }}>{todayAttendance}</p>
           </div>
         </div>
 
@@ -167,14 +167,14 @@ export default async function DashboardPage() {
 
         {/* Guru Revenue Table */}
         {guruRevenues.length > 0 && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm mb-6 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
-              <div className="w-8 h-8 bg-green-50 rounded-xl flex items-center justify-center text-green-600">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-4.5 h-4.5 stroke-green-600 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <div className="glass-card mb-6 overflow-hidden">
+            <div className="px-6 py-4 flex items-center gap-3" style={{ borderBottom: '1px solid rgba(229,231,235,0.4)' }}>
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: 'rgba(16,185,129,0.1)' }}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="#10b981" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75" />
                 </svg>
               </div>
-              <h3 className="text-sm font-semibold text-gray-900">Pendapatan Per Guru — {monthName}</h3>
+              <h3 className="text-sm font-bold" style={{ color: '#1e1b4b' }}>Pendapatan Per Guru — {monthName}</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -196,12 +196,12 @@ export default async function DashboardPage() {
                           {g.namaGuru}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600 font-medium">
-                        <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-700 px-2.5 py-1 rounded-lg text-xs font-semibold">
+                      <td className="px-6 py-4 text-sm font-medium" style={{ color: '#6b7280' }}>
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold" style={{ background: 'rgba(243,244,246,0.5)', color: '#374151' }}>
                           {g.count} sesi
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm font-bold text-emerald-600">{fmt(g.total)}</td>
+                      <td className="px-6 py-4 text-sm font-bold" style={{ color: '#10b981' }}>{fmt(g.total)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -212,40 +212,40 @@ export default async function DashboardPage() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Link href="/students" className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-blue-100 transition-all group">
+          <Link href="/students" className="glass-card p-5 hover:shadow-[0_16px_48px_rgba(99,102,241,0.18)] transition-all group" style={{ textDecoration: 'none' }}>
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center group-hover:bg-blue-100 transition-colors text-blue-600">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 stroke-blue-600 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-all" style={{ background: 'rgba(99,102,241,0.08)' }}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="#6366f1" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
                 </svg>
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">Kelola Siswa</h3>
-                <p className="text-xs text-gray-400 font-medium">ACC pendaftaran, assign cabang & guru</p>
+                <h3 className="text-sm font-bold" style={{ color: '#1e1b4b' }}>Kelola Siswa</h3>
+                <p className="text-xs font-medium" style={{ color: '#9ca3af' }}>ACC pendaftaran, assign cabang &amp; guru</p>
               </div>
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-blue-600 font-semibold group-hover:gap-2.5 transition-all">
+            <div className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: '#6366f1' }}>
               <span>Buka Daftar Siswa</span>
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 stroke-blue-600 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="#6366f1" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
               </svg>
             </div>
           </Link>
-          <Link href="/reports" className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-green-100 transition-all group">
+          <Link href="/reports" className="glass-card p-5 hover:shadow-[0_16px_48px_rgba(16,185,129,0.18)] transition-all group" style={{ textDecoration: 'none' }}>
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center group-hover:bg-green-100 transition-colors text-green-600">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 stroke-green-600 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-all" style={{ background: 'rgba(16,185,129,0.08)' }}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="#10b981" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
                 </svg>
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-gray-900 group-hover:text-green-700 transition-colors">Laporan Absensi</h3>
-                <p className="text-xs text-gray-400 font-medium">Rekap kehadiran lengkap semua siswa</p>
+                <h3 className="text-sm font-bold" style={{ color: '#1e1b4b' }}>Laporan Absensi</h3>
+                <p className="text-xs font-medium" style={{ color: '#9ca3af' }}>Rekap kehadiran lengkap semua siswa</p>
               </div>
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-green-600 font-semibold group-hover:gap-2.5 transition-all">
+            <div className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: '#10b981' }}>
               <span>Lihat Laporan</span>
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 stroke-green-600 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="#10b981" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
               </svg>
             </div>
@@ -294,9 +294,9 @@ export default async function DashboardPage() {
       <div className="pb-10">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Selamat datang kembali, <span className="font-semibold text-gray-700">{user.name}</span> 👋
+          <h1 className="text-2xl font-bold" style={{ color: '#1e1b4b' }}>Dashboard</h1>
+          <p className="text-sm mt-1" style={{ color: '#6b7280' }}>
+            Selamat datang kembali, <span className="font-semibold" style={{ color: '#4b5563' }}>{user.name}</span> 👋
           </p>
         </div>
 
@@ -304,28 +304,28 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
 
           {/* Cabang Daerah */}
-          <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+          <div className="glass-card p-5">
             <div className="flex items-center gap-3 mb-5">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-[0_4px_12px_rgba(99,102,241,0.3)]">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
                 </svg>
               </div>
-              <h3 className="text-sm font-semibold text-gray-900">Cabang Daerah Yang Diampu</h3>
+              <h3 className="text-sm font-bold" style={{ color: '#1e1b4b' }}>Cabang Daerah Yang Diampu</h3>
             </div>
             {branchTeachers.length === 0 ? (
               <div className="text-center py-6">
-                <p className="text-sm text-gray-400 font-medium italic">Belum ada cabang yang ditugaskan</p>
+                <p className="text-sm font-medium italic" style={{ color: '#9ca3af' }}>Belum ada cabang yang ditugaskan</p>
               </div>
             ) : (
               <ul className="space-y-2.5">
                 {branchTeachers.map((bt) => (
-                  <li key={bt.cabangDaerah} className="flex justify-between items-center p-3.5 bg-gray-50 hover:bg-blue-50/50 rounded-xl transition-colors">
+                  <li key={bt.cabangDaerah} className="flex justify-between items-center p-3.5 rounded-xl transition-colors" style={{ background: 'rgba(99,102,241,0.05)' }}>
                     <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" />
-                      <span className="text-sm text-gray-800 font-semibold">{bt.cabangDaerah}</span>
+                      <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: '#6366f1' }} />
+                      <span className="text-sm font-semibold" style={{ color: '#1e1b4b' }}>{bt.cabangDaerah}</span>
                     </div>
-                    <span className="text-xs font-bold text-blue-600 bg-blue-50 border border-blue-100 px-3 py-1 rounded-xl">
+                    <span className="text-xs font-bold px-3 py-1 rounded-xl" style={{ background: 'rgba(99,102,241,0.1)', color: '#6366f1' }}>
                       {bt._count.student} siswa
                     </span>
                   </li>
@@ -335,21 +335,22 @@ export default async function DashboardPage() {
           </div>
 
           {/* Absensi Hari Ini */}
-          <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
+          <div className="glass-card p-5 flex flex-col justify-between">
             <div className="flex items-center gap-3 mb-5">
               <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-rose-500 rounded-2xl flex items-center justify-center shadow-[0_4px_12px_rgba(249,115,22,0.3)]">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                 </svg>
               </div>
-              <h3 className="text-sm font-semibold text-gray-900">Absensi Hari Ini</h3>
+              <h3 className="text-sm font-bold" style={{ color: '#1e1b4b' }}>Absensi Hari Ini</h3>
             </div>
             <div>
-              <p className="text-5xl font-bold text-gray-900 mb-1 tracking-tight">{todayAttendances}</p>
-              <p className="text-sm text-gray-500 mb-5">siswa sudah tercatat</p>
+              <p className="text-5xl font-bold mb-1 tracking-tight" style={{ color: '#1e1b4b' }}>{todayAttendances}</p>
+              <p className="text-sm mb-5" style={{ color: '#6b7280' }}>siswa sudah tercatat</p>
               <Link
                 href="/attendance"
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-2.5 rounded-xl hover:from-blue-700 hover:to-indigo-700 text-sm font-semibold transition-all shadow-[0_4px_12px_rgba(99,102,241,0.2)] hover:shadow-[0_6px_16px_rgba(99,102,241,0.3)] hover:scale-[1.01]"
+                className="inline-flex items-center gap-2 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all"
+                style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', boxShadow: '0 4px 15px rgba(99,102,241,0.35)' }}
               >
                 Input Absensi
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -394,43 +395,46 @@ export default async function DashboardPage() {
         </div>
 
         {/* Aplikasi Pendukung */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+        <div className="glass-card p-5">
           <div className="flex items-center gap-3 mb-5">
-            <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 stroke-indigo-600 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(99,102,241,0.08)' }}>
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="#6366f1" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V6.75m-12 0H18m-12 0h.008" />
               </svg>
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-gray-900">Aplikasi Pendukung Pembelajaran</h3>
-              <p className="text-xs text-gray-400 font-medium">Tools terbaik untuk mengajar lebih efektif</p>
+              <h3 className="text-sm font-bold" style={{ color: '#1e1b4b' }}>Aplikasi Pendukung Pembelajaran</h3>
+              <p className="text-xs font-medium" style={{ color: '#9ca3af' }}>Tools terbaik untuk mengajar lebih efektif</p>
             </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {[
-              { href: 'https://calendar.google.com', domain: 'calendar.google.com', name: 'Google Calendar', desc: 'Jadwal les', hoverBg: 'hover:bg-blue-50' },
-              { href: 'https://chat.openai.com',     domain: 'chat.openai.com',     name: 'ChatGPT',         desc: 'Asisten AI',         hoverBg: 'hover:bg-green-50' },
-              { href: 'https://www.canva.com',       domain: 'canva.com',            name: 'Canva',           desc: 'Desain materi',      hoverBg: 'hover:bg-purple-50' },
-              { href: 'https://drive.google.com',    domain: 'drive.google.com',     name: 'Google Drive',   desc: 'Penyimpanan file',   hoverBg: 'hover:bg-yellow-50' },
-              { href: 'https://zoom.us',             domain: 'zoom.us',              name: 'Zoom',            desc: 'Video meeting',      hoverBg: 'hover:bg-blue-50' },
-              { href: 'https://meet.google.com',     domain: 'meet.google.com',      name: 'Google Meet',    desc: 'Video call',         hoverBg: 'hover:bg-red-50' },
-              { href: 'https://quizizz.com',         domain: 'quizizz.com',          name: 'Quizizz',         desc: 'Kuis interaktif',    hoverBg: 'hover:bg-orange-50' },
-              { href: 'https://www.khanacademy.org', domain: 'khanacademy.org',      name: 'Khan Academy',   desc: 'Belajar online',     hoverBg: 'hover:bg-teal-50' },
+              { href: 'https://calendar.google.com', domain: 'calendar.google.com', name: 'Google Calendar', desc: 'Jadwal les' },
+              { href: 'https://chat.openai.com',     domain: 'chat.openai.com',     name: 'ChatGPT',         desc: 'Asisten AI' },
+              { href: 'https://www.canva.com',       domain: 'canva.com',            name: 'Canva',           desc: 'Desain materi' },
+              { href: 'https://drive.google.com',    domain: 'drive.google.com',     name: 'Google Drive',   desc: 'Penyimpanan file' },
+              { href: 'https://zoom.us',             domain: 'zoom.us',              name: 'Zoom',            desc: 'Video meeting' },
+              { href: 'https://meet.google.com',     domain: 'meet.google.com',      name: 'Google Meet',    desc: 'Video call' },
+              { href: 'https://quizizz.com',         domain: 'quizizz.com',          name: 'Quizizz',         desc: 'Kuis interaktif' },
+              { href: 'https://www.khanacademy.org', domain: 'khanacademy.org',      name: 'Khan Academy',   desc: 'Belajar online' },
             ].map((app) => (
               <a
                 key={app.domain}
                 href={app.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`flex items-center gap-3 p-3.5 bg-gray-50 rounded-xl ${app.hoverBg} hover:shadow-sm transition-all group`}
+                className="flex items-center gap-3 p-3.5 rounded-xl transition-all"
+                style={{ background: 'rgba(99,102,241,0.04)' }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(99,102,241,0.08)' }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(99,102,241,0.04)' }}
               >
-                <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center shadow-sm flex-shrink-0 group-hover:shadow-md transition-shadow">
+                <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center shadow-sm flex-shrink-0" style={{ border: '1px solid rgba(229,231,235,0.5)' }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={`https://www.google.com/s2/favicons?domain=${app.domain}&sz=64`} alt={app.name} className="w-6 h-6 rounded" />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-gray-900">{app.name}</p>
-                  <p className="text-[10px] text-gray-400 font-medium mt-0.5">{app.desc}</p>
+                  <p className="text-xs font-semibold" style={{ color: '#1e1b4b' }}>{app.name}</p>
+                  <p className="text-[10px] font-medium mt-0.5" style={{ color: '#9ca3af' }}>{app.desc}</p>
                 </div>
               </a>
             ))}
@@ -486,9 +490,9 @@ export default async function DashboardPage() {
       <div className="pb-10">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Selamat datang kembali, <span className="font-semibold text-gray-700">{user.name}</span> 👋
+          <h1 className="text-2xl font-bold" style={{ color: '#1e1b4b' }}>Dashboard</h1>
+          <p className="text-sm mt-1" style={{ color: '#6b7280' }}>
+            Selamat datang kembali, <span className="font-semibold" style={{ color: '#4b5563' }}>{user.name}</span> 👋
           </p>
         </div>
 
@@ -508,7 +512,7 @@ export default async function DashboardPage() {
                 const att = attendance ? (attendanceConfig[attendance.status as keyof typeof attendanceConfig] ?? null) : null
 
                 return (
-                  <div key={child.id} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all">
+                  <div key={child.id} className="glass-card p-5 hover:shadow-[0_16px_48px_rgba(99,102,241,0.18)] transition-all">
                     {/* Child Header */}
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex items-center gap-3">
@@ -516,8 +520,8 @@ export default async function DashboardPage() {
                           {child.name.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <p className="font-bold text-sm text-gray-900">{child.name}</p>
-                          <p className="text-xs text-gray-400 font-medium mt-0.5">{child.asalSekolah}</p>
+                          <p className="font-bold text-sm" style={{ color: '#1e1b4b' }}>{child.name}</p>
+                          <p className="text-xs font-medium mt-0.5" style={{ color: '#9ca3af' }}>{child.asalSekolah}</p>
                         </div>
                       </div>
                       <span className={`text-[10px] font-bold px-2.5 py-1 rounded-xl border ${st.bg} ${st.text} ${st.border}`}>
@@ -526,32 +530,32 @@ export default async function DashboardPage() {
                     </div>
 
                     {/* Info Grid */}
-                    <div className="space-y-1.5 text-xs text-gray-500">
+                    <div className="space-y-1.5 text-xs" style={{ color: '#6b7280' }}>
                       <div className="flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 stroke-blue-500 text-blue-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="#6366f1" strokeWidth={1.5}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
                         </svg>
-                        <span className="font-medium text-gray-600">{child.ttl}</span>
+                        <span className="font-medium" style={{ color: '#4b5563' }}>{child.ttl}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 stroke-indigo-500 text-indigo-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="#8b5cf6" strokeWidth={1.5}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
                           <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
                         </svg>
-                        <span className="font-medium text-gray-600">{child.domisili}</span>
+                        <span className="font-medium" style={{ color: '#4b5563' }}>{child.domisili}</span>
                       </div>
                       {child.cabangDaerah && (
                         <div className="flex items-center gap-2">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 stroke-purple-500 text-purple-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="#8b5cf6" strokeWidth={1.5}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342" />
                           </svg>
-                          <span className="font-medium text-gray-600">Cabang: {child.cabangDaerah}</span>
+                          <span className="font-medium" style={{ color: '#4b5563' }}>Cabang: {child.cabangDaerah}</span>
                         </div>
                       )}
                     </div>
 
                     {/* Attendance Today */}
-                    <div className="mt-4 pt-4 border-t border-gray-100">
+                    <div className="mt-4 pt-4" style={{ borderTop: '1px solid rgba(229,231,235,0.4)' }}>
                       {att ? (
                         <div className={`flex items-center gap-2 px-3 py-2.5 rounded-xl ${att.bg}`}>
                           <span className={`w-2 h-2 rounded-full ${att.dot} flex-shrink-0`} />
@@ -561,9 +565,9 @@ export default async function DashboardPage() {
                           )}
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-gray-50">
-                          <span className="w-2 h-2 rounded-full bg-gray-300 flex-shrink-0" />
-                          <span className="text-xs font-semibold text-gray-400">Belum ada absensi hari ini</span>
+                        <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl" style={{ background: 'rgba(99,102,241,0.04)' }}>
+                          <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: '#d1d5db' }} />
+                          <span className="text-xs font-semibold" style={{ color: '#9ca3af' }}>Belum ada absensi hari ini</span>
                         </div>
                       )}
                     </div>
@@ -575,17 +579,17 @@ export default async function DashboardPage() {
         )}
 
         {/* Registration Form */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50/30">
+        <div className="glass-card overflow-hidden">
+          <div className="px-6 py-5" style={{ borderBottom: '1px solid rgba(229,231,235,0.4)', background: 'linear-gradient(135deg, rgba(99,102,241,0.04) 0%, rgba(139,92,246,0.04) 100%)' }}>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-[0_4px_12px_rgba(99,102,241,0.3)]">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
                 </svg>
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-gray-900">Daftarkan Siswa Baru</h3>
-                <p className="text-xs text-gray-500 mt-0.5">
+                <h3 className="text-sm font-bold" style={{ color: '#1e1b4b' }}>Daftarkan Siswa Baru</h3>
+                <p className="text-xs mt-0.5" style={{ color: '#6b7280' }}>
                   Isi formulir di bawah. Setelah dikirim, tunggu persetujuan dari Admin.
                 </p>
               </div>
