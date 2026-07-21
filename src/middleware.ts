@@ -32,6 +32,11 @@ export async function middleware(request: NextRequest) {
     const session = await verifyToken(token)
     if (session) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
+    } else {
+      // Stale/expired token: clear cookie and allow access to auth route
+      const response = NextResponse.next()
+      response.cookies.delete('token')
+      return response
     }
   }
 
@@ -41,7 +46,9 @@ export async function middleware(request: NextRequest) {
     if (!session) {
       const loginUrl = new URL('/login', request.url)
       loginUrl.searchParams.set('from', pathname)
-      return NextResponse.redirect(loginUrl)
+      const response = NextResponse.redirect(loginUrl)
+      response.cookies.delete('token')
+      return response
     }
 
     // Check role-based access

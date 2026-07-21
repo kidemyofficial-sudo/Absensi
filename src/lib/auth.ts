@@ -26,7 +26,7 @@ export async function createToken(payload: JWTPayload): Promise<string> {
   return new SignJWT(payload as unknown as Record<string, unknown>)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
-    .setExpirationTime('2h') // Dikurangi dari 7 hari ke 2 jam
+    .setExpirationTime('7d')
     .sign(secretKey)
 }
 
@@ -97,9 +97,9 @@ export async function setTokenCookie(token: string) {
   const cookieStore = await cookies()
   cookieStore.set('token', token, {
     httpOnly: true,
-    secure: true, // Selalu true — tidak conditional
-    sameSite: 'strict', // Ubah dari 'lax' ke 'strict'
-    maxAge: 60 * 60 * 2, // 2 jam (dikurangi dari 7 hari)
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax', // 'strict' menyebabkan cookie tidak dikirim saat redirect → redirect loop
+    maxAge: 60 * 60 * 24 * 7, // 7 hari
     path: '/',
   })
 }
@@ -108,8 +108,8 @@ export async function clearTokenCookie() {
   const cookieStore = await cookies()
   cookieStore.set('token', '', {
     httpOnly: true,
-    secure: true, // Selalu true
-    sameSite: 'strict',
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
     maxAge: 0,
     path: '/',
   })
