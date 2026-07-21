@@ -164,43 +164,12 @@ export default function AttendancePage() {
 
     const namaMurid = selectedStudent.name
 
-    // Upload image via server API route (/api/upload) if selected
-    let uploadedFotoUrl = ''
-    if (selectedFile) {
-      setMessage({ type: 'info', text: 'Mengunggah foto les...' })
-      try {
-        const formData = new FormData()
-        formData.append('file', selectedFile)
-        const uploadRes = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData,
-        })
+    // Format tanggal Indonesia
+    const tglFormatted = new Date(tanggalLes + 'T00:00:00').toLocaleDateString('id-ID', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+    })
 
-        if (uploadRes.ok) {
-          const uploadData = await uploadRes.json()
-          if (uploadData.url) {
-            uploadedFotoUrl = uploadData.url
-          }
-        } else {
-          const errData = await uploadRes.json().catch(() => ({ error: 'Gagal upload' }))
-          console.error('Failed to upload image:', errData.error)
-        }
-      } catch (err) {
-        console.error('Failed to upload image:', err)
-      }
-
-      if (!uploadedFotoUrl) {
-        const proceedWithoutPhoto = window.confirm(
-          'Gagal mengunggah foto les. Apakah Anda ingin tetap mengirim laporan absensi tanpa foto?'
-        )
-        if (!proceedWithoutPhoto) {
-          setMessage({ type: 'error', text: 'Pengiriman absensi dibatalkan karena foto gagal diunggah.' })
-          setSaving(false)
-          return
-        }
-      }
-    }
-
+    // Simpan data les ke database (foto tidak disimpan di server)
     try {
       const res = await fetch('/api/lessons', {
         method: 'POST',
@@ -209,7 +178,7 @@ export default function AttendancePage() {
           tanggalLes, jenisPembelajaran: resolvedJenisPembelajaran, lokasiMengajar, kelasMurid,
           jumlahMurid: 1,
           namaMurid, catatanMateri: trimmedCatatanMateri, kritikSaran: trimmedKritikSaran || null,
-          fotoUrl: uploadedFotoUrl || null,
+          fotoUrl: null, // Foto dikirim langsung via WA, tidak disimpan di sistem
           jamMulai, jamSelesai,
           namaWaliMurid: trimmedNamaWaliMurid, whatsappWaliMurid: trimmedWhatsappWaliMurid || null,
           studentId: selectedStudentId,
@@ -217,40 +186,74 @@ export default function AttendancePage() {
       })
       const data = await res.json()
       if (res.ok) {
-        // Format pesan WA
-        const waMessage = encodeURIComponent(
-          `📋 *Laporan Absensi Les*\n\n` +
-          `📅 Tanggal: ${tanggalLes}\n` +
-          `👤 Tutor: ${user?.name}\n` +
-          `📱 WA Tutor: ${user?.phone}\n` +
-          `📚 Mata Pelajaran/Topik: ${resolvedJenisPembelajaran}\n` +
-          `📍 Lokasi: ${lokasiMengajar}\n` +
-          `🏫 Kelas: ${kelasMurid}\n` +
-          `👨‍🎓 Murid: ${namaMurid}\n` +
-          `🕐 Jam: ${jamMulai} - ${jamSelesai}\n` +
-          `📝 Rangkuman Aktivitas: ${trimmedCatatanMateri}\n` +
-          (trimmedKritikSaran ? `💡 Catatan Perkembangan/Kendala: ${trimmedKritikSaran}\n` : '') +
-          `👨‍👩‍👦 Wali: ${trimmedNamaWaliMurid}\n` +
-          (trimmedWhatsappWaliMurid ? `📱 WA Wali: ${trimmedWhatsappWaliMurid}\n` : '') +
-          (uploadedFotoUrl ? `\n📸 Foto Kegiatan:\n${uploadedFotoUrl}` : '')
-        )
+        // === FORMAT PESAN WA PROFESIONAL ===
+        const separator = '━━━━━━━━━━━━━━━━━━━━'
+        const waText =
+          `*LAPORAN ABSENSI LES*\n` +
+          `*Kidemy Education*\n` +
+          `${separator}\n\n` +
+          `📅 *Tanggal:* ${tglFormatted}\n` +
+          `🕐 *Jam:* ${jamMulai} - ${jamSelesai}\n\n` +
+          `${separator}\n` +
+          `*📚 DETAIL LES*\n` +
+          `${separator}\n` +
+          `• Mata Pelajaran : ${resolvedJenisPembelajaran}\n` +
+          `• Lokasi         : ${lokasiMengajar}\n` +
+          `• Kelas          : ${kelasMurid}\n\n` +
+          `${separator}\n` +
+          `*👨‍🎓 DATA MURID*\n` +
+          `${separator}\n` +
+          `• Nama           : ${namaMurid}\n` +
+          `• Wali Murid     : ${trimmedNamaWaliMurid}\n` +
+          (trimmedWhatsappWaliMurid ? `• No. WA Wali    : ${trimmedWhatsappWaliMurid}\n` : '') +
+          `\n${separator}\n` +
+          `*👨‍🏫 DATA TUTOR*\n` +
+          `${separator}\n` +
+          `• Nama           : ${user?.name}\n` +
+          `• No. WA         : ${user?.phone}\n\n` +
+          `${separator}\n` +
+          `*📝 CATATAN MATERI*\n` +
+          `${separator}\n` +
+          `${trimmedCatatanMateri}\n` +
+          (trimmedKritikSaran
+            ? `\n${separator}\n` +
+              `*💡 PERKEMBANGAN & KENDALA*\n` +
+              `${separator}\n` +
+              `${trimmedKritikSaran}\n`
+            : '') +
+          `\n${separator}\n` +
+          `_Dikirim via Sistem Absensi Kidemy_` +
+          (selectedFile ? `\n_📸 Foto kegiatan terlampir_` : '')
 
         const cleanAdminPhone = formatWhatsAppNumber(ADMIN_WA)
-        const adminLink = `https://wa.me/${cleanAdminPhone}?text=${waMessage}`
-
-        // Otomatis buka chat WA admin
-        if (cleanAdminPhone) {
-          window.open(adminLink, '_blank')
-        }
-
-        // Set link untuk halaman sukses
+        const adminLink = `https://wa.me/${cleanAdminPhone}?text=${encodeURIComponent(waText)}`
         setSubmittedLinks({ admin: adminLink })
         setMessage({ type: 'success', text: 'Absensi berhasil disimpan!' })
+
+        // Kirim langsung via native share (membawa foto) jika didukung browser/HP
+        const canNativeShare = !!selectedFile &&
+          typeof navigator.share === 'function' &&
+          typeof navigator.canShare === 'function' &&
+          navigator.canShare({ files: [selectedFile] })
+
+        if (canNativeShare && selectedFile) {
+          try {
+            await navigator.share({ text: waText, files: [selectedFile] })
+          } catch (shareErr) {
+            // AbortError = user cancelled share sheet — no fallback needed
+            if ((shareErr as Error).name !== 'AbortError') {
+              window.open(adminLink, '_blank')
+            }
+          }
+        } else {
+          // Desktop / browser tidak support share file → buka wa.me biasa
+          window.open(adminLink, '_blank')
+        }
       } else {
         setMessage({ type: 'error', text: data.error || 'Gagal menyimpan data' })
       }
-    } catch { 
-      setMessage({ type: 'error', text: 'Terjadi kesalahan jaringan' }) 
+    } catch {
+      setMessage({ type: 'error', text: 'Terjadi kesalahan jaringan' })
     }
     setSaving(false)
   }
@@ -319,7 +322,7 @@ export default function AttendancePage() {
         <p className="text-sm mt-1" style={{ color: '#6b7280' }}>Cari murid lalu isi laporan aktivitas les harian</p>
       </div>
 
-      {/* STATE 3: HALAMAN SUKSES DENGAN TOMBOL WHATSAPP ADMIN */}
+      {/* STATE 3: HALAMAN SUKSES */}
       {submittedLinks ? (
         <div className="glass-card p-8 text-center max-w-xl mx-auto space-y-6">
           <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto" style={{ background: 'linear-gradient(135deg,#10b981,#059669)', boxShadow: '0 8px 24px rgba(16,185,129,0.3)' }}>
@@ -331,13 +334,23 @@ export default function AttendancePage() {
           <div className="space-y-2">
             <h2 className="text-2xl font-bold" style={{ color: '#1e1b4b' }}>Absensi Berhasil Disimpan!</h2>
             <p className="text-sm max-w-md mx-auto" style={{ color: '#6b7280' }}>
-              Laporan absensi untuk <strong style={{ color: '#374151' }}>{selectedStudent?.name}</strong> telah tercatat di sistem. 
-              Silakan kirimkan laporan ini kepada admin melalui tombol WhatsApp di bawah.
+              Laporan absensi untuk <strong style={{ color: '#374151' }}>{selectedStudent?.name}</strong> telah tercatat.
+              Laporan dikirim ke Admin dengan format profesional.
             </p>
           </div>
 
+          {imagePreviewUrl && (
+            <div className="rounded-xl overflow-hidden border border-gray-100 shadow-sm">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={imagePreviewUrl} alt="Foto Kegiatan" className="w-full max-h-40 object-cover" />
+              <p className="text-[10px] text-gray-400 py-1.5 px-3 text-left bg-gray-50">
+                📸 Foto dikirim langsung bersama pesan WA — tidak disimpan di sistem
+              </p>
+            </div>
+          )}
+
           <div className="px-4 py-3 rounded-xl text-xs text-left" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', color: '#92400e' }}>
-            <strong>Catatan:</strong> Jika tab WhatsApp tidak terbuka secara otomatis, Anda dapat mengklik tombol di bawah ini secara manual untuk mengirim laporan.
+            <strong>Catatan:</strong> Jika WhatsApp tidak terbuka otomatis, klik tombol di bawah untuk kirim manual. Foto akan terlampir di WhatsApp langsung dari galeri Anda.
           </div>
 
           <div className="flex flex-col gap-3">
@@ -349,7 +362,7 @@ export default function AttendancePage() {
               style={{ background: 'linear-gradient(135deg,#10b981,#059669)', boxShadow: '0 4px 15px rgba(16,185,129,0.35)' }}
             >
               <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.18 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.968C16.64 1.97 14.185.94 11.553.94c-5.445 0-9.87 4.37-9.874 9.8.001 2.07.545 4.093 1.58 5.864L2.247 20.8l4.4-1.646zm11.83-6.182c-.3-.149-1.774-.863-2.048-.962-.274-.1-.474-.149-.674.15-.2.299-.774.962-.948 1.16-.174.2-.349.224-.649.075-.3-.15-1.264-.462-2.408-1.472-.89-.785-1.49-1.755-1.665-2.053-.174-.299-.018-.46.131-.609.135-.134.3-.349.449-.523.149-.174.2-.299.3-.498.1-.2.05-.374-.025-.524-.075-.15-.674-1.603-.923-2.199-.243-.58-.49-.5-.674-.51-.174-.01-.374-.01-.573-.01-.2 0-.524.075-.798.374-.274.299-1.047 1.022-1.047 2.492 0 1.47 1.071 2.889 1.221 3.088.15.2 2.107 3.2 5.104 4.492.713.307 1.27.491 1.704.629.717.227 1.369.195 1.884.118.574-.085 1.774-.718 2.023-1.411.249-.693.249-1.289.174-1.411-.075-.122-.274-.199-.573-.348z"/>
+                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.18 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.968C16.64 1.97 14.185.94 11.553.94c-5.445 0-9.87 4.37-9.874 9.8.001 2.07.545 4.093 1.58 5.864L2.247 20.8l4.4-1.646zm11.83-6.182c-.3-.149-1.774-.863-2.048-.962-.274-.1-.474-.149-.674.15-.2.299-.774.962-.948 1.16-.174.2-.299.3-.498.1-.2.05-.374-.025-.524-.075-.15-.674-1.603-.923-2.199-.243-.58-.49-.5-.674-.51-.174-.01-.374-.01-.573-.01-.2 0-.524.075-.798.374-.274.299-1.047 1.022-1.047 2.492 0 1.47 1.071 2.889 1.221 3.088.15.2 2.107 3.2 5.104 4.492.713.307 1.27.491 1.704.629.717.227 1.369.195 1.884.118.574-.085 1.774-.718 2.023-1.411.249-.693.249-1.289.174-1.411-.075-.122-.274-.199-.573-.348z"/>
               </svg>
               Kirim Laporan ke Admin (Kidemy)
             </a>
