@@ -116,14 +116,7 @@ export async function DELETE(
 
   try {
     if (targetUser.role === 'GURU') {
-      // 1. Hapus LessonRevenue & Lesson terkait guru ini
-      if (targetUser.lessons.length > 0) {
-        const lessonIds = targetUser.lessons.map((l) => l.id)
-        await prisma.lessonRevenue.deleteMany({ where: { lessonId: { in: lessonIds } } })
-        await prisma.lesson.deleteMany({ where: { id: { in: lessonIds } } })
-      }
-
-      // 2. Lepaskan semua siswa dari BranchTeacher milik guru ini, lalu hapus BranchTeacher
+      // Lepaskan semua siswa dari BranchTeacher milik guru ini
       for (const bt of targetUser.branchTeachers) {
         if (bt.student.length > 0) {
           const studentIds = bt.student.map((s) => s.id)
@@ -135,7 +128,17 @@ export async function DELETE(
       }
       await prisma.branchTeacher.deleteMany({ where: { userId: id } })
 
-      // 3. Hapus data attendance guru
+      // Jika guru sudah memiliki riwayat les, JANGAN hapus riwayat les/keuangannya!
+      // Nonaktifkan akun (status REJECTED) agar tidak bisa login, namun history tetap 100% tersimpan.
+      if (targetUser.lessons.length > 0) {
+        await prisma.user.update({
+          where: { id },
+          data: { status: 'REJECTED' },
+        })
+        return NextResponse.json({ message: 'Akun guru berhasil dinonaktifkan. Riwayat laporan les dan keuangan tetap tersimpan utuh.' })
+      }
+
+      // Jika belum ada riwayat les sama sekali, hapus absensi lama jika ada
       await prisma.attendance.deleteMany({ where: { teacherId: id } })
     }
 

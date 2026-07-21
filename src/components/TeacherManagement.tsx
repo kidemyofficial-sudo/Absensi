@@ -7,6 +7,7 @@ interface Teacher {
   id: string
   name: string
   phone: string
+  status: string
   createdAt: string
 }
 
@@ -47,30 +48,49 @@ export default function TeacherManagement() {
     }
   }
 
-  const handleDeleteConfirmed = async () => {
-    if (!deleteConfirm) return
-    setDeleteConfirm(null)
+  const handleToggleStatus = async (teacherId: string, currentStatus: string) => {
+    setMessage('')
+    const newStatus = currentStatus === 'APPROVED' ? 'REJECTED' : 'APPROVED'
     try {
-      const res = await fetch(`/api/users/${deleteConfirm.id}`, { method: 'DELETE' })
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || 'Gagal hapus guru')
-      }
+      const res = await fetch(`/api/users/${teacherId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Gagal mengubah status guru')
+      setMessage(`Status guru berhasil diubah menjadi ${newStatus === 'APPROVED' ? 'Aktif' : 'Non-Aktif'}`)
       fetchTeachers()
     } catch (err) {
       setMessage(err instanceof Error ? err.message : 'Terjadi kesalahan')
     }
   }
 
-  const isSuccess = message.includes('berhasil')
+  const handleDeleteConfirmed = async () => {
+    if (!deleteConfirm) return
+    setDeleteConfirm(null)
+    try {
+      const res = await fetch(`/api/users/${deleteConfirm.id}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Gagal hapus guru')
+      }
+      setMessage(data.message || 'Berhasil diproses')
+      fetchTeachers()
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : 'Terjadi kesalahan')
+    }
+  }
+
+  const isSuccess = message.includes('berhasil') || message.includes('Berhasil')
 
   return (
     <>
       <ConfirmDialog
         isOpen={!!deleteConfirm}
-        title="Hapus Guru"
-        message={`Yakin ingin menghapus guru ${deleteConfirm?.name}? Tindakan ini tidak dapat dibatalkan.`}
-        confirmText="Ya, Hapus"
+        title="Hapus / Nonaktifkan Guru"
+        message={`Yakin ingin memproses guru ${deleteConfirm?.name}? Jika guru memiliki riwayat les, akun akan dinonaktifkan agar riwayat laporan keuangan tidak hilang.`}
+        confirmText="Ya, Proses"
         variant="danger"
         onConfirm={handleDeleteConfirmed}
         onCancel={() => setDeleteConfirm(null)}
@@ -159,6 +179,7 @@ export default function TeacherManagement() {
               <tr>
                 <th>Nama</th>
                 <th>Telepon</th>
+                <th>Status</th>
                 <th>Terdaftar</th>
                 <th className="text-right">Aksi</th>
               </tr>
@@ -168,10 +189,27 @@ export default function TeacherManagement() {
                 <tr key={teacher.id}>
                   <td className="font-bold" style={{ color: '#1e1b4b' }}>{teacher.name}</td>
                   <td style={{ color: '#4b5563' }}>{teacher.phone}</td>
+                  <td>
+                    <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold ${
+                      teacher.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                    }`}>
+                      {teacher.status === 'APPROVED' ? 'Aktif' : 'Non-Aktif'}
+                    </span>
+                  </td>
                   <td style={{ color: '#6b7280' }}>
                     {new Date(teacher.createdAt).toLocaleDateString('id-ID')}
                   </td>
-                  <td className="text-right">
+                  <td className="text-right flex items-center justify-end gap-2">
+                    <button
+                      onClick={() => handleToggleStatus(teacher.id, teacher.status)}
+                      className={`px-2 py-1 rounded-lg font-bold text-xs transition-colors ${
+                        teacher.status === 'APPROVED'
+                          ? 'bg-amber-100 hover:bg-amber-200 text-amber-800'
+                          : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800'
+                      }`}
+                    >
+                      {teacher.status === 'APPROVED' ? 'Nonaktifkan' : 'Aktifkan'}
+                    </button>
                     <button
                       onClick={() => setDeleteConfirm({ id: teacher.id, name: teacher.name })}
                       className="px-2 py-1 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-lg font-bold text-xs transition-colors"
