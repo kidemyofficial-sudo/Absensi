@@ -256,8 +256,23 @@ export default function ReportsPage() {
                 </div>
                 {selectedLesson.fotoUrl && (
                   <div>
-                    <span className="text-xs block mb-0.5" style={{ color: '#9ca3af' }}>Foto</span>
-                    <p className="font-medium" style={{ color: '#374151' }}>{selectedLesson.fotoUrl}</p>
+                    <span className="text-xs block mb-1" style={{ color: '#9ca3af' }}>Foto Kegiatan</span>
+                    <div className="space-y-2">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={selectedLesson.fotoUrl}
+                        alt="Foto Kegiatan Les"
+                        className="w-full max-h-48 object-cover rounded-xl border border-gray-100 shadow-sm"
+                      />
+                      <a
+                        href={selectedLesson.fotoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-indigo-600 hover:text-indigo-800 underline font-medium block truncate"
+                      >
+                        Buka Gambar Full Screen ↗
+                      </a>
+                    </div>
                   </div>
                 )}
                 <div>

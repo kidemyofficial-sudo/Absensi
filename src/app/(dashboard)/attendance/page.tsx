@@ -164,29 +164,26 @@ export default function AttendancePage() {
 
     const namaMurid = selectedStudent.name
 
-    // Upload image to tmpfiles.org if selected
+    // Upload image via server API route (/api/upload) if selected
     let uploadedFotoUrl = ''
     if (selectedFile) {
       setMessage({ type: 'info', text: 'Mengunggah foto les...' })
       try {
-        const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 15000)
-
         const formData = new FormData()
         formData.append('file', selectedFile)
-        const uploadRes = await fetch('https://tmpfiles.org/api/v1/upload', {
+        const uploadRes = await fetch('/api/upload', {
           method: 'POST',
           body: formData,
-          signal: controller.signal,
         })
-        clearTimeout(timeoutId)
 
         if (uploadRes.ok) {
           const uploadData = await uploadRes.json()
-          const rawUrl = uploadData.data?.url
-          if (rawUrl) {
-            uploadedFotoUrl = rawUrl.replace('https://tmpfiles.org/', 'https://tmpfiles.org/dl/')
+          if (uploadData.url) {
+            uploadedFotoUrl = uploadData.url
           }
+        } else {
+          const errData = await uploadRes.json().catch(() => ({ error: 'Gagal upload' }))
+          console.error('Failed to upload image:', errData.error)
         }
       } catch (err) {
         console.error('Failed to upload image:', err)
@@ -194,7 +191,7 @@ export default function AttendancePage() {
 
       if (!uploadedFotoUrl) {
         const proceedWithoutPhoto = window.confirm(
-          'Gagal mengunggah foto les (koneksi lambat/timeout). Apakah Anda ingin tetap mengirim laporan absensi tanpa foto?'
+          'Gagal mengunggah foto les. Apakah Anda ingin tetap mengirim laporan absensi tanpa foto?'
         )
         if (!proceedWithoutPhoto) {
           setMessage({ type: 'error', text: 'Pengiriman absensi dibatalkan karena foto gagal diunggah.' })
@@ -212,7 +209,7 @@ export default function AttendancePage() {
           tanggalLes, jenisPembelajaran: resolvedJenisPembelajaran, lokasiMengajar, kelasMurid,
           jumlahMurid: 1,
           namaMurid, catatanMateri: trimmedCatatanMateri, kritikSaran: trimmedKritikSaran || null,
-          fotoUrl: null, // explicit null so it does not get saved in the database
+          fotoUrl: uploadedFotoUrl || null,
           jamMulai, jamSelesai,
           namaWaliMurid: trimmedNamaWaliMurid, whatsappWaliMurid: trimmedWhatsappWaliMurid || null,
           studentId: selectedStudentId,
@@ -235,7 +232,7 @@ export default function AttendancePage() {
           (trimmedKritikSaran ? `💡 Catatan Perkembangan/Kendala: ${trimmedKritikSaran}\n` : '') +
           `👨‍👩‍👦 Wali: ${trimmedNamaWaliMurid}\n` +
           (trimmedWhatsappWaliMurid ? `📱 WA Wali: ${trimmedWhatsappWaliMurid}\n` : '') +
-          (uploadedFotoUrl ? `📸 Foto Kegiatan: ${uploadedFotoUrl}` : '')
+          (uploadedFotoUrl ? `\n📸 Foto Kegiatan:\n${uploadedFotoUrl}` : '')
         )
 
         const cleanParentPhone = formatWhatsAppNumber(trimmedWhatsappWaliMurid)
