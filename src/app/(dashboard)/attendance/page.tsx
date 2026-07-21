@@ -37,7 +37,7 @@ const KELAS_MURID = [
 ]
 
 // Nomor WhatsApp Admin (Owner)
-const ADMIN_WA = '6281234567890'
+const ADMIN_WA = '628817019539'
 
 // Helper format WA number
 const formatWhatsAppNumber = (phone: string) => {
@@ -58,7 +58,7 @@ export default function AttendancePage() {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
   const [selectedStudentId, setSelectedStudentId] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
-  const [submittedLinks, setSubmittedLinks] = useState<{ parent: string; admin: string } | null>(null)
+  const [submittedLinks, setSubmittedLinks] = useState<{ admin: string } | null>(null)
 
   const [tanggalLes, setTanggalLes] = useState(new Date().toISOString().split('T')[0])
   const [jenisPembelajaran, setJenisPembelajaran] = useState('')
@@ -235,22 +235,16 @@ export default function AttendancePage() {
           (uploadedFotoUrl ? `\n📸 Foto Kegiatan:\n${uploadedFotoUrl}` : '')
         )
 
-        const cleanParentPhone = formatWhatsAppNumber(trimmedWhatsappWaliMurid)
         const cleanAdminPhone = formatWhatsAppNumber(ADMIN_WA)
-
-        const parentLink = `https://wa.me/${cleanParentPhone}?text=${waMessage}`
         const adminLink = `https://wa.me/${cleanAdminPhone}?text=${waMessage}`
 
-        // Coba otomatis buka chat wa
-        if (cleanParentPhone) {
-          window.open(parentLink, '_blank')
-        }
-        setTimeout(() => {
+        // Otomatis buka chat WA admin
+        if (cleanAdminPhone) {
           window.open(adminLink, '_blank')
-        }, 300)
+        }
 
         // Set link untuk halaman sukses
-        setSubmittedLinks({ parent: parentLink, admin: adminLink })
+        setSubmittedLinks({ admin: adminLink })
         setMessage({ type: 'success', text: 'Absensi berhasil disimpan!' })
       } else {
         setMessage({ type: 'error', text: data.error || 'Gagal menyimpan data' })
@@ -325,7 +319,7 @@ export default function AttendancePage() {
         <p className="text-sm mt-1" style={{ color: '#6b7280' }}>Cari murid lalu isi laporan aktivitas les harian</p>
       </div>
 
-      {/* STATE 3: HALAMAN SUKSES DENGAN DUA TOMBOL WHATSAPP */}
+      {/* STATE 3: HALAMAN SUKSES DENGAN TOMBOL WHATSAPP ADMIN */}
       {submittedLinks ? (
         <div className="glass-card p-8 text-center max-w-xl mx-auto space-y-6">
           <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto" style={{ background: 'linear-gradient(135deg,#10b981,#059669)', boxShadow: '0 8px 24px rgba(16,185,129,0.3)' }}>
@@ -338,7 +332,7 @@ export default function AttendancePage() {
             <h2 className="text-2xl font-bold" style={{ color: '#1e1b4b' }}>Absensi Berhasil Disimpan!</h2>
             <p className="text-sm max-w-md mx-auto" style={{ color: '#6b7280' }}>
               Laporan absensi untuk <strong style={{ color: '#374151' }}>{selectedStudent?.name}</strong> telah tercatat di sistem. 
-              Silakan kirimkan laporan ini kepada wali murid dan admin melalui tombol WhatsApp di bawah.
+              Silakan kirimkan laporan ini kepada admin melalui tombol WhatsApp di bawah.
             </p>
           </div>
 
@@ -347,25 +341,6 @@ export default function AttendancePage() {
           </div>
 
           <div className="flex flex-col gap-3">
-            {selectedStudent?.parent?.phone ? (
-              <a
-                href={submittedLinks.parent}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2.5 w-full py-3 text-white rounded-xl font-semibold text-sm transition-all hover:-translate-y-0.5"
-                style={{ background: 'linear-gradient(135deg,#10b981,#059669)', boxShadow: '0 4px 15px rgba(16,185,129,0.35)' }}
-              >
-                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                  <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.18 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.968C16.64 1.97 14.185.94 11.553.94c-5.445 0-9.87 4.37-9.874 9.8.001 2.07.545 4.093 1.58 5.864L2.247 20.8l4.4-1.646zm11.83-6.182c-.3-.149-1.774-.863-2.048-.962-.274-.1-.474-.149-.674.15-.2.299-.774.962-.948 1.16-.174.2-.349.224-.649.075-.3-.15-1.264-.462-2.408-1.472-.89-.785-1.49-1.755-1.665-2.053-.174-.299-.018-.46.131-.609.135-.134.3-.349.449-.523.149-.174.2-.299.3-.498.1-.2.05-.374-.025-.524-.075-.15-.674-1.603-.923-2.199-.243-.58-.49-.5-.674-.51-.174-.01-.374-.01-.573-.01-.2 0-.524.075-.798.374-.274.299-1.047 1.022-1.047 2.492 0 1.47 1.071 2.889 1.221 3.088.15.2 2.107 3.2 5.104 4.492.713.307 1.27.491 1.704.629.717.227 1.369.195 1.884.118.574-.085 1.774-.718 2.023-1.411.249-.693.249-1.289.174-1.411-.075-.122-.274-.199-.573-.348z"/>
-                </svg>
-                Kirim Laporan ke Wali Murid ({selectedStudent?.parent?.name})
-              </a>
-            ) : (
-              <div className="text-sm py-2.5 rounded-xl text-center" style={{ background: 'rgba(239,68,68,0.08)', color: '#991b1b', border: '1px solid rgba(239,68,68,0.15)' }}>
-                Wali murid tidak memiliki nomor WhatsApp yang terdaftar.
-              </div>
-            )}
-
             <a
               href={submittedLinks.admin}
               target="_blank"
