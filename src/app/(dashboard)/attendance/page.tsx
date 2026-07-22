@@ -59,6 +59,7 @@ export default function AttendancePage() {
   const [selectedStudentId, setSelectedStudentId] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [submittedLinks, setSubmittedLinks] = useState<{ admin: string } | null>(null)
+  const [submittedFile, setSubmittedFile] = useState<File | null>(null)
 
   const [tanggalLes, setTanggalLes] = useState(new Date().toISOString().split('T')[0])
   const [jenisPembelajaran, setJenisPembelajaran] = useState('')
@@ -186,76 +187,53 @@ export default function AttendancePage() {
       })
       const data = await res.json()
       if (res.ok) {
-        // === FORMAT PESAN WA PROFESIONAL (ASCII Safe & Universal Emoji) ===
+        // === FORMAT PESAN WA — PLAIN TEXT SAFE (no emoji to avoid rendering issues) ===
         const line = '----------------------------------------'
         const waText =
-          `📌 *LAPORAN ABSENSI LES*\n` +
+          `*LAPORAN ABSENSI LES*\n` +
           `*Kidemy Education*\n` +
           `${line}\n\n` +
-          `📅 *Tanggal:* ${tglFormatted}\n` +
-          `⏰ *Jam:* ${jamMulai} - ${jamSelesai}\n\n` +
+          `*Tanggal :* ${tglFormatted}\n` +
+          `*Jam     :* ${jamMulai} - ${jamSelesai}\n\n` +
           `${line}\n` +
-          `📚 *DETAIL LES*\n` +
+          `*DETAIL LES*\n` +
           `${line}\n` +
           `- Mata Pelajaran : ${resolvedJenisPembelajaran}\n` +
           `- Lokasi         : ${lokasiMengajar}\n` +
           `- Kelas          : ${kelasMurid}\n\n` +
           `${line}\n` +
-          `🎓 *DATA MURID*\n` +
+          `*DATA MURID*\n` +
           `${line}\n` +
           `- Nama           : ${namaMurid}\n` +
           `- Wali Murid     : ${trimmedNamaWaliMurid}\n` +
           (trimmedWhatsappWaliMurid ? `- No. WA Wali    : ${trimmedWhatsappWaliMurid}\n` : '') +
           `\n${line}\n` +
-          `👤 *DATA TUTOR*\n` +
+          `*DATA TUTOR*\n` +
           `${line}\n` +
-          `- Nama           : ${user?.name}\n` +
-          `- No. WA         : ${user?.phone}\n\n` +
+          `- Nama   : ${user?.name}\n` +
+          `- No. WA : ${user?.phone}\n\n` +
           `${line}\n` +
-          `📝 *CATATAN MATERI*\n` +
+          `*CATATAN MATERI*\n` +
           `${line}\n` +
           `${trimmedCatatanMateri}\n` +
           (trimmedKritikSaran
             ? `\n${line}\n` +
-              `💡 *PERKEMBANGAN & KENDALA*\n` +
+              `*PERKEMBANGAN & KENDALA*\n` +
               `${line}\n` +
               `${trimmedKritikSaran}\n`
             : '') +
           `\n${line}\n` +
           `_Dikirim via Sistem Absensi Kidemy_` +
-          (selectedFile ? `\n_📸 Foto kegiatan terlampir_` : '')
+          (selectedFile ? `\n_*Foto kegiatan terlampir — lihat tombol di bawah*_` : '')
 
         const cleanAdminPhone = formatWhatsAppNumber(ADMIN_WA)
         const adminLink = `https://wa.me/${cleanAdminPhone}?text=${encodeURIComponent(waText)}`
         setSubmittedLinks({ admin: adminLink })
+        setSubmittedFile(selectedFile)   // simpan referensi file untuk tombol bagikan foto
         setMessage({ type: 'success', text: 'Absensi berhasil disimpan!' })
 
-        // Kirim langsung via native share (membawa foto) jika didukung browser/HP
-        const canNativeShare = !!selectedFile &&
-          typeof navigator.share === 'function' &&
-          typeof navigator.canShare === 'function' &&
-          navigator.canShare({ files: [selectedFile] })
-
-        if (canNativeShare && selectedFile) {
-          try {
-            await navigator.share({ text: waText, files: [selectedFile] })
-          } catch (shareErr) {
-            // AbortError = user cancelled share sheet
-            if ((shareErr as Error).name !== 'AbortError') {
-              window.open(adminLink, '_blank')
-            }
-          }
-        } else {
-          // Salin foto ke clipboard otomatis jika didukung (untuk Paste Ctrl+V di WhatsApp Web)
-          if (selectedFile && navigator.clipboard && typeof ClipboardItem !== 'undefined') {
-            try {
-              await navigator.clipboard.write([new ClipboardItem({ [selectedFile.type]: selectedFile })])
-            } catch {
-              // Non-blocking clipboard copy
-            }
-          }
-          window.open(adminLink, '_blank')
-        }
+        // Buka WhatsApp dengan teks laporan
+        window.open(adminLink, '_blank')
       } else {
         setMessage({ type: 'error', text: data.error || 'Gagal menyimpan data' })
       }
@@ -342,25 +320,24 @@ export default function AttendancePage() {
             <h2 className="text-2xl font-bold" style={{ color: '#1e1b4b' }}>Absensi Berhasil Disimpan!</h2>
             <p className="text-sm max-w-md mx-auto" style={{ color: '#6b7280' }}>
               Laporan absensi untuk <strong style={{ color: '#374151' }}>{selectedStudent?.name}</strong> telah tercatat.
-              Laporan dikirim ke Admin dengan format profesional.
             </p>
           </div>
 
           {imagePreviewUrl && (
             <div className="rounded-xl overflow-hidden border border-gray-100 shadow-sm">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={imagePreviewUrl} alt="Foto Kegiatan" className="w-full max-h-40 object-cover" />
+              <img src={imagePreviewUrl} alt="Foto Kegiatan" className="w-full max-h-48 object-cover" />
               <p className="text-[10px] text-gray-400 py-1.5 px-3 text-left bg-gray-50">
-                📸 Foto dikirim langsung bersama pesan WA — tidak disimpan di sistem
+                Foto kegiatan — tidak disimpan di server
               </p>
             </div>
           )}
 
-          <div className="px-4 py-3 rounded-xl text-xs text-left" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', color: '#92400e' }}>
-            <strong>Catatan:</strong> Jika WhatsApp tidak terbuka otomatis, klik tombol di bawah untuk kirim manual. Foto akan terlampir di WhatsApp langsung dari galeri Anda.
-          </div>
-
           <div className="flex flex-col gap-3">
+            {/* STEP 1: Kirim teks laporan ke WA */}
+            <div className="px-4 py-3 rounded-xl text-xs text-left" style={{ background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.15)', color: '#3730a3' }}>
+              <strong>Langkah 1:</strong> Klik tombol hijau di bawah untuk mengirim teks laporan ke WhatsApp Admin.
+            </div>
             <a
               href={submittedLinks.admin}
               target="_blank"
@@ -373,6 +350,55 @@ export default function AttendancePage() {
               </svg>
               Kirim Laporan ke Admin (Kidemy)
             </a>
+
+            {/* STEP 2: Kirim foto — hanya muncul jika ada foto */}
+            {submittedFile && imagePreviewUrl && (
+              <>
+                <div className="px-4 py-3 rounded-xl text-xs text-left" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', color: '#92400e' }}>
+                  <strong>Langkah 2:</strong> Klik tombol di bawah untuk membagikan foto kegiatan ke Admin WhatsApp. Pilih <strong>WhatsApp</strong> dari menu yang muncul, lalu kirim ke nomor Admin.
+                </div>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!submittedFile) return
+                    const canShare =
+                      typeof navigator.share === 'function' &&
+                      typeof navigator.canShare === 'function' &&
+                      navigator.canShare({ files: [submittedFile] })
+                    if (canShare) {
+                      try {
+                        await navigator.share({
+                          files: [submittedFile],
+                          title: 'Foto Kegiatan Les — Kidemy',
+                          text: `Foto kegiatan les ${selectedStudent?.name} — mohon lampirkan bersama laporan absensi.`,
+                        })
+                      } catch (e) {
+                        if ((e as Error).name !== 'AbortError') {
+                          // Fallback: download
+                          const a = document.createElement('a')
+                          a.href = imagePreviewUrl!
+                          a.download = submittedFile.name || 'foto-kegiatan.jpg'
+                          a.click()
+                        }
+                      }
+                    } else {
+                      // Download fallback for desktop / unsupported browsers
+                      const a = document.createElement('a')
+                      a.href = imagePreviewUrl!
+                      a.download = submittedFile.name || 'foto-kegiatan.jpg'
+                      a.click()
+                    }
+                  }}
+                  className="flex items-center justify-center gap-2.5 w-full py-3 text-white rounded-xl font-semibold text-sm transition-all hover:-translate-y-0.5"
+                  style={{ background: 'linear-gradient(135deg,#6366f1,#4f46e5)', boxShadow: '0 4px 15px rgba(99,102,241,0.35)' }}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Bagikan Foto ke Admin
+                </button>
+              </>
+            )}
           </div>
 
           <button
