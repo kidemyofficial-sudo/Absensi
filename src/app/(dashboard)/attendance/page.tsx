@@ -186,42 +186,42 @@ export default function AttendancePage() {
       })
       const data = await res.json()
       if (res.ok) {
-        // === FORMAT PESAN WA PROFESIONAL ===
-        const separator = '━━━━━━━━━━━━━━━━━━━━'
+        // === FORMAT PESAN WA PROFESIONAL (ASCII Safe & Universal Emoji) ===
+        const line = '----------------------------------------'
         const waText =
-          `*LAPORAN ABSENSI LES*\n` +
+          `📌 *LAPORAN ABSENSI LES*\n` +
           `*Kidemy Education*\n` +
-          `${separator}\n\n` +
+          `${line}\n\n` +
           `📅 *Tanggal:* ${tglFormatted}\n` +
-          `🕐 *Jam:* ${jamMulai} - ${jamSelesai}\n\n` +
-          `${separator}\n` +
-          `*📚 DETAIL LES*\n` +
-          `${separator}\n` +
-          `• Mata Pelajaran : ${resolvedJenisPembelajaran}\n` +
-          `• Lokasi         : ${lokasiMengajar}\n` +
-          `• Kelas          : ${kelasMurid}\n\n` +
-          `${separator}\n` +
-          `*👨‍🎓 DATA MURID*\n` +
-          `${separator}\n` +
-          `• Nama           : ${namaMurid}\n` +
-          `• Wali Murid     : ${trimmedNamaWaliMurid}\n` +
-          (trimmedWhatsappWaliMurid ? `• No. WA Wali    : ${trimmedWhatsappWaliMurid}\n` : '') +
-          `\n${separator}\n` +
-          `*👨‍🏫 DATA TUTOR*\n` +
-          `${separator}\n` +
-          `• Nama           : ${user?.name}\n` +
-          `• No. WA         : ${user?.phone}\n\n` +
-          `${separator}\n` +
-          `*📝 CATATAN MATERI*\n` +
-          `${separator}\n` +
+          `⏰ *Jam:* ${jamMulai} - ${jamSelesai}\n\n` +
+          `${line}\n` +
+          `📚 *DETAIL LES*\n` +
+          `${line}\n` +
+          `- Mata Pelajaran : ${resolvedJenisPembelajaran}\n` +
+          `- Lokasi         : ${lokasiMengajar}\n` +
+          `- Kelas          : ${kelasMurid}\n\n` +
+          `${line}\n` +
+          `🎓 *DATA MURID*\n` +
+          `${line}\n` +
+          `- Nama           : ${namaMurid}\n` +
+          `- Wali Murid     : ${trimmedNamaWaliMurid}\n` +
+          (trimmedWhatsappWaliMurid ? `- No. WA Wali    : ${trimmedWhatsappWaliMurid}\n` : '') +
+          `\n${line}\n` +
+          `👤 *DATA TUTOR*\n` +
+          `${line}\n` +
+          `- Nama           : ${user?.name}\n` +
+          `- No. WA         : ${user?.phone}\n\n` +
+          `${line}\n` +
+          `📝 *CATATAN MATERI*\n` +
+          `${line}\n` +
           `${trimmedCatatanMateri}\n` +
           (trimmedKritikSaran
-            ? `\n${separator}\n` +
-              `*💡 PERKEMBANGAN & KENDALA*\n` +
-              `${separator}\n` +
+            ? `\n${line}\n` +
+              `💡 *PERKEMBANGAN & KENDALA*\n` +
+              `${line}\n` +
               `${trimmedKritikSaran}\n`
             : '') +
-          `\n${separator}\n` +
+          `\n${line}\n` +
           `_Dikirim via Sistem Absensi Kidemy_` +
           (selectedFile ? `\n_📸 Foto kegiatan terlampir_` : '')
 
@@ -240,13 +240,20 @@ export default function AttendancePage() {
           try {
             await navigator.share({ text: waText, files: [selectedFile] })
           } catch (shareErr) {
-            // AbortError = user cancelled share sheet — no fallback needed
+            // AbortError = user cancelled share sheet
             if ((shareErr as Error).name !== 'AbortError') {
               window.open(adminLink, '_blank')
             }
           }
         } else {
-          // Desktop / browser tidak support share file → buka wa.me biasa
+          // Salin foto ke clipboard otomatis jika didukung (untuk Paste Ctrl+V di WhatsApp Web)
+          if (selectedFile && navigator.clipboard && typeof ClipboardItem !== 'undefined') {
+            try {
+              await navigator.clipboard.write([new ClipboardItem({ [selectedFile.type]: selectedFile })])
+            } catch {
+              // Non-blocking clipboard copy
+            }
+          }
           window.open(adminLink, '_blank')
         }
       } else {
