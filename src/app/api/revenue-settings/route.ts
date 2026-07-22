@@ -43,7 +43,10 @@ export async function PUT(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const validatedData = revenueSettingsSchema.parse(body)
+    const { applyToExisting, ...settingsData } = body
+    const validatedData = revenueSettingsSchema.parse(settingsData)
+
+    let updatedCount = 0
 
     const updated = await prisma.$transaction(async (tx) => {
       const student = await tx.student.update({
@@ -88,6 +91,38 @@ export async function PUT(request: NextRequest) {
           },
         })
 
+        // Jika applyToExisting = true, hitung ulang semua laporan les siswa ini
+        if (applyToExisting === true) {
+          const existingRevenues = await tx.lessonRevenue.findMany({
+            where: {
+              lesson: { studentId: validatedData.studentId },
+            },
+            select: {
+              id: true,
+              biayaPerSesi: true,
+              jumlahMurid: true,
+            },
+          })
+
+          for (const rev of existingRevenues) {
+            const biayaTotal = rev.biayaPerSesi * rev.jumlahMurid
+            // Gunakan Math.round agar tidak ada selisih sisa rupiah
+            const pendapatanOwner = Math.round(biayaTotal * validatedData.persentaseOwner! / 100)
+            const pendapatanGuru = Math.round(biayaTotal * validatedData.persentaseGuru! / 100)
+            await tx.lessonRevenue.update({
+              where: { id: rev.id },
+              data: {
+                persentaseOwner: validatedData.persentaseOwner,
+                persentaseGuru: validatedData.persentaseGuru,
+                pendapatanOwner,
+                pendapatanGuru,
+              },
+            })
+          }
+
+          updatedCount = existingRevenues.length
+        }
+
         return tx.student.findUniqueOrThrow({
           where: { id: validatedData.studentId },
           include: {
@@ -108,7 +143,7 @@ export async function PUT(request: NextRequest) {
       return student
     })
 
-    return NextResponse.json({ student: updated })
+    return NextResponse.json({ student: updated, updatedCount })
   } catch (error) {
     if (error instanceof ZodError) {
       return NextResponse.json(

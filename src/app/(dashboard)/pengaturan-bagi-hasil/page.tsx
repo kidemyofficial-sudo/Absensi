@@ -29,6 +29,7 @@ export default function PengaturanBagiHasilPage() {
   const [editBiaya, setEditBiaya] = useState(50000)
   const [editPersentaseOwner, setEditPersentaseOwner] = useState(40)
   const [editPersentaseGuru, setEditPersentaseGuru] = useState(60)
+  const [applyToExisting, setApplyToExisting] = useState(false)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
 
@@ -57,12 +58,14 @@ export default function PengaturanBagiHasilPage() {
     setEditBiaya(student.biayaPerSiswa)
     setEditPersentaseOwner(branchTeacher?.persentaseOwner ?? 40)
     setEditPersentaseGuru(branchTeacher?.persentaseGuru ?? 60)
+    setApplyToExisting(false)
     setMessage('')
   }
 
   const closeEdit = () => {
     setEditing(null)
     setEditBranchTeacherId('')
+    setApplyToExisting(false)
     setMessage('')
   }
 
@@ -73,10 +76,20 @@ export default function PengaturanBagiHasilPage() {
     setEditPersentaseGuru(branchTeacher?.persentaseGuru ?? 60)
   }
 
+  // Nominal pembagian (gunakan Math.round agar tidak ada selisih)
+  const nominalOwner = Math.round((editBiaya * editPersentaseOwner) / 100)
+  const nominalGuru = Math.round((editBiaya * editPersentaseGuru) / 100)
+  const nominalTotal = nominalOwner + nominalGuru
+  const isNominalValid = nominalTotal === editBiaya
+
   const handleSave = async () => {
     if (!editing) return
-    if (editPersentaseOwner + editPersentaseGuru !== 100) {
-      setMessage('Total persentase owner dan guru harus 100%')
+
+    // Validasi nominal, bukan persentase bulat
+    if (!isNominalValid) {
+      setMessage(
+        `Pembagian tidak valid: Rp${nominalOwner.toLocaleString('id-ID')} + Rp${nominalGuru.toLocaleString('id-ID')} = Rp${nominalTotal.toLocaleString('id-ID')} ≠ Rp${editBiaya.toLocaleString('id-ID')}. Sesuaikan persentase agar nominal owner + guru = total biaya.`
+      )
       return
     }
 
@@ -90,6 +103,7 @@ export default function PengaturanBagiHasilPage() {
         body: JSON.stringify({
           studentId: editing.id,
           biayaPerSiswa: Number(editBiaya),
+          applyToExisting,
           ...(editBranchTeacherId
             ? {
                 branchTeacherId: editBranchTeacherId,
@@ -108,8 +122,11 @@ export default function PengaturanBagiHasilPage() {
             s.id === editing.id ? { ...s, ...data.student } : s
           )
         )
-        setMessage('Berhasil disimpan!')
-        setTimeout(() => closeEdit(), 1000)
+        const updatedMsg = applyToExisting && data.updatedCount > 0
+          ? ` (${data.updatedCount} laporan lama diperbarui)`
+          : ' (hanya berlaku untuk laporan baru)'
+        setMessage('Berhasil disimpan!' + updatedMsg)
+        setTimeout(() => closeEdit(), 1500)
       } else {
         setMessage(data.error || 'Gagal menyimpan')
       }
@@ -261,19 +278,65 @@ export default function PengaturanBagiHasilPage() {
                     </div>
                   </div>
 
-                  {/* Calculations breakdown - solid background for neat readability */}
-                  <div className="p-4 rounded-xl border border-white/50 space-y-1" style={{ background: 'rgba(255,255,255,0.6)' }}>
-                    <h4 className="text-xs font-bold" style={{ color: '#1e1b4b' }}>Simulasi Perhitungan Pendapatan:</h4>
-                    <p className="text-xs" style={{ color: '#4b5563' }}>1 sesi les x {formatRupiah(editBiaya)} = {formatRupiah(editBiaya)}</p>
-                    <p className="text-xs font-bold" style={{ color: '#6366f1' }}>
-                      Bagian Owner: {formatRupiah(Math.floor((editBiaya * editPersentaseOwner) / 100))} ({editPersentaseOwner}%)
-                    </p>
-                    <p className="text-xs font-bold" style={{ color: '#10b981' }}>
-                      Bagian Guru: {formatRupiah(Math.floor((editBiaya * editPersentaseGuru) / 100))} ({editPersentaseGuru}%)
-                    </p>
-                    <p className={`text-[10px] font-bold mt-2 ${editPersentaseOwner + editPersentaseGuru === 100 ? 'text-gray-400' : 'text-rose-600'}`}>
-                      Total akumulasi persentase: {editPersentaseOwner + editPersentaseGuru}%
-                    </p>
+                  {/* Simulasi Perhitungan — validasi nominal, bukan persentase bulat */}
+                  <div className="p-4 rounded-xl border border-white/50 space-y-2" style={{ background: 'rgba(255,255,255,0.6)' }}>
+                    <h4 className="text-xs font-bold" style={{ color: '#1e1b4b' }}>Simulasi Perhitungan (1 sesi, 1 murid):</h4>
+                    <p className="text-xs" style={{ color: '#4b5563' }}>Total Biaya: <strong>{formatRupiah(editBiaya)}</strong></p>
+
+                    <div className="flex gap-2 text-xs pt-0.5">
+                      <span style={{ color: '#6366f1' }}>
+                        Owner ({editPersentaseOwner}%): <strong>{formatRupiah(nominalOwner)}</strong>
+                      </span>
+                      <span style={{ color: '#9ca3af' }}>+</span>
+                      <span style={{ color: '#10b981' }}>
+                        Guru ({editPersentaseGuru}%): <strong>{formatRupiah(nominalGuru)}</strong>
+                      </span>
+                    </div>
+
+                    {/* Validasi nominal — berdasarkan rupiah asli */}
+                    <div
+                      className="flex items-start gap-2 mt-1 p-2 rounded-lg text-[11px] font-bold"
+                      style={{
+                        background: isNominalValid ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
+                        color: isNominalValid ? '#065f46' : '#991b1b',
+                        border: `1px solid ${isNominalValid ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)'}`,
+                      }}
+                    >
+                      <span>{isNominalValid ? '✅' : '❌'}</span>
+                      <span>
+                        {formatRupiah(nominalOwner)} + {formatRupiah(nominalGuru)} = {formatRupiah(nominalTotal)}
+                        {isNominalValid
+                          ? ` = ${formatRupiah(editBiaya)} ✓`
+                          : ` ≠ ${formatRupiah(editBiaya)} — sesuaikan persentase`}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Pilihan: berlaku ke laporan lama atau tidak */}
+                  <div className="p-4 rounded-xl border border-white/50 space-y-2" style={{ background: 'rgba(255,255,255,0.5)' }}>
+                    <h4 className="text-xs font-bold" style={{ color: '#1e1b4b' }}>Penerapan Perubahan:</h4>
+                    <label className="flex items-start gap-3 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={applyToExisting}
+                        onChange={(e) => setApplyToExisting(e.target.checked)}
+                        className="mt-0.5 w-4 h-4 rounded cursor-pointer accent-indigo-600"
+                      />
+                      <div>
+                        <p className="text-xs font-semibold" style={{ color: '#374151' }}>
+                          Perbarui juga laporan absensi guru yang sudah ada
+                        </p>
+                        <p className="text-[10px] mt-0.5" style={{ color: '#6b7280' }}>
+                          Jika dicentang, semua laporan les siswa ini yang sudah tercatat akan dihitung ulang dengan persentase baru.
+                          Jika tidak dicentang, perubahan hanya berlaku untuk laporan baru ke depannya.
+                        </p>
+                      </div>
+                    </label>
+                    {applyToExisting && (
+                      <div className="px-3 py-2 rounded-lg text-[10px] font-bold" style={{ background: 'rgba(245,158,11,0.1)', color: '#92400e', border: '1px solid rgba(245,158,11,0.2)' }}>
+                        ⚠️ Perhatian: Laporan yang sudah ada akan dihitung ulang. Tindakan ini tidak dapat dibatalkan.
+                      </div>
+                    )}
                   </div>
                 </>
               )}
@@ -299,10 +362,11 @@ export default function PengaturanBagiHasilPage() {
             </div>
             <div className="px-6 py-4 flex justify-end gap-3" style={{ borderTop: '1px solid rgba(229,231,235,0.4)', background: 'rgba(255,255,255,0.3)' }}>
               <button onClick={closeEdit} className="btn-secondary">Batal</button>
-              <button onClick={handleSave} disabled={saving} className="btn-primary">
+              <button onClick={handleSave} disabled={saving || !isNominalValid} className="btn-primary" style={{ opacity: (!isNominalValid || saving) ? 0.6 : 1 }}>
                 {saving ? 'Menyimpan...' : 'Simpan'}
               </button>
             </div>
+
           </div>
         </div>
       )}

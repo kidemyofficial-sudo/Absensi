@@ -169,8 +169,8 @@ export async function POST(request: NextRequest) {
 
       // Hitung revenue: biayaPerSiswa (dari setting owner) × jumlahMurid
       const biayaTotal = student.biayaPerSiswa * validatedData.jumlahMurid
-      const pendapatanOwner = Math.floor(biayaTotal * persentaseOwner / 100)
-      const pendapatanGuru = Math.floor(biayaTotal * persentaseGuru / 100)
+      const pendapatanOwner = Math.round(biayaTotal * persentaseOwner / 100)
+      const pendapatanGuru = Math.round(biayaTotal * persentaseGuru / 100)
 
       const lessonRevenue = await tx.lessonRevenue.create({
         data: {
