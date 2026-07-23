@@ -114,25 +114,29 @@ export async function PUT(request: NextRequest) {
             },
           })
 
-          for (const rev of existingRevenues) {
-            const biayaPerSesi = validatedData.biayaPerSiswa
-            const biayaTotal = biayaPerSesi * rev.jumlahMurid
-            const pendapatanOwner = nomOwner * rev.jumlahMurid
-            const pendapatanGuru = nomGuru * rev.jumlahMurid
+          if (existingRevenues.length > 0) {
+            await Promise.all(
+              existingRevenues.map((rev) => {
+                const biayaPerSesi = validatedData.biayaPerSiswa
+                const biayaTotal = biayaPerSesi * rev.jumlahMurid
+                const pendapatanOwner = nomOwner * rev.jumlahMurid
+                const pendapatanGuru = nomGuru * rev.jumlahMurid
 
-            await tx.lessonRevenue.update({
-              where: { id: rev.id },
-              data: {
-                biayaPerSesi,
-                biayaTotal,
-                nominalOwnerPerSesi: nomOwner,
-                nominalGuruPerSesi: nomGuru,
-                pendapatanOwner,
-                pendapatanGuru,
-                persentaseOwner: pctOwner,
-                persentaseGuru: pctGuru,
-              },
-            })
+                return tx.lessonRevenue.update({
+                  where: { id: rev.id },
+                  data: {
+                    biayaPerSesi,
+                    biayaTotal,
+                    nominalOwnerPerSesi: nomOwner,
+                    nominalGuruPerSesi: nomGuru,
+                    pendapatanOwner,
+                    pendapatanGuru,
+                    persentaseOwner: pctOwner,
+                    persentaseGuru: pctGuru,
+                  },
+                })
+              })
+            )
           }
 
           updatedCount = existingRevenues.length
@@ -158,6 +162,8 @@ export async function PUT(request: NextRequest) {
       }
 
       return student
+    }, {
+      timeout: 30000, // 30 detik timeout untuk mencegah error "Transaction already closed"
     })
 
     return NextResponse.json({ student: updated, updatedCount })
