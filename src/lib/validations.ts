@@ -110,33 +110,33 @@ export const revenueSettingsSchema = z.object({
   studentId: z.string().cuid('ID siswa tidak valid'),
   branchTeacherId: z.string().cuid('ID guru cabang tidak valid').optional(),
   biayaPerSiswa: z.number().int('Biaya harus bilangan bulat').min(0, 'Biaya tidak boleh negatif').max(10000000, 'Maksimal Rp 10.000.000'),
-  persentaseOwner: z.number().int('Persentase owner harus bilangan bulat').min(1).max(99).optional(),
-  persentaseGuru: z.number().int('Persentase guru harus bilangan bulat').min(1).max(99).optional(),
+  nominalOwner: z.number().int('Nominal owner harus bilangan bulat').min(0, 'Nominal owner tidak boleh negatif').optional(),
+  nominalGuru: z.number().int('Nominal guru harus bilangan bulat').min(0, 'Nominal guru tidak boleh negatif').optional(),
 }).strict().refine(
   (data) =>
-    (data.persentaseOwner === undefined && data.persentaseGuru === undefined) ||
-    (data.persentaseOwner !== undefined && data.persentaseGuru !== undefined),
+    (data.nominalOwner === undefined && data.nominalGuru === undefined) ||
+    (data.nominalOwner !== undefined && data.nominalGuru !== undefined),
   {
-    message: 'Persentase owner dan guru harus diisi lengkap',
-    path: ['persentaseGuru'],
+    message: 'Nominal owner dan guru harus diisi lengkap',
+    path: ['nominalGuru'],
   }
 ).refine(
   (data) =>
-    data.persentaseOwner === undefined ||
-    data.persentaseGuru === undefined ||
+    data.nominalOwner === undefined ||
+    data.nominalGuru === undefined ||
     data.branchTeacherId !== undefined,
   {
-    message: 'Guru cabang harus dipilih untuk mengubah persentase',
+    message: 'Guru cabang harus dipilih untuk mengubah nominal bagi hasil',
     path: ['branchTeacherId'],
   }
 ).refine(
   (data) =>
-    data.persentaseOwner === undefined ||
-    data.persentaseGuru === undefined ||
-    data.persentaseOwner + data.persentaseGuru === 100,
+    data.nominalOwner === undefined ||
+    data.nominalGuru === undefined ||
+    data.nominalOwner + data.nominalGuru === data.biayaPerSiswa,
   {
-    message: 'Total persentase owner dan guru harus 100%',
-    path: ['persentaseGuru'],
+    message: 'Total Nominal Owner + Nominal Guru harus sama dengan Biaya Per Siswa',
+    path: ['nominalGuru'],
   }
 )
 

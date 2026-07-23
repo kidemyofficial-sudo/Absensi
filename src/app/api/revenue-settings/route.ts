@@ -11,7 +11,7 @@ export async function GET() {
     return NextResponse.json({ error: 'Hanya owner yang dapat mengakses' }, { status: 403 })
   }
 
-  // Ambil semua siswa yang sudah punya cabang + persentase dari branch teacher
+  // Ambil semua siswa yang sudah punya cabang + nominal / persentase dari branch teacher
   const students = await prisma.student.findMany({
     where: { status: 'APPROVED' },
     include: {
@@ -23,6 +23,8 @@ export async function GET() {
           id: true,
           persentaseOwner: true,
           persentaseGuru: true,
+          nominalOwner: true,
+          nominalGuru: true,
           mataPelajaran: true,
           user: { select: { name: true } },
         },
@@ -59,6 +61,8 @@ export async function PUT(request: NextRequest) {
               id: true,
               persentaseOwner: true,
               persentaseGuru: true,
+              nominalOwner: true,
+              nominalGuru: true,
               mataPelajaran: true,
               user: { select: { name: true } },
             },
@@ -68,8 +72,8 @@ export async function PUT(request: NextRequest) {
 
       if (
         validatedData.branchTeacherId &&
-        validatedData.persentaseOwner !== undefined &&
-        validatedData.persentaseGuru !== undefined
+        validatedData.nominalOwner !== undefined &&
+        validatedData.nominalGuru !== undefined
       ) {
         const branchTeacher = await tx.branchTeacher.findFirst({
           where: {
@@ -83,15 +87,22 @@ export async function PUT(request: NextRequest) {
           throw new Error('BRANCH_TEACHER_NOT_FOUND')
         }
 
+        const pctOwner = validatedData.biayaPerSiswa > 0
+          ? Math.round((validatedData.nominalOwner / validatedData.biayaPerSiswa) * 100)
+          : 40
+        const pctGuru = 100 - pctOwner
+
         await tx.branchTeacher.update({
           where: { id: validatedData.branchTeacherId },
           data: {
-            persentaseOwner: validatedData.persentaseOwner,
-            persentaseGuru: validatedData.persentaseGuru,
+            nominalOwner: validatedData.nominalOwner,
+            nominalGuru: validatedData.nominalGuru,
+            persentaseOwner: pctOwner,
+            persentaseGuru: pctGuru,
           },
         })
 
-        // Jika applyToExisting = true, hitung ulang semua laporan les siswa ini
+        // Jika applyToExisting = true, hitung ulang semua laporan les siswa ini dalam nominal rupiah asli
         if (applyToExisting === true) {
           const existingRevenues = await tx.lessonRevenue.findMany({
             where: {
@@ -99,23 +110,27 @@ export async function PUT(request: NextRequest) {
             },
             select: {
               id: true,
-              biayaPerSesi: true,
               jumlahMurid: true,
             },
           })
 
           for (const rev of existingRevenues) {
-            const biayaTotal = rev.biayaPerSesi * rev.jumlahMurid
-            // Gunakan Math.round agar tidak ada selisih sisa rupiah
-            const pendapatanOwner = Math.round(biayaTotal * validatedData.persentaseOwner! / 100)
-            const pendapatanGuru = Math.round(biayaTotal * validatedData.persentaseGuru! / 100)
+            const biayaPerSesi = validatedData.biayaPerSiswa
+            const biayaTotal = biayaPerSesi * rev.jumlahMurid
+            const pendapatanOwner = validatedData.nominalOwner! * rev.jumlahMurid
+            const pendapatanGuru = validatedData.nominalGuru! * rev.jumlahMurid
+
             await tx.lessonRevenue.update({
               where: { id: rev.id },
               data: {
-                persentaseOwner: validatedData.persentaseOwner,
-                persentaseGuru: validatedData.persentaseGuru,
+                biayaPerSesi,
+                biayaTotal,
+                nominalOwnerPerSesi: validatedData.nominalOwner,
+                nominalGuruPerSesi: validatedData.nominalGuru,
                 pendapatanOwner,
                 pendapatanGuru,
+                persentaseOwner: pctOwner,
+                persentaseGuru: pctGuru,
               },
             })
           }
@@ -132,6 +147,8 @@ export async function PUT(request: NextRequest) {
                 id: true,
                 persentaseOwner: true,
                 persentaseGuru: true,
+                nominalOwner: true,
+                nominalGuru: true,
                 mataPelajaran: true,
                 user: { select: { name: true } },
               },

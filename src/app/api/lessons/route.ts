@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
         },
       })
 
-      // Ambil persentase dari BranchTeacher (atau default)
+      // Ambil nominal / persentase dari BranchTeacher (atau default)
       const branchTeacher = await tx.branchTeacher.findFirst({
         where: {
           userId: user.id,
@@ -164,13 +164,16 @@ export async function POST(request: NextRequest) {
         },
       })
 
-      const persentaseOwner = branchTeacher?.persentaseOwner ?? 40
-      const persentaseGuru = branchTeacher?.persentaseGuru ?? 60
+      const nominalOwnerPerSesi = branchTeacher?.nominalOwner ?? Math.round(student.biayaPerSiswa * 0.4)
+      const nominalGuruPerSesi = branchTeacher?.nominalGuru ?? (student.biayaPerSiswa - nominalOwnerPerSesi)
 
-      // Hitung revenue: biayaPerSiswa (dari setting owner) × jumlahMurid
+      const persentaseOwner = branchTeacher?.persentaseOwner ?? (student.biayaPerSiswa > 0 ? Math.round((nominalOwnerPerSesi / student.biayaPerSiswa) * 100) : 40)
+      const persentaseGuru = 100 - persentaseOwner
+
+      // Hitung revenue dalam rupiah asli: nominal per sesi × jumlahMurid
       const biayaTotal = student.biayaPerSiswa * validatedData.jumlahMurid
-      const pendapatanOwner = Math.round(biayaTotal * persentaseOwner / 100)
-      const pendapatanGuru = Math.round(biayaTotal * persentaseGuru / 100)
+      const pendapatanOwner = nominalOwnerPerSesi * validatedData.jumlahMurid
+      const pendapatanGuru = nominalGuruPerSesi * validatedData.jumlahMurid
 
       const lessonRevenue = await tx.lessonRevenue.create({
         data: {
@@ -180,6 +183,8 @@ export async function POST(request: NextRequest) {
           biayaTotal,
           persentaseOwner,
           persentaseGuru,
+          nominalOwnerPerSesi,
+          nominalGuruPerSesi,
           pendapatanOwner,
           pendapatanGuru,
         },

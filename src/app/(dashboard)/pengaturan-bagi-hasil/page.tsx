@@ -16,6 +16,8 @@ interface StudentRevenue {
     id: string
     persentaseOwner: number
     persentaseGuru: number
+    nominalOwner: number | null
+    nominalGuru: number | null
     mataPelajaran: string
     user: { name: string }
   }[]
@@ -27,8 +29,8 @@ export default function PengaturanBagiHasilPage() {
   const [editing, setEditing] = useState<StudentRevenue | null>(null)
   const [editBranchTeacherId, setEditBranchTeacherId] = useState('')
   const [editBiaya, setEditBiaya] = useState(50000)
-  const [editPersentaseOwner, setEditPersentaseOwner] = useState(40)
-  const [editPersentaseGuru, setEditPersentaseGuru] = useState(60)
+  const [editNominalOwner, setEditNominalOwner] = useState(20000)
+  const [editNominalGuru, setEditNominalGuru] = useState(30000)
   const [applyToExisting, setApplyToExisting] = useState(false)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
@@ -53,11 +55,15 @@ export default function PengaturanBagiHasilPage() {
 
   const openEdit = (student: StudentRevenue) => {
     const branchTeacher = student.branchTeachers[0]
+    const biaya = student.biayaPerSiswa
+    const ownerNominal = branchTeacher?.nominalOwner ?? Math.round(biaya * 0.4)
+    const guruNominal = branchTeacher?.nominalGuru ?? (biaya - ownerNominal)
+
     setEditing(student)
     setEditBranchTeacherId(branchTeacher?.id ?? '')
-    setEditBiaya(student.biayaPerSiswa)
-    setEditPersentaseOwner(branchTeacher?.persentaseOwner ?? 40)
-    setEditPersentaseGuru(branchTeacher?.persentaseGuru ?? 60)
+    setEditBiaya(biaya)
+    setEditNominalOwner(ownerNominal)
+    setEditNominalGuru(guruNominal)
     setApplyToExisting(false)
     setMessage('')
   }
@@ -71,24 +77,42 @@ export default function PengaturanBagiHasilPage() {
 
   const handleBranchTeacherChange = (branchTeacherId: string) => {
     const branchTeacher = editing?.branchTeachers.find((bt) => bt.id === branchTeacherId)
+    const ownerNominal = branchTeacher?.nominalOwner ?? Math.round(editBiaya * 0.4)
+    const guruNominal = branchTeacher?.nominalGuru ?? (editBiaya - ownerNominal)
+
     setEditBranchTeacherId(branchTeacherId)
-    setEditPersentaseOwner(branchTeacher?.persentaseOwner ?? 40)
-    setEditPersentaseGuru(branchTeacher?.persentaseGuru ?? 60)
+    setEditNominalOwner(ownerNominal)
+    setEditNominalGuru(guruNominal)
   }
 
-  // Nominal pembagian (gunakan Math.round agar tidak ada selisih)
-  const nominalOwner = Math.round((editBiaya * editPersentaseOwner) / 100)
-  const nominalGuru = Math.round((editBiaya * editPersentaseGuru) / 100)
-  const nominalTotal = nominalOwner + nominalGuru
-  const isNominalValid = nominalTotal === editBiaya
+  const handleBiayaChange = (val: number) => {
+    setEditBiaya(val)
+    // Otomatis sesuaikan Nominal Guru agar total pas
+    setEditNominalGuru(Math.max(0, val - editNominalOwner))
+  }
+
+  const handleNominalOwnerChange = (val: number) => {
+    setEditNominalOwner(val)
+    // Otomatis sesuaikan Nominal Guru
+    setEditNominalGuru(Math.max(0, editBiaya - val))
+  }
+
+  const handleNominalGuruChange = (val: number) => {
+    setEditNominalGuru(val)
+    // Otomatis sesuaikan Nominal Owner
+    setEditNominalOwner(Math.max(0, editBiaya - val))
+  }
+
+  // Validasi nominal rupiah asli (Owner + Guru = Total Biaya)
+  const nominalTotal = editNominalOwner + editNominalGuru
+  const isNominalValid = nominalTotal === editBiaya && editNominalOwner >= 0 && editNominalGuru >= 0
 
   const handleSave = async () => {
     if (!editing) return
 
-    // Validasi nominal, bukan persentase bulat
     if (!isNominalValid) {
       setMessage(
-        `Pembagian tidak valid: Rp${nominalOwner.toLocaleString('id-ID')} + Rp${nominalGuru.toLocaleString('id-ID')} = Rp${nominalTotal.toLocaleString('id-ID')} ≠ Rp${editBiaya.toLocaleString('id-ID')}. Sesuaikan persentase agar nominal owner + guru = total biaya.`
+        `Pembagian tidak valid: Rp${editNominalOwner.toLocaleString('id-ID')} + Rp${editNominalGuru.toLocaleString('id-ID')} = Rp${nominalTotal.toLocaleString('id-ID')} ≠ Rp${editBiaya.toLocaleString('id-ID')}. Total nominal owner dan guru harus sama dengan biaya per siswa.`
       )
       return
     }
@@ -107,8 +131,8 @@ export default function PengaturanBagiHasilPage() {
           ...(editBranchTeacherId
             ? {
                 branchTeacherId: editBranchTeacherId,
-                persentaseOwner: Number(editPersentaseOwner),
-                persentaseGuru: Number(editPersentaseGuru),
+                nominalOwner: Number(editNominalOwner),
+                nominalGuru: Number(editNominalGuru),
               }
             : {}),
         }),
@@ -123,8 +147,8 @@ export default function PengaturanBagiHasilPage() {
           )
         )
         const updatedMsg = applyToExisting && data.updatedCount > 0
-          ? ` (${data.updatedCount} laporan lama diperbarui)`
-          : ' (hanya berlaku untuk laporan baru)'
+          ? ` (${data.updatedCount} laporan absensi lama diperbarui)`
+          : ' (hanya berlaku untuk laporan absensi berikutnya)'
         setMessage('Berhasil disimpan!' + updatedMsg)
         setTimeout(() => closeEdit(), 1500)
       } else {
@@ -158,7 +182,7 @@ export default function PengaturanBagiHasilPage() {
     <div>
       <div className="mb-6">
         <h1 className="text-2xl font-bold" style={{ color: '#1e1b4b' }}>Pengaturan Bagi Hasil</h1>
-        <p className="text-sm mt-1" style={{ color: '#6b7280' }}>Atur biaya per siswa dan persentase bagi hasil per guru</p>
+        <p className="text-sm mt-1" style={{ color: '#6b7280' }}>Atur biaya per siswa dan nominal bagi hasil per sesi (dalam Rupiah)</p>
       </div>
 
       {students.length === 0 ? (
@@ -174,39 +198,45 @@ export default function PengaturanBagiHasilPage() {
                   <th>Nama Siswa</th>
                   <th>Cabang</th>
                   <th>Guru</th>
-                  <th>Biaya/Siswa</th>
-                  <th>% Owner</th>
-                  <th>% Guru</th>
+                  <th>Total Biaya/Sesi</th>
+                  <th>Nominal Owner</th>
+                  <th>Nominal Guru</th>
                   <th>Aksi</th>
                 </tr>
               </thead>
               <tbody>
-                {students.map((student) => (
-                  <tr key={student.id}>
-                    <td className="font-bold" style={{ color: '#1e1b4b' }}>{student.name}</td>
-                    <td style={{ color: '#4b5563' }}>{student.cabangDaerah || '-'}</td>
-                    <td style={{ color: '#4b5563' }}>
-                      {student.branchTeachers.length > 0
-                        ? student.branchTeachers.map((bt) => bt.user.name).join(', ')
-                        : '-'}
-                    </td>
-                    <td style={{ color: '#4b5563' }}>{formatRupiah(student.biayaPerSiswa)}</td>
-                    <td className="font-bold" style={{ color: '#6366f1' }}>
-                      {student.branchTeachers.length > 0 ? `${student.branchTeachers[0].persentaseOwner}%` : '40%'}
-                    </td>
-                    <td className="font-bold" style={{ color: '#10b981' }}>
-                      {student.branchTeachers.length > 0 ? `${student.branchTeachers[0].persentaseGuru}%` : '60%'}
-                    </td>
-                    <td>
-                      <button
-                        onClick={() => openEdit(student)}
-                        className="px-3 py-1.5 rounded-lg font-bold text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-100 transition-colors"
-                      >
-                        Edit
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {students.map((student) => {
+                  const bt = student.branchTeachers[0]
+                  const ownerNom = bt?.nominalOwner ?? Math.round(student.biayaPerSiswa * 0.4)
+                  const guruNom = bt?.nominalGuru ?? (student.biayaPerSiswa - ownerNom)
+
+                  return (
+                    <tr key={student.id}>
+                      <td className="font-bold" style={{ color: '#1e1b4b' }}>{student.name}</td>
+                      <td style={{ color: '#4b5563' }}>{student.cabangDaerah || '-'}</td>
+                      <td style={{ color: '#4b5563' }}>
+                        {student.branchTeachers.length > 0
+                          ? student.branchTeachers.map((b) => b.user.name).join(', ')
+                          : '-'}
+                      </td>
+                      <td className="font-bold" style={{ color: '#4b5563' }}>{formatRupiah(student.biayaPerSiswa)}</td>
+                      <td className="font-bold" style={{ color: '#6366f1' }}>
+                        {student.branchTeachers.length > 0 ? formatRupiah(ownerNom) : formatRupiah(Math.round(student.biayaPerSiswa * 0.4))}
+                      </td>
+                      <td className="font-bold" style={{ color: '#10b981' }}>
+                        {student.branchTeachers.length > 0 ? formatRupiah(guruNom) : formatRupiah(Math.round(student.biayaPerSiswa * 0.6))}
+                      </td>
+                      <td>
+                        <button
+                          onClick={() => openEdit(student)}
+                          className="px-3 py-1.5 rounded-lg font-bold text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-100 transition-colors"
+                        >
+                          Edit
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
@@ -221,18 +251,19 @@ export default function PengaturanBagiHasilPage() {
         >
           <div className="glass-modal w-full max-w-lg overflow-hidden">
             <div className="px-6 py-4.5" style={{ borderBottom: '1px solid rgba(229,231,235,0.4)' }}>
-              <h3 className="text-base font-bold" style={{ color: '#1e1b4b' }}>Edit Bagi Hasil</h3>
+              <h3 className="text-base font-bold" style={{ color: '#1e1b4b' }}>Edit Bagi Hasil (Rupiah)</h3>
               <p className="text-xs mt-0.5" style={{ color: '#6b7280' }}>Siswa: <strong style={{ color: '#1e1b4b' }}>{editing.name}</strong> • {editing.cabangDaerah || 'Belum ada cabang'}</p>
             </div>
             <div className="px-6 py-5 space-y-4">
               <div>
-                <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4b5563' }}>Biaya Per Siswa (Rp)</label>
+                <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4b5563' }}>Total Biaya Per Siswa per Sesi (Rp)</label>
                 <input
                   type="number"
                   value={editBiaya}
-                  onChange={(e) => setEditBiaya(Number(e.target.value))}
+                  onChange={(e) => handleBiayaChange(Number(e.target.value))}
                   min={0}
-                  className="glass-input"
+                  step={1000}
+                  className="glass-input font-bold"
                 />
               </div>
 
@@ -255,64 +286,69 @@ export default function PengaturanBagiHasilPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4b5563' }}>Persentase Owner (%)</label>
+                      <label className="block text-xs font-semibold mb-1.5" style={{ color: '#6366f1' }}>Nominal Owner (Rp)</label>
                       <input
                         type="number"
-                        value={editPersentaseOwner}
-                        onChange={(e) => setEditPersentaseOwner(Number(e.target.value))}
-                        min={1}
-                        max={99}
-                        className="glass-input"
+                        value={editNominalOwner}
+                        onChange={(e) => handleNominalOwnerChange(Number(e.target.value))}
+                        min={0}
+                        step={1000}
+                        className="glass-input font-bold"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4b5563' }}>Persentase Guru (%)</label>
+                      <label className="block text-xs font-semibold mb-1.5" style={{ color: '#10b981' }}>Nominal Guru (Rp)</label>
                       <input
                         type="number"
-                        value={editPersentaseGuru}
-                        onChange={(e) => setEditPersentaseGuru(Number(e.target.value))}
-                        min={1}
-                        max={99}
-                        className="glass-input"
+                        value={editNominalGuru}
+                        onChange={(e) => handleNominalGuruChange(Number(e.target.value))}
+                        min={0}
+                        step={1000}
+                        className="glass-input font-bold"
                       />
                     </div>
                   </div>
 
-                  {/* Simulasi Perhitungan — validasi nominal, bukan persentase bulat */}
+                  {/* Validasi Nominal Rupiah */}
                   <div className="p-4 rounded-xl border border-white/50 space-y-2" style={{ background: 'rgba(255,255,255,0.6)' }}>
-                    <h4 className="text-xs font-bold" style={{ color: '#1e1b4b' }}>Simulasi Perhitungan (1 sesi, 1 murid):</h4>
-                    <p className="text-xs" style={{ color: '#4b5563' }}>Total Biaya: <strong>{formatRupiah(editBiaya)}</strong></p>
+                    <h4 className="text-xs font-bold" style={{ color: '#1e1b4b' }}>Validasi Pembagian Nominal:</h4>
+                    <p className="text-xs" style={{ color: '#4b5563' }}>
+                      Total Biaya: <strong>{formatRupiah(editBiaya)}</strong>
+                    </p>
 
                     <div className="flex gap-2 text-xs pt-0.5">
                       <span style={{ color: '#6366f1' }}>
-                        Owner ({editPersentaseOwner}%): <strong>{formatRupiah(nominalOwner)}</strong>
+                        Owner: <strong>{formatRupiah(editNominalOwner)}</strong>
                       </span>
                       <span style={{ color: '#9ca3af' }}>+</span>
                       <span style={{ color: '#10b981' }}>
-                        Guru ({editPersentaseGuru}%): <strong>{formatRupiah(nominalGuru)}</strong>
+                        Guru: <strong>{formatRupiah(editNominalGuru)}</strong>
                       </span>
                     </div>
 
-                    {/* Validasi nominal — berdasarkan rupiah asli */}
                     <div
-                      className="flex items-start gap-2 mt-1 p-2 rounded-lg text-[11px] font-bold"
+                      className="flex items-start gap-2 mt-1 p-2.5 rounded-lg text-[11px] font-bold"
                       style={{
                         background: isNominalValid ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
                         color: isNominalValid ? '#065f46' : '#991b1b',
                         border: `1px solid ${isNominalValid ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)'}`,
                       }}
                     >
-                      <span>{isNominalValid ? '✅' : '❌'}</span>
-                      <span>
-                        {formatRupiah(nominalOwner)} + {formatRupiah(nominalGuru)} = {formatRupiah(nominalTotal)}
-                        {isNominalValid
-                          ? ` = ${formatRupiah(editBiaya)} ✓`
-                          : ` ≠ ${formatRupiah(editBiaya)} — sesuaikan persentase`}
-                      </span>
+                      <span className="text-sm">{isNominalValid ? '✅' : '❌'}</span>
+                      <div className="space-y-0.5">
+                        <p>
+                          {formatRupiah(editNominalOwner)} + {formatRupiah(editNominalGuru)} = {formatRupiah(nominalTotal)}
+                        </p>
+                        <p className="font-normal text-[10px]">
+                          {isNominalValid
+                            ? `Sesuai dengan total biaya ${formatRupiah(editBiaya)} ✓`
+                            : `Harus sama dengan total biaya ${formatRupiah(editBiaya)} (selisih ${formatRupiah(Math.abs(editBiaya - nominalTotal))})`}
+                        </p>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Pilihan: berlaku ke laporan lama atau tidak */}
+                  {/* Option: Apply to existing reports */}
                   <div className="p-4 rounded-xl border border-white/50 space-y-2" style={{ background: 'rgba(255,255,255,0.5)' }}>
                     <h4 className="text-xs font-bold" style={{ color: '#1e1b4b' }}>Penerapan Perubahan:</h4>
                     <label className="flex items-start gap-3 cursor-pointer group">
@@ -324,17 +360,17 @@ export default function PengaturanBagiHasilPage() {
                       />
                       <div>
                         <p className="text-xs font-semibold" style={{ color: '#374151' }}>
-                          Perbarui juga laporan absensi guru yang sudah ada
+                          Perbarui juga laporan absensi guru yang sudah ada sebelumnya
                         </p>
                         <p className="text-[10px] mt-0.5" style={{ color: '#6b7280' }}>
-                          Jika dicentang, semua laporan les siswa ini yang sudah tercatat akan dihitung ulang dengan persentase baru.
-                          Jika tidak dicentang, perubahan hanya berlaku untuk laporan baru ke depannya.
+                          Jika dicentang, seluruh laporan les siswa ini yang pernah di-input akan dihitung ulang dengan nominal baru.
+                          Jika tidak dicentang, pembagian baru hanya berlaku untuk absensi les berikutnya.
                         </p>
                       </div>
                     </label>
                     {applyToExisting && (
                       <div className="px-3 py-2 rounded-lg text-[10px] font-bold" style={{ background: 'rgba(245,158,11,0.1)', color: '#92400e', border: '1px solid rgba(245,158,11,0.2)' }}>
-                        ⚠️ Perhatian: Laporan yang sudah ada akan dihitung ulang. Tindakan ini tidak dapat dibatalkan.
+                        ⚠️ Perhatian: Laporan yang sudah ada akan dihitung ulang dengan nominal baru.
                       </div>
                     )}
                   </div>
@@ -373,3 +409,4 @@ export default function PengaturanBagiHasilPage() {
     </div>
   )
 }
+

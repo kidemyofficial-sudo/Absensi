@@ -117,6 +117,8 @@ model BranchTeacher {
   biayaPerSesi   Int     @default(50000)
   persentaseOwner Int    @default(40)
   persentaseGuru  Int    @default(60)
+  nominalOwner    Int?   @default(20000)
+  nominalGuru     Int?   @default(30000)
 
   // Relations
   user    User      @relation(fields: [userId], references: [id])
@@ -172,16 +174,18 @@ model AuditLog {
 }
 
 model LessonRevenue {
-  id              String   @id @default(cuid())
-  lessonId        String   @unique
-  biayaPerSesi    Int
-  jumlahMurid     Int
-  biayaTotal      Int
-  persentaseOwner Int
-  persentaseGuru  Int
-  pendapatanOwner Int
-  pendapatanGuru  Int
-  createdAt       DateTime @default(now())
+  id                  String   @id @default(cuid())
+  lessonId            String   @unique
+  biayaPerSesi        Int
+  jumlahMurid         Int
+  biayaTotal          Int
+  persentaseOwner     Int
+  persentaseGuru      Int
+  nominalOwnerPerSesi Int?
+  nominalGuruPerSesi  Int?
+  pendapatanOwner     Int
+  pendapatanGuru      Int
+  createdAt           DateTime @default(now())
 
   // Relations
   lesson Lesson @relation(fields: [lessonId], references: [id])
