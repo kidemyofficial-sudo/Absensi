@@ -107,8 +107,8 @@ export const changePasswordSchema = z.object({
 }).strict()
 
 export const revenueSettingsSchema = z.object({
-  studentId: z.string().cuid('ID siswa tidak valid'),
-  branchTeacherId: z.string().cuid('ID guru cabang tidak valid').optional(),
+  studentId: z.string().min(1, 'ID siswa tidak valid'),
+  branchTeacherId: z.string().min(1, 'ID guru cabang tidak valid').optional(),
   biayaPerSiswa: z.number().int('Biaya harus bilangan bulat').min(0, 'Biaya tidak boleh negatif').max(10000000, 'Maksimal Rp 10.000.000'),
   nominalOwner: z.number().int('Nominal owner harus bilangan bulat').min(0, 'Nominal owner tidak boleh negatif').optional(),
   nominalGuru: z.number().int('Nominal guru harus bilangan bulat').min(0, 'Nominal guru tidak boleh negatif').optional(),

@@ -249,12 +249,12 @@ export default function PengaturanBagiHasilPage() {
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
           style={{ background: 'rgba(15,10,40,0.45)', backdropFilter: 'blur(6px)' }}
         >
-          <div className="glass-modal w-full max-w-lg overflow-hidden">
-            <div className="px-6 py-4.5" style={{ borderBottom: '1px solid rgba(229,231,235,0.4)' }}>
+          <div className="glass-modal w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="px-6 py-4 shrink-0" style={{ borderBottom: '1px solid rgba(229,231,235,0.4)' }}>
               <h3 className="text-base font-bold" style={{ color: '#1e1b4b' }}>Edit Bagi Hasil (Rupiah)</h3>
               <p className="text-xs mt-0.5" style={{ color: '#6b7280' }}>Siswa: <strong style={{ color: '#1e1b4b' }}>{editing.name}</strong> • {editing.cabangDaerah || 'Belum ada cabang'}</p>
             </div>
-            <div className="px-6 py-5 space-y-4">
+            <div className="px-6 py-5 space-y-4 overflow-y-auto flex-1">
               <div>
                 <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4b5563' }}>Total Biaya Per Siswa per Sesi (Rp)</label>
                 <input
@@ -396,7 +396,7 @@ export default function PengaturanBagiHasilPage() {
                 </div>
               )}
             </div>
-            <div className="px-6 py-4 flex justify-end gap-3" style={{ borderTop: '1px solid rgba(229,231,235,0.4)', background: 'rgba(255,255,255,0.3)' }}>
+            <div className="px-6 py-4 flex justify-end gap-3 shrink-0" style={{ borderTop: '1px solid rgba(229,231,235,0.4)', background: 'rgba(255,255,255,0.3)' }}>
               <button onClick={closeEdit} className="btn-secondary">Batal</button>
               <button onClick={handleSave} disabled={saving || !isNominalValid} className="btn-primary" style={{ opacity: (!isNominalValid || saving) ? 0.6 : 1 }}>
                 {saving ? 'Menyimpan...' : 'Simpan'}

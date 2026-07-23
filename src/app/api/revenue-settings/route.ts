@@ -75,11 +75,8 @@ export async function PUT(request: NextRequest) {
         validatedData.nominalOwner !== undefined &&
         validatedData.nominalGuru !== undefined
       ) {
-        const branchTeacher = await tx.branchTeacher.findFirst({
-          where: {
-            id: validatedData.branchTeacherId,
-            student: { some: { id: validatedData.studentId } },
-          },
+        const branchTeacher = await tx.branchTeacher.findUnique({
+          where: { id: validatedData.branchTeacherId },
           select: { id: true },
         })
 
@@ -87,16 +84,19 @@ export async function PUT(request: NextRequest) {
           throw new Error('BRANCH_TEACHER_NOT_FOUND')
         }
 
+        const nomOwner = validatedData.nominalOwner ?? Math.round(validatedData.biayaPerSiswa * 0.4)
+        const nomGuru = validatedData.nominalGuru ?? (validatedData.biayaPerSiswa - nomOwner)
+
         const pctOwner = validatedData.biayaPerSiswa > 0
-          ? Math.round((validatedData.nominalOwner / validatedData.biayaPerSiswa) * 100)
+          ? Math.round((nomOwner / validatedData.biayaPerSiswa) * 100)
           : 40
         const pctGuru = 100 - pctOwner
 
         await tx.branchTeacher.update({
           where: { id: validatedData.branchTeacherId },
           data: {
-            nominalOwner: validatedData.nominalOwner,
-            nominalGuru: validatedData.nominalGuru,
+            nominalOwner: nomOwner,
+            nominalGuru: nomGuru,
             persentaseOwner: pctOwner,
             persentaseGuru: pctGuru,
           },
@@ -117,16 +117,16 @@ export async function PUT(request: NextRequest) {
           for (const rev of existingRevenues) {
             const biayaPerSesi = validatedData.biayaPerSiswa
             const biayaTotal = biayaPerSesi * rev.jumlahMurid
-            const pendapatanOwner = validatedData.nominalOwner! * rev.jumlahMurid
-            const pendapatanGuru = validatedData.nominalGuru! * rev.jumlahMurid
+            const pendapatanOwner = nomOwner * rev.jumlahMurid
+            const pendapatanGuru = nomGuru * rev.jumlahMurid
 
             await tx.lessonRevenue.update({
               where: { id: rev.id },
               data: {
                 biayaPerSesi,
                 biayaTotal,
-                nominalOwnerPerSesi: validatedData.nominalOwner,
-                nominalGuruPerSesi: validatedData.nominalGuru,
+                nominalOwnerPerSesi: nomOwner,
+                nominalGuruPerSesi: nomGuru,
                 pendapatanOwner,
                 pendapatanGuru,
                 persentaseOwner: pctOwner,
@@ -176,7 +176,7 @@ export async function PUT(request: NextRequest) {
     }
     console.error('Update revenue settings error:', error)
     return NextResponse.json(
-      { error: 'Terjadi kesalahan server' },
+      { error: error instanceof Error ? error.message : 'Terjadi kesalahan server' },
       { status: 500 }
     )
   }
