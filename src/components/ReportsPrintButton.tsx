@@ -41,10 +41,6 @@ export default function ReportsPrintButton({
     const namaSiswa = uniqueOrMixed(lessons.map((l) => l.namaMurid))
     const jenjangKelas = uniqueOrMixed(lessons.map((l) => l.kelasMurid || '-'))
     const jenisLes = uniqueOrMixed(lessons.map((l) => l.jenisPembelajaran))
-    const namaSiswaJenjangKelas =
-      namaSiswa === 'Bervariasi' || jenjangKelas === 'Bervariasi'
-        ? 'Bervariasi'
-        : `${namaSiswa} / ${jenjangKelas}`
 
     const tanggalList = lessons
       .map((l) => new Date(l.tanggalLes))
