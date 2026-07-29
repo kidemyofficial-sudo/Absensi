@@ -2,7 +2,7 @@ import { prisma } from './prisma'
 
 interface AuditLogParams {
   userId: string
-  action: 'CREATE' | 'UPDATE' | 'DELETE'
+  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'ARCHIVE' | 'RESTORE'
   entity: string
   entityId: string
   oldData?: Record<string, unknown>
