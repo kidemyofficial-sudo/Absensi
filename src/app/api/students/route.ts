@@ -44,11 +44,13 @@ export async function GET(request: NextRequest) {
   const where: Prisma.StudentWhereInput = {}
 
   // Default: jangan tampilkan siswa di storage (archived).
+  // Gunakan archivedAt agar data lama yang kolom isArchived-nya masih NULL
+  // tetap dianggap aktif dan tidak hilang dari daftar.
   // Owner bisa melihat storage dengan `?archived=1`
   if (user.role === 'OWNER' && archived === '1') {
-    where.isArchived = true
+    where.archivedAt = { not: null }
   } else {
-    where.isArchived = false
+    where.archivedAt = null
   }
 
   // Default filter: Guru hanya lihat siswa APPROVED
@@ -85,72 +87,124 @@ export async function GET(request: NextRequest) {
   const cabangWhere: Prisma.StudentWhereInput = { ...where }
   delete cabangWhere.cabangDaerah
 
-  let students: any[] = []
-  let total = 0
-  let cabangRows: any[] = []
-
   try {
-    students = await prisma.student.findMany({
-      where,
-      select: {
-        id: true,
-        name: true,
-        ttl: true,
-        domisili: true,
-        asalSekolah: true,
-        cabangDaerah: true,
-        status: true,
-        parent: {
-          select: { id: true, name: true, phone: true },
-        },
-        branchTeachers: {
-          select: {
-            id: true,
-            user: {
-              select: { id: true, name: true },
+    const [students, total, cabangRows] = await Promise.all([
+      prisma.student.findMany({
+        where,
+        select: {
+          id: true,
+          name: true,
+          ttl: true,
+          domisili: true,
+          asalSekolah: true,
+          cabangDaerah: true,
+          status: true,
+          parent: {
+            select: { id: true, name: true, phone: true },
+          },
+          branchTeachers: {
+            select: {
+              id: true,
+              user: {
+                select: { id: true, name: true },
+              },
             },
           },
         },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.student.count({ where }),
+      prisma.student.findMany({
+        where: {
+          ...cabangWhere,
+          cabangDaerah: { not: null },
+        },
+        select: { cabangDaerah: true },
+        distinct: ['cabangDaerah'],
+        orderBy: { cabangDaerah: 'asc' },
+      }),
+    ])
+
+    return NextResponse.json({
+      students,
+      cabangs: cabangRows.map((row) => row.cabangDaerah).filter(Boolean),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / limit)),
       },
-      orderBy: { createdAt: 'desc' },
-      skip: (page - 1) * limit,
-      take: limit,
     })
   } catch (err) {
-    console.error("Prisma error in students findMany:", err)
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('Prisma error in students GET:', err)
+
+    // Fallback aman: bila kolom storage belum ada di database,
+    // tetap tampilkan daftar siswa tanpa filter storage agar data lama tidak terlihat hilang.
+    if (msg.includes('isArchived') || msg.includes('archivedAt')) {
+      const fallbackWhere: Prisma.StudentWhereInput = { ...where }
+      delete fallbackWhere.archivedAt
+
+      const fallbackCabangWhere: Prisma.StudentWhereInput = { ...fallbackWhere }
+      delete fallbackCabangWhere.cabangDaerah
+
+      const [students, total, cabangRows] = await Promise.all([
+        prisma.student.findMany({
+          where: fallbackWhere,
+          select: {
+            id: true,
+            name: true,
+            ttl: true,
+            domisili: true,
+            asalSekolah: true,
+            cabangDaerah: true,
+            status: true,
+            parent: {
+              select: { id: true, name: true, phone: true },
+            },
+            branchTeachers: {
+              select: {
+                id: true,
+                user: {
+                  select: { id: true, name: true },
+                },
+              },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+          skip: (page - 1) * limit,
+          take: limit,
+        }),
+        prisma.student.count({ where: fallbackWhere }),
+        prisma.student.findMany({
+          where: {
+            ...fallbackCabangWhere,
+            cabangDaerah: { not: null },
+          },
+          select: { cabangDaerah: true },
+          distinct: ['cabangDaerah'],
+          orderBy: { cabangDaerah: 'asc' },
+        }),
+      ])
+
+      return NextResponse.json({
+        students,
+        cabangs: cabangRows.map((row) => row.cabangDaerah).filter(Boolean),
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.max(1, Math.ceil(total / limit)),
+        },
+        warning:
+          'Field Storage siswa belum ada di database, jadi daftar saat ini masih memakai mode lama sampai schema di-update.',
+      })
+    }
+
+    return NextResponse.json({ error: 'Terjadi kesalahan server' }, { status: 500 })
   }
-
-  try {
-    total = await prisma.student.count({ where })
-  } catch (err) {
-    console.error("Prisma error in students count:", err)
-  }
-
-  try {
-    cabangRows = await prisma.student.findMany({
-      where: {
-        ...cabangWhere,
-        cabangDaerah: { not: null },
-      },
-      select: { cabangDaerah: true },
-      distinct: ['cabangDaerah'],
-      orderBy: { cabangDaerah: 'asc' },
-    })
-  } catch (err) {
-    console.error("Prisma error in cabangs findMany:", err)
-  }
-
-
-  return NextResponse.json({
-    students,
-    cabangs: cabangRows.map((row) => row.cabangDaerah).filter(Boolean),
-    pagination: {
-      page,
-      limit,
-      total,
-      totalPages: Math.max(1, Math.ceil(total / limit)),
-    },
-  })
 }
 
 export async function POST(request: NextRequest) {
