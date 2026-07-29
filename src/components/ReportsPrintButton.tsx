@@ -28,7 +28,21 @@ export default function ReportsPrintButton({
   userName,
   role,
 }: ReportsPrintButtonProps) {
-  const handlePrint = () => {
+  const handlePrint = async () => {
+    // Load TTD image as base64
+    let ttdBase64 = ''
+    try {
+      const response = await fetch('/image/ttdowner.webp')
+      const blob = await response.blob()
+      ttdBase64 = await new Promise<string>((resolve) => {
+        const reader = new FileReader()
+        reader.onloadend = () => resolve(reader.result as string)
+        reader.readAsDataURL(blob)
+      })
+    } catch (err) {
+      console.error('Failed to load TTD image:', err)
+    }
+
     const uniqueOrMixed = (values: Array<string | null | undefined>, emptyFallback = '-') => {
       const cleaned = values.map((v) => (v ?? '').trim()).filter(Boolean)
       const unique = [...new Set(cleaned)]
@@ -235,9 +249,13 @@ export default function ReportsPrintButton({
 
     .signature .sig-image {
       width: 140px;
-      height: 70px;
-      margin: 0 auto;
+      height: auto;
+      max-height: 80px;
+      margin: 8px auto;
+      display: block;
       object-fit: contain;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
 
     .signature .sig-name {
@@ -369,7 +387,7 @@ export default function ReportsPrintButton({
     <div class="signature">
       <p class="sig-title">Mengetahui,</p>
       <p class="sig-role">Owner Kidemy</p>
-      <img src="${window.location.origin}/image/ttdowner.webp" alt="TTD Owner" class="sig-image" />
+      ${ttdBase64 ? `<img src="${ttdBase64}" alt="TTD Owner" class="sig-image" />` : ''}
       <p class="sig-name">( Rahayu Wiladatika I, S.Pd )</p>
     </div>
   </div>
