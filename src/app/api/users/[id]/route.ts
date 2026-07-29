@@ -167,62 +167,126 @@ export async function DELETE(
     return NextResponse.json({ error: 'Tidak bisa menghapus diri sendiri' }, { status: 400 })
   }
 
-  const targetUser = await prisma.user.findUnique({
-    where: { id },
-    include: {
-      students: { select: { id: true } },
-      branchTeachers: {
-        select: {
-          id: true,
-          student: { select: { id: true } },
-        },
-      },
-      lessons: { select: { id: true } },
-    },
-  })
-
-  if (!targetUser) {
-    return NextResponse.json({ error: 'User tidak ditemukan' }, { status: 404 })
-  }
-
-  // Orang tua yang masih punya siswa tidak bisa dihapus
-  if (targetUser.role === 'ORANG_TUA' && targetUser.students.length > 0) {
-    return NextResponse.json(
-      { error: `Orang Tua masih memiliki ${targetUser.students.length} siswa. Hapus siswa terlebih dahulu.` },
-      { status: 400 }
-    )
-  }
-
   try {
-    if (targetUser.role === 'GURU') {
-      // Lepaskan semua siswa dari BranchTeacher milik guru ini
-      for (const bt of targetUser.branchTeachers) {
-        if (bt.student.length > 0) {
-          const studentIds = bt.student.map((s) => s.id)
-          await prisma.branchTeacher.update({
-            where: { id: bt.id },
-            data: { student: { disconnect: studentIds.map((sid) => ({ id: sid })) } },
+    const targetUser = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        role: true,
+      },
+    })
+
+    if (!targetUser) {
+      return NextResponse.json({ error: 'User tidak ditemukan' }, { status: 404 })
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // 1. Hapus semua notifikasi user
+      await tx.notification.deleteMany({ where: { userId: id } })
+
+      // 2. Hapus task & jadwal guru/user
+      await tx.myTask.deleteMany({ where: { userId: id } })
+      await tx.teacherSchedule.deleteMany({ where: { userId: id } })
+
+      // 3. Jika Wali Murid (ORANG_TUA)
+      if (targetUser.role === 'ORANG_TUA') {
+        const studentRows = await tx.student.findMany({
+          where: { parentId: id },
+          select: { id: true },
+        })
+
+        if (studentRows.length > 0) {
+          const studentIds = studentRows.map((s) => s.id)
+
+          // Cari semua lesson milik siswa-siswa ini
+          const studentLessons = await tx.lesson.findMany({
+            where: { studentId: { in: studentIds } },
+            select: { id: true },
+          })
+          const lessonIds = studentLessons.map((l) => l.id)
+
+          if (lessonIds.length > 0) {
+            await tx.lessonRevenue.deleteMany({
+              where: { lessonId: { in: lessonIds } },
+            })
+          }
+
+          await tx.attendance.deleteMany({
+            where: { studentId: { in: studentIds } },
+          })
+
+          await tx.lesson.deleteMany({
+            where: { studentId: { in: studentIds } },
+          })
+
+          // Disconnect branch teachers dari siswa-siswa ini
+          for (const sid of studentIds) {
+            await tx.student.update({
+              where: { id: sid },
+              data: { branchTeachers: { set: [] } },
+            })
+          }
+
+          // Hapus semua siswa milik Wali Murid ini
+          await tx.student.deleteMany({
+            where: { parentId: id },
           })
         }
       }
-      await prisma.branchTeacher.deleteMany({ where: { userId: id } })
 
-      // Jika guru sudah memiliki riwayat les, JANGAN hapus riwayat les/keuangannya!
-      // Nonaktifkan akun (status REJECTED) agar tidak bisa login, namun history tetap 100% tersimpan.
-      if (targetUser.lessons.length > 0) {
-        await prisma.user.update({
-          where: { id },
-          data: { status: 'REJECTED' },
+      // 4. Jika Guru (GURU)
+      if (targetUser.role === 'GURU') {
+        // Cari semua lesson milik Guru ini
+        const guruLessons = await tx.lesson.findMany({
+          where: { guruId: id },
+          select: { id: true },
         })
-        return NextResponse.json({ message: 'Akun guru berhasil dinonaktifkan. Riwayat laporan les dan keuangan tetap tersimpan utuh.' })
+        const lessonIds = guruLessons.map((l) => l.id)
+
+        if (lessonIds.length > 0) {
+          await tx.lessonRevenue.deleteMany({
+            where: { lessonId: { in: lessonIds } },
+          })
+        }
+
+        await tx.attendance.deleteMany({
+          where: { teacherId: id },
+        })
+
+        await tx.lesson.deleteMany({
+          where: { guruId: id },
+        })
+
+        // Disconnect semua siswa dari BranchTeacher milik guru ini & hapus BranchTeacher
+        const branchTeachers = await tx.branchTeacher.findMany({
+          where: { userId: id },
+          select: { id: true, student: { select: { id: true } } },
+        })
+
+        for (const bt of branchTeachers) {
+          if (bt.student.length > 0) {
+            const studentIds = bt.student.map((s) => s.id)
+            await tx.branchTeacher.update({
+              where: { id: bt.id },
+              data: { student: { disconnect: studentIds.map((sid) => ({ id: sid })) } },
+            })
+          }
+        }
+
+        await tx.branchTeacher.deleteMany({
+          where: { userId: id },
+        })
       }
 
-      // Jika belum ada riwayat les sama sekali, hapus absensi lama jika ada
-      await prisma.attendance.deleteMany({ where: { teacherId: id } })
-    }
+      // 5. Hapus User secara permanen
+      await tx.user.delete({
+        where: { id },
+      })
+    })
 
-    await prisma.user.delete({ where: { id } })
-    return NextResponse.json({ message: 'User berhasil dihapus' })
+    const roleName = targetUser.role === 'GURU' ? 'Guru' : targetUser.role === 'ORANG_TUA' ? 'Wali Murid' : 'User'
+    return NextResponse.json({ message: `${roleName} berhasil dihapus permanen` })
   } catch (error) {
     console.error('Delete user error:', error)
     return NextResponse.json({ error: 'Gagal menghapus user' }, { status: 500 })

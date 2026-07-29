@@ -67,11 +67,10 @@ export default function GuruPage() {
     setDeleteConfirm(null)
     try {
       const res = await fetch(`/api/users/${deleteConfirm.id}`, { method: 'DELETE' })
+      const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        const data = await res.json()
         throw new Error(data.error || 'Gagal hapus guru')
       }
-      const data = await res.json()
       setMessage(data.message || 'Guru berhasil dihapus')
       fetchTeachers()
     } catch (err) {
