@@ -233,8 +233,56 @@ export default function ReportsPrintButton({
     }
 
     @media print {
-      body { padding: 12px 15px; }
-      @page { size: A4 landscape; margin: 10mm; }
+      body { 
+        padding: 20px 25px;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      @page { 
+        size: A4 landscape; 
+        margin: 10mm;
+      }
+      
+      /* Pastikan border tetap muncul saat print */
+      table, thead, tbody, tr, th, td {
+        border-color: #d1d5db !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      
+      thead tr {
+        background: #1e3a8a !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      
+      thead th {
+        color: #fff !important;
+        border-color: rgba(255, 255, 255, 0.25) !important;
+      }
+      
+      tbody tr:nth-child(even) {
+        background: #f8fafc !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      
+      .meta {
+        background: #f9fafb !important;
+        border-color: #e5e7eb !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      
+      .header {
+        border-bottom: 2px solid #1e40af !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      
+      .footer {
+        border-top: 1px solid #e5e7eb !important;
+      }
     }
   </style>
 </head>
