@@ -315,7 +315,7 @@ export default function StudentsPage() {
                 Batal
               </button>
               <p className="text-xs mt-2" style={{ color: '#94a3b8' }}>
-                Catatan: jika siswa sudah punya absensi/riwayat les, sistem akan menolak hapus permanen untuk menjaga histori.
+                Catatan: Hapus Permanen akan menghapus siswa beserta absensi dan riwayat les yang terkait secara permanen.
               </p>
             </div>
           </div>

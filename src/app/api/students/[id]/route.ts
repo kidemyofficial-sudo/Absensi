@@ -229,38 +229,57 @@ export async function DELETE(
     }
 
     if (mode === 'hard') {
-      const [attendanceCount, lessonCount] = await Promise.all([
+      const [attendanceCount, lessonCount, lessonIds] = await Promise.all([
         prisma.attendance.count({ where: { studentId: id } }),
         prisma.lesson.count({ where: { studentId: id } }),
+        prisma.lesson.findMany({
+          where: { studentId: id },
+          select: { id: true },
+        }),
       ])
-
-      if (attendanceCount > 0 || lessonCount > 0) {
-        return NextResponse.json(
-          {
-            error:
-              `Tidak bisa hapus permanen karena siswa sudah memiliki aktivitas (Absensi: ${attendanceCount}, Les: ${lessonCount}). ` +
-              `Gunakan Hapus Sementara (Storage) agar histori tetap tersimpan.`,
-          },
-          { status: 400 }
-        )
-      }
-
-      await prisma.student.update({
-        where: { id },
-        data: { branchTeachers: { set: [] } },
-      })
-
-      await logAudit({
-        userId: user.id,
-        action: 'DELETE',
-        entity: 'Student',
-        entityId: id,
-        oldData: { name: existingStudent.name, cabangDaerah: existingStudent.cabangDaerah },
-        ip: getIp(request),
-      })
-
-      await prisma.student.delete({ where: { id } })
-      return NextResponse.json({ message: 'Siswa berhasil dihapus permanen' })
+
+      const lessonIdList = lessonIds.map((lesson) => lesson.id)
+
+      await prisma.$transaction(async (tx) => {
+        if (lessonIdList.length > 0) {
+          await tx.lessonRevenue.deleteMany({
+            where: {
+              lessonId: { in: lessonIdList },
+            },
+          })
+        }
+
+        await tx.attendance.deleteMany({ where: { studentId: id } })
+        await tx.lesson.deleteMany({ where: { studentId: id } })
+
+        await tx.student.update({
+          where: { id },
+          data: { branchTeachers: { set: [] } },
+        })
+
+        await tx.student.delete({ where: { id } })
+      })
+
+      await logAudit({
+        userId: user.id,
+        action: 'DELETE',
+        entity: 'Student',
+        entityId: id,
+        oldData: {
+          name: existingStudent.name,
+          cabangDaerah: existingStudent.cabangDaerah,
+          deletedAttendances: attendanceCount,
+          deletedLessons: lessonCount,
+        },
+        ip: getIp(request),
+      })
+
+      return NextResponse.json({
+        message:
+          attendanceCount > 0 || lessonCount > 0
+            ? `Siswa berhasil dihapus permanen beserta ${attendanceCount} absensi dan ${lessonCount} riwayat les terkait`
+            : 'Siswa berhasil dihapus permanen',
+      })
     }
 
     return NextResponse.json({ error: 'Mode hapus tidak valid' }, { status: 400 })
