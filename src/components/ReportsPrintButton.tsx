@@ -28,7 +28,27 @@ export default function ReportsPrintButton({
   userName,
   role,
 }: ReportsPrintButtonProps) {
-  const handlePrint = () => {
+  const handlePrint = async () => {
+    // Try to load TTD image, fallback to empty space if fails
+    let ttdImageHtml = '<div class="sig-space"></div>'
+    
+    try {
+      // Try PNG first, then webp
+      const imagePath = '/image/ttdowner.png'
+      const response = await fetch(imagePath)
+      if (response.ok) {
+        const blob = await response.blob()
+        const base64 = await new Promise<string>((resolve) => {
+          const reader = new FileReader()
+          reader.onloadend = () => resolve(reader.result as string)
+          reader.readAsDataURL(blob)
+        })
+        ttdImageHtml = `<img src="${base64}" alt="TTD Owner" class="sig-image" />`
+      }
+    } catch (err) {
+      console.warn('TTD image not loaded, using signature space:', err)
+    }
+
     const uniqueOrMixed = (values: Array<string | null | undefined>, emptyFallback = '-') => {
       const cleaned = values.map((v) => (v ?? '').trim()).filter(Boolean)
       const unique = [...new Set(cleaned)]
@@ -241,6 +261,17 @@ export default function ReportsPrintButton({
       display: block;
     }
 
+    .signature .sig-image {
+      width: 160px;
+      height: auto;
+      max-height: 90px;
+      margin: 8px auto;
+      display: block;
+      object-fit: contain;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
     .signature .sig-name {
       font-weight: 500;
       color: #374151;
@@ -370,7 +401,7 @@ export default function ReportsPrintButton({
     <div class="signature">
       <p class="sig-title">Mengetahui,</p>
       <p class="sig-role">Owner Kidemy</p>
-      <div class="sig-space"></div>
+      ${ttdImageHtml}
       <p class="sig-name">( Rahayu Wiladatika I, S.Pd )</p>
     </div>
   </div>
