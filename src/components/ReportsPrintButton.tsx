@@ -82,6 +82,12 @@ export default function ReportsPrintButton({
       )
       .join('')
 
+    // Buat nama file yang dinamis
+    const sanitizeName = (name: string) => name.replace(/[^a-zA-Z0-9 ]/g, '').trim()
+    const namaAnakSanitized = sanitizeName(namaSiswa)
+    const periodeSanitized = periodeData.replace(/\s*-\s*/g, ' - ')
+    const fileName = `Laporan Hasil Pembelajaran_${namaAnakSanitized}_${periodeSanitized} – Kidemy`
+
     const printWindow = window.open('', '_blank', 'width=1100,height=700')
     if (!printWindow) return
 
@@ -90,7 +96,7 @@ export default function ReportsPrintButton({
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <title>Laporan Hasil Pembelajaran – Kidemy</title>
+  <title>${fileName}</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
