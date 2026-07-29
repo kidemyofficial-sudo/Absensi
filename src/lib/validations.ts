@@ -7,7 +7,7 @@ import { LESSON_LOCATIONS, MIN_CATATAN_MATERI_LENGTH } from './lesson-options'
 export const MIN_PASSWORD_LENGTH = 8
 export const PASSWORD_REQUIREMENTS_LABEL = 'Minimal 8 karakter, huruf besar, huruf kecil, angka, dan simbol'
 
-const strongPasswordSchema = z
+export const strongPasswordSchema = z
   .string()
   .min(MIN_PASSWORD_LENGTH, `Password minimal ${MIN_PASSWORD_LENGTH} karakter`)
   .regex(/[a-z]/, 'Harus ada huruf kecil')
@@ -100,6 +100,18 @@ export const updateProfileSchema = z.object({
   name: z.string().min(2).optional(),
   phone: z.string().min(10).optional(),
 }).strict()
+
+export const ownerUpdateUserSchema = z.object({
+  name: z.string().min(2).optional(),
+  phone: z.string().min(10, 'Nomor telepon minimal 10 digit').optional(),
+  status: z.enum(['PENDING', 'APPROVED', 'REJECTED']).optional(),
+  password: strongPasswordSchema.optional(),
+}).strict().refine(
+  (data) => Object.keys(data).length > 0,
+  {
+    message: 'Tidak ada data yang diubah',
+  }
+)
 
 export const changePasswordSchema = z.object({
   currentPassword: z.string().min(1),

@@ -1,13 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/auth'
+import { getCurrentUser, hashPassword } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { z } from 'zod'
-
-const updateProfileSchema = z.object({
-  name: z.string().min(2).optional(),
-  phone: z.string().min(10).optional(),
-  status: z.enum(['PENDING', 'APPROVED', 'REJECTED']).optional(),
-})
+import { ownerUpdateUserSchema, updateProfileSchema } from '@/lib/validations'
+import { ZodError } from 'zod'
 
 export async function PATCH(
   request: NextRequest,
@@ -28,30 +23,58 @@ export async function PATCH(
 
   try {
     const body = await request.json()
-    const validatedData = updateProfileSchema.parse(body)
+    const dataToUpdate: {
+      name?: string
+      phone?: string
+      status?: 'PENDING' | 'APPROVED' | 'REJECTED'
+      password?: string
+    } = {}
 
-    // Only OWNER can change status
-    if (validatedData.status && user.role !== 'OWNER') {
-      return NextResponse.json({ error: 'Tidak diizinkan mengubah status' }, { status: 403 })
-    }
+    if (user.role === 'OWNER') {
+      const validatedData = ownerUpdateUserSchema.parse(body)
 
-    // Check phone uniqueness if changed
-    if (validatedData.phone) {
-      const existing = await prisma.user.findFirst({
-        where: {
-          phone: validatedData.phone,
-          NOT: { id },
-        },
-      })
+      if (validatedData.phone) {
+        const existing = await prisma.user.findFirst({
+          where: {
+            phone: validatedData.phone,
+            NOT: { id },
+          },
+        })
 
-      if (existing) {
-        return NextResponse.json({ error: 'Nomor telepon sudah digunakan' }, { status: 400 })
+        if (existing) {
+          return NextResponse.json({ error: 'Nomor telepon sudah digunakan' }, { status: 400 })
+        }
       }
+
+      if (validatedData.name !== undefined) dataToUpdate.name = validatedData.name
+      if (validatedData.phone !== undefined) dataToUpdate.phone = validatedData.phone
+      if (validatedData.status !== undefined) dataToUpdate.status = validatedData.status
+      if (validatedData.password) {
+        dataToUpdate.password = await hashPassword(validatedData.password)
+      }
+    } else {
+      const validatedData = updateProfileSchema.parse(body)
+
+      if (validatedData.phone) {
+        const existing = await prisma.user.findFirst({
+          where: {
+            phone: validatedData.phone,
+            NOT: { id },
+          },
+        })
+
+        if (existing) {
+          return NextResponse.json({ error: 'Nomor telepon sudah digunakan' }, { status: 400 })
+        }
+      }
+
+      if (validatedData.name !== undefined) dataToUpdate.name = validatedData.name
+      if (validatedData.phone !== undefined) dataToUpdate.phone = validatedData.phone
     }
 
     const updated = await prisma.user.update({
       where: { id },
-      data: validatedData,
+      data: dataToUpdate,
       select: {
         id: true,
         name: true,
@@ -63,8 +86,8 @@ export async function PATCH(
 
     return NextResponse.json({ user: updated })
   } catch (error) {
-    if (error instanceof Error && error.name === 'ZodError') {
-      return NextResponse.json({ error: 'Data tidak valid' }, { status: 400 })
+    if (error instanceof ZodError) {
+      return NextResponse.json({ error: error.issues[0]?.message || 'Data tidak valid' }, { status: 400 })
     }
     console.error('Update user error:', error)
     return NextResponse.json({ error: 'Terjadi kesalahan' }, { status: 500 })

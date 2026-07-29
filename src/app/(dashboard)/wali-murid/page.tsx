@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import PasswordStrength from '@/components/PasswordStrength'
+import PasswordVisibilityToggle from '@/components/PasswordVisibilityToggle'
 
 interface Parent {
   id: string
@@ -23,6 +25,16 @@ export default function WaliMuridPage() {
   const [message, setMessage] = useState('')
   const [search, setSearch] = useState('')
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null)
+  const [editParent, setEditParent] = useState<{
+    id: string
+    name: string
+    phone: string
+    password: string
+    confirmPassword: string
+  } | null>(null)
+  const [savingEdit, setSavingEdit] = useState(false)
+  const [showEditPassword, setShowEditPassword] = useState(false)
+  const [showEditConfirmPassword, setShowEditConfirmPassword] = useState(false)
 
   const fetchParents = useCallback(async () => {
     setLoading(true)
@@ -91,6 +103,78 @@ export default function WaliMuridPage() {
     }
   }
 
+  const openEditForm = (parent: Parent) => {
+    setMessage('')
+    setShowEditPassword(false)
+    setShowEditConfirmPassword(false)
+    setEditParent({
+      id: parent.id,
+      name: parent.name,
+      phone: parent.phone,
+      password: '',
+      confirmPassword: '',
+    })
+  }
+
+  const closeEditForm = () => {
+    setEditParent(null)
+    setSavingEdit(false)
+    setShowEditPassword(false)
+    setShowEditConfirmPassword(false)
+  }
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editParent) return
+
+    const phone = editParent.phone.trim()
+    const password = editParent.password.trim()
+    const confirmPassword = editParent.confirmPassword.trim()
+
+    if (phone.length < 10) {
+      setMessage('Nomor telepon minimal 10 digit')
+      return
+    }
+
+    if (password || confirmPassword) {
+      if (password !== confirmPassword) {
+        setMessage('Konfirmasi password tidak cocok')
+        return
+      }
+
+      if (password.length < 8) {
+        setMessage('Password minimal 8 karakter')
+        return
+      }
+    }
+
+    setSavingEdit(true)
+    setMessage('')
+
+    try {
+      const payload: { phone: string; password?: string } = { phone }
+      if (password) {
+        payload.password = password
+      }
+
+      const res = await fetch(`/api/users/${editParent.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Gagal mengubah data wali murid')
+
+      setMessage(password ? 'No HP dan password wali murid berhasil diperbarui!' : 'No HP wali murid berhasil diperbarui!')
+      closeEditForm()
+      fetchParents()
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : 'Terjadi kesalahan')
+      setSavingEdit(false)
+    }
+  }
+
   const isSuccess = message.includes('berhasil')
 
   return (
@@ -104,6 +188,116 @@ export default function WaliMuridPage() {
         onConfirm={handleDeleteConfirmed}
         onCancel={() => setDeleteConfirm(null)}
       />
+      {editParent && (
+        <div className="fixed inset-0 z-50 bg-slate-950/35 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="glass-card w-full max-w-xl p-6">
+            <div className="flex items-start justify-between gap-4 mb-5">
+              <div>
+                <h3 className="text-lg font-bold" style={{ color: '#1e1b4b' }}>Edit Wali Murid</h3>
+                <p className="text-sm mt-1" style={{ color: '#6b7280' }}>
+                  Owner bisa mengganti nomor HP dan password akun wali murid yang sudah terdaftar.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={closeEditForm}
+                className="w-9 h-9 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors"
+                aria-label="Tutup form edit wali murid"
+              >
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={handleEditSubmit}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4b5563' }}>Nama</label>
+                  <input
+                    type="text"
+                    value={editParent.name}
+                    disabled
+                    className="glass-input"
+                    style={{ opacity: 0.7, cursor: 'not-allowed' }}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4b5563' }}>Nomor Telepon</label>
+                  <input
+                    type="tel"
+                    value={editParent.phone}
+                    onChange={(e) => setEditParent((prev) => prev ? { ...prev, phone: e.target.value } : prev)}
+                    required
+                    className="glass-input"
+                    placeholder="08xxxxxxxxxx"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4b5563' }}>Password Baru</label>
+                  <div className="relative">
+                    <input
+                      type={showEditPassword ? 'text' : 'password'}
+                      value={editParent.password}
+                      onChange={(e) => setEditParent((prev) => prev ? { ...prev, password: e.target.value } : prev)}
+                      minLength={8}
+                      className="glass-input pr-12"
+                      placeholder="Kosongkan jika tidak diubah"
+                    />
+                    <PasswordVisibilityToggle
+                      visible={showEditPassword}
+                      onToggle={() => setShowEditPassword((prev) => !prev)}
+                      labelVisible="Sembunyikan password baru wali murid"
+                      labelHidden="Tampilkan password baru wali murid"
+                    />
+                  </div>
+                  <PasswordStrength password={editParent.password} className="mt-3" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4b5563' }}>Konfirmasi Password</label>
+                  <div className="relative">
+                    <input
+                      type={showEditConfirmPassword ? 'text' : 'password'}
+                      value={editParent.confirmPassword}
+                      onChange={(e) => setEditParent((prev) => prev ? { ...prev, confirmPassword: e.target.value } : prev)}
+                      minLength={8}
+                      className="glass-input pr-12"
+                      placeholder="Ulangi password baru"
+                    />
+                    <PasswordVisibilityToggle
+                      visible={showEditConfirmPassword}
+                      onToggle={() => setShowEditConfirmPassword((prev) => !prev)}
+                      labelVisible="Sembunyikan konfirmasi password wali murid"
+                      labelHidden="Tampilkan konfirmasi password wali murid"
+                    />
+                  </div>
+                  <p className="text-xs mt-2" style={{ color: '#6b7280' }}>
+                    Jika password diisi, gunakan minimal 8 karakter dengan huruf besar, huruf kecil, angka, dan simbol.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={closeEditForm}
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors text-sm font-semibold"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingEdit}
+                  className="btn-primary"
+                >
+                  {savingEdit ? 'Menyimpan...' : 'Simpan Perubahan'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold" style={{ color: '#1e1b4b' }}>Wali Murid</h1>
@@ -271,6 +465,12 @@ export default function WaliMuridPage() {
                           ACC
                         </button>
                       )}
+                      <button
+                        onClick={() => openEditForm(parent)}
+                        className="px-2.5 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-800 rounded-lg font-bold text-xs transition-colors"
+                      >
+                        Edit
+                      </button>
                       <button
                         onClick={() => setDeleteConfirm({ id: parent.id, name: parent.name })}
                         className="px-2.5 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-lg font-bold text-xs transition-colors"
