@@ -137,18 +137,18 @@ export default function ReportsPrintButton({
     /* ── Meta info ────────────────────────── */
     .meta {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 8px 24px;
-      background: #f0f7ff;
-      border: 1px solid #bfdbfe;
-      border-radius: 10px;
-      padding: 14px 18px;
-      margin-bottom: 24px;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px 32px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
     }
 
-    .meta-item { display: flex; flex-direction: column; gap: 2px; }
-    .meta-label { font-size: 7.5pt; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; }
-    .meta-value { font-size: 10.5pt; font-weight: 600; color: #111827; }
+    .meta-item { display: flex; flex-direction: column; gap: 3px; }
+    .meta-label { font-size: 8pt; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.8px; }
+    .meta-value { font-size: 11pt; font-weight: 600; color: #111827; }
 
     /* ── Table ────────────────────────────── */
     table {
@@ -242,6 +242,10 @@ export default function ReportsPrintButton({
       <span class="meta-value">${userName}</span>
     </div>
     <div class="meta-item">
+      <span class="meta-label">Total Sesi Les</span>
+      <span class="meta-value">${lessons.length} sesi</span>
+    </div>
+    <div class="meta-item">
       <span class="meta-label">Nama Pengajar</span>
       <span class="meta-value">${namaPengajar}</span>
     </div>
@@ -250,16 +254,12 @@ export default function ReportsPrintButton({
       <span class="meta-value">${jenisLes}</span>
     </div>
     <div class="meta-item">
-      <span class="meta-label">Nama Siswa / Jenjang Kelas</span>
-      <span class="meta-value">${namaSiswaJenjangKelas}</span>
+      <span class="meta-label">Nama Siswa</span>
+      <span class="meta-value">${namaSiswa}</span>
     </div>
     <div class="meta-item">
-      <span class="meta-label">Periode Data</span>
-      <span class="meta-value">${periodeData}</span>
-    </div>
-    <div class="meta-item">
-      <span class="meta-label">Total Sesi Les</span>
-      <span class="meta-value">${lessons.length} sesi</span>
+      <span class="meta-label">Jenjang Kelas</span>
+      <span class="meta-value">${jenjangKelas}</span>
     </div>
   </div>
 
