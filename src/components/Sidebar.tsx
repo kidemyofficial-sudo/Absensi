@@ -86,6 +86,15 @@ function MoneyIcon({ active }: { active: boolean }) {
   )
 }
 
+function GajiIcon({ active }: { active: boolean }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}
+      style={{ color: active ? '#6366f1' : '#9ca3af' }}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 14.25l6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0c1.1.128 1.907 1.077 1.907 2.185zM9.75 9h.008v.008H9.75V9zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 4.5h.008v.008h-.008V13.5zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+    </svg>
+  )
+}
+
 function SettingsIcon({ active }: { active: boolean }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}
@@ -123,6 +132,7 @@ const ownerNav = {
         { href: '/attendance', label: 'Absensi', icon: AttendanceIcon },
         { href: '/reports', label: 'Laporan', icon: ReportIcon },
         { href: '/pendapatan', label: 'Pendapatan', icon: MoneyIcon },
+        { href: '/gaji-guru', label: 'Gaji Guru', icon: GajiIcon },
         { href: '/pengaturan-bagi-hasil', label: 'Pengaturan Bagi Hasil', icon: MoneyIcon },
       ] as NavItem[],
     },
