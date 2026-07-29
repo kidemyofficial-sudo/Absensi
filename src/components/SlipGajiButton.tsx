@@ -208,9 +208,9 @@ export function SlipGajiPrintButton({
       align-items: center;
       justify-content: space-between;
     }
-    .salary-box .label { font-size: 9pt; opacity: 0.75; }
-    .salary-box .amount { font-size: 20pt; font-weight: 800; }
-    .salary-box .sessions { font-size: 9pt; opacity: 0.85; text-align: right; }
+    .salary-box .label { font-size: 9pt; opacity: 0.85; color: #ffffff; }
+    .salary-box .amount { font-size: 20pt; font-weight: 800; color: #ffffff !important; }
+    .salary-box .sessions { font-size: 9pt; opacity: 0.9; text-align: right; color: #ffffff; }
 
     /* ── Table ────────────────────────────── */
     table {
@@ -281,6 +281,7 @@ export function SlipGajiPrintButton({
       thead th { color: #fff !important; }
       tbody tr:nth-child(even) { background: #f8fafc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .salary-box { background: #1e3a8a !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .salary-box .amount { color: #ffffff !important; }
       .total-row td { background: #1e3a8a !important; color: #ffffff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .meta { background: #f0f7ff !important; border-color: #bfdbfe !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .header { border-bottom: 2px solid #1e40af !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
