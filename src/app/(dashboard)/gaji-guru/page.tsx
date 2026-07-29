@@ -269,46 +269,53 @@ export default function GajiGuruPage() {
                         {g.isPaid ? 'Sudah Dibayar' : 'Belum Dibayar'}
                       </span>
                     </td>
-                    <td className="text-right">
-                      <div className="inline-flex items-center gap-1.5 flex-wrap justify-end">
-                        <button
-                          onClick={() => openDetail(g.guruId)}
-                          disabled={detailLoading}
-                          className="px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors"
-                          style={{ background: 'rgba(99,102,241,0.08)', color: '#4f46e5' }}
-                        >
-                          {detailLoading ? '...' : 'Lihat Detail'}
-                        </button>
-                        <SlipGajiPrintButton
-                          namaGuru={g.namaGuru}
-                          whatsappGuru={g.whatsappGuru || g.phoneGuru}
-                          bulan={bulan}
-                          tahun={tahun}
-                          jumlahLes={g.jumlahLes}
-                          totalBiayaLes={g.totalBiayaLes}
-                          totalGajiGuru={g.totalGajiGuru}
-                          revenues={[]}
-                          guruId={g.guruId}
-                        />
-                        <KirimWhatsAppButton
-                          namaGuru={g.namaGuru}
-                          whatsappGuru={g.whatsappGuru || g.phoneGuru}
-                          bulan={bulan}
-                          tahun={tahun}
-                          jumlahLes={g.jumlahLes}
-                          totalGajiGuru={g.totalGajiGuru}
-                        />
-                        <button
-                          onClick={() => handleTogglePaid(g.guruId, !g.isPaid, g.totalGajiGuru)}
-                          disabled={actionLoading}
-                          className="px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors"
-                          style={{
-                            background: g.isPaid ? 'rgba(239,68,68,0.08)' : 'rgba(16,185,129,0.08)',
-                            color: g.isPaid ? '#991b1b' : '#065f46',
-                          }}
-                        >
-                          {g.isPaid ? 'Reset' : 'Tandai Dibayar'}
-                        </button>
+                    <td>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end' }}>
+                        {/* Baris 1: Lihat Detail + Cetak Slip */}
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          <button
+                            onClick={() => openDetail(g.guruId)}
+                            disabled={detailLoading}
+                            className="px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors"
+                            style={{ background: 'rgba(99,102,241,0.08)', color: '#4f46e5', whiteSpace: 'nowrap' }}
+                          >
+                            {detailLoading ? '...' : 'Lihat Detail'}
+                          </button>
+                          <SlipGajiPrintButton
+                            namaGuru={g.namaGuru}
+                            whatsappGuru={g.whatsappGuru || g.phoneGuru}
+                            bulan={bulan}
+                            tahun={tahun}
+                            jumlahLes={g.jumlahLes}
+                            totalBiayaLes={g.totalBiayaLes}
+                            totalGajiGuru={g.totalGajiGuru}
+                            revenues={[]}
+                            guruId={g.guruId}
+                          />
+                        </div>
+                        {/* Baris 2: Kirim WA + Tandai/Reset */}
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          <KirimWhatsAppButton
+                            namaGuru={g.namaGuru}
+                            whatsappGuru={g.whatsappGuru || g.phoneGuru}
+                            bulan={bulan}
+                            tahun={tahun}
+                            jumlahLes={g.jumlahLes}
+                            totalGajiGuru={g.totalGajiGuru}
+                          />
+                          <button
+                            onClick={() => handleTogglePaid(g.guruId, !g.isPaid, g.totalGajiGuru)}
+                            disabled={actionLoading}
+                            className="px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors"
+                            style={{
+                              background: g.isPaid ? 'rgba(239,68,68,0.08)' : 'rgba(16,185,129,0.08)',
+                              color: g.isPaid ? '#991b1b' : '#065f46',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {g.isPaid ? 'Reset' : 'Tandai Dibayar'}
+                          </button>
+                        </div>
                       </div>
                     </td>
                   </tr>
