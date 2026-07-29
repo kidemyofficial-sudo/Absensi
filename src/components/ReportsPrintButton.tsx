@@ -34,7 +34,7 @@ export default function ReportsPrintButton({
       const unique = [...new Set(cleaned)]
       if (unique.length === 0) return emptyFallback
       if (unique.length === 1) return unique[0]
-      return 'Bervariasi'
+      return 'Semua Mata Pelajaran'
     }
 
     const namaPengajar = uniqueOrMixed(lessons.map((l) => l.namaGuru))
@@ -52,10 +52,20 @@ export default function ReportsPrintButton({
       .sort((a, b) => a.getTime() - b.getTime())
     const tanggalAwal = tanggalList.length ? tanggalList[0] : null
     const tanggalAkhir = tanggalList.length ? tanggalList[tanggalList.length - 1] : null
-    const periodeData =
-      tanggalAwal && tanggalAkhir
-        ? `${tanggalAwal.toLocaleDateString('id-ID')} - ${tanggalAkhir.toLocaleDateString('id-ID')}`
-        : '-'
+    
+    // Format periode sebagai Bulan Tahun - Bulan Tahun
+    const periodeData = (() => {
+      if (!tanggalAwal || !tanggalAkhir) return '-'
+      const formatBulanTahun = (date: Date) => {
+        return new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(date)
+      }
+      const bulanTahunAwal = formatBulanTahun(tanggalAwal)
+      const bulanTahunAkhir = formatBulanTahun(tanggalAkhir)
+      if (bulanTahunAwal === bulanTahunAkhir) {
+        return bulanTahunAwal
+      }
+      return `${bulanTahunAwal} - ${bulanTahunAkhir}`
+    })()
 
     const tableRows = lessons
       .map(
@@ -205,17 +215,26 @@ export default function ReportsPrintButton({
 
     .signature {
       text-align: center;
-      font-size: 9pt;
+      font-size: 10pt;
     }
 
-    .signature .sig-line {
-      width: 160px;
-      border-bottom: 1px solid #374151;
-      margin: 72px auto 10px;
+    .signature .sig-title {
+      font-weight: 400;
+      color: #1f2937;
+      margin-bottom: 4px;
     }
 
-    .signature p { color: #374151; font-weight: 500; }
-    .signature small { color: #9ca3af; font-size: 8pt; }
+    .signature .sig-role {
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 80px;
+    }
+
+    .signature .sig-name {
+      font-weight: 500;
+      color: #374151;
+      margin-top: 8px;
+    }
 
     @media print {
       body { padding: 12px 15px; }
@@ -238,8 +257,8 @@ export default function ReportsPrintButton({
   <!-- Meta -->
   <div class="meta">
     <div class="meta-item">
-      <span class="meta-label">Nama Pencetak</span>
-      <span class="meta-value">${userName}</span>
+      <span class="meta-label">Periode</span>
+      <span class="meta-value">${periodeData}</span>
     </div>
     <div class="meta-item">
       <span class="meta-label">Total Sesi Les</span>
@@ -290,9 +309,9 @@ export default function ReportsPrintButton({
       <p>Dokumen ini dibuat secara otomatis oleh sistem Kidemy.</p>
     </div>
     <div class="signature">
-      <div class="sig-line"></div>
-      <p>Tanda Tangan Owner</p>
-      <small>${userName}</small>
+      <p class="sig-title">Mengetahui,</p>
+      <p class="sig-role">Owner Kidemy</p>
+      <p class="sig-name">( Rahayu Wiladatika I, S.Pd )</p>
     </div>
   </div>
 
