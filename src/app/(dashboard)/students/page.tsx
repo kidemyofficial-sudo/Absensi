@@ -12,7 +12,14 @@ interface Student {
   cabangDaerah: string | null
   status: string
   parent: { id: string; name: string; phone: string } | null
-  branchTeachers: { user: { name: string } }[]
+  branchTeachers: {
+    id: string
+    userId?: string
+    provinsi?: string
+    kotaKabupaten?: string
+    mataPelajaran?: string
+    user: { id: string; name: string }
+  }[]
 }
 
 interface User { id: string; name: string; role: string }
@@ -47,8 +54,30 @@ export default function StudentsPage() {
     'Matematika', 'Bahasa Indonesia', 'Bahasa Inggris', 'IPA', 'IPS',
     'PPKN', 'Seni Budaya', 'Penjaskes', 'Prakarya', 'Komputer',
     'Pendidikan Agama', 'Sejarah', 'Geografi', 'Ekonomi', 'Sosiologi',
-    'Fisika', 'Kimia', 'Biologi', 'Umum', 'Lainnya',
+    'Fisika', 'Kimia', 'Biologi', 'Umum',
   ]
+
+  const openAssignModal = (student: Student) => {
+    setAssignModal(student)
+    const currentBT = student.branchTeachers?.[0]
+    let prov = currentBT?.provinsi || ''
+    let kota = currentBT?.kotaKabupaten || ''
+
+    if ((!prov || !kota) && student.cabangDaerah) {
+      const parts = student.cabangDaerah.split(',').map((s) => s.trim())
+      if (parts.length >= 2) {
+        kota = kota || parts[0]
+        prov = prov || parts[1]
+      }
+    }
+
+    setAssignData({
+      provinsi: prov,
+      kotaKabupaten: kota,
+      teacherId: currentBT?.user?.id || currentBT?.userId || '',
+      mataPelajaran: currentBT?.mataPelajaran || '',
+    })
+  }
 
   const fetchUser = useCallback(async () => {
     const res = await fetch('/api/auth/me')
@@ -426,14 +455,17 @@ export default function StudentsPage() {
               </div>
               <div>
                 <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4b5563' }}>Mata Pelajaran (opsional)</label>
-                <select
+                <input
+                  type="text"
+                  list="mataPelajaranOptions"
                   value={assignData.mataPelajaran}
                   onChange={(e) => setAssignData({ ...assignData, mataPelajaran: e.target.value })}
+                  placeholder="Pilih dari daftar atau ketik langsung..."
                   className="glass-input"
-                >
-                  <option value="">Pilih Mata Pelajaran</option>
-                  {mataPelajaranList.map((mp) => (<option key={mp} value={mp}>{mp}</option>))}
-                </select>
+                />
+                <datalist id="mataPelajaranOptions">
+                  {mataPelajaranList.map((mp) => (<option key={mp} value={mp} />))}
+                </datalist>
               </div>
               <div className="flex gap-3 pt-2">
                 <button onClick={handleAssign} className="btn-primary flex-1">Simpan</button>
@@ -483,7 +515,9 @@ export default function StudentsPage() {
                       </span>
                     </td>
                     <td style={{ color: '#4b5563' }}>
-                      {student.branchTeachers.length > 0 ? student.branchTeachers.map((bt) => bt.user.name).join(', ') : '-'}
+                      {student.branchTeachers.length > 0
+                        ? student.branchTeachers.map((bt) => `${bt.user.name}${bt.mataPelajaran ? ` (${bt.mataPelajaran})` : ''}`).join(', ')
+                        : '-'}
                     </td>
                     {user?.role === 'OWNER' && (
                       <td className="text-right">
@@ -507,7 +541,7 @@ export default function StudentsPage() {
                             )}
                             {student.status === 'APPROVED' && (
                               <button
-                                onClick={() => { setAssignModal(student); setAssignData({ provinsi: '', kotaKabupaten: '', teacherId: '', mataPelajaran: '' }) }}
+                                onClick={() => openAssignModal(student)}
                                 className="px-3 py-1.5 rounded-lg font-bold text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-100 transition-colors"
                               >
                                 {student.cabangDaerah ? 'Edit' : 'Assign'}

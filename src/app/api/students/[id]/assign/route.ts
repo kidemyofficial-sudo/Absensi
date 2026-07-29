@@ -82,6 +82,16 @@ export async function PATCH(
               mataPelajaran: validatedData.mataPelajaran || 'Umum',
             },
           })
+        } else {
+          // If branchTeacher exists, update mataPelajaran, provinsi, and kotaKabupaten
+          branchTeacher = await tx.branchTeacher.update({
+            where: { id: branchTeacher.id },
+            data: {
+              mataPelajaran: validatedData.mataPelajaran || branchTeacher.mataPelajaran || 'Umum',
+              provinsi: validatedData.provinsi,
+              kotaKabupaten: validatedData.kotaKabupaten,
+            },
+          })
         }
 
         const currentBranchTeachers = await tx.branchTeacher.findMany({

@@ -105,6 +105,10 @@ export async function GET(request: NextRequest) {
           branchTeachers: {
             select: {
               id: true,
+              userId: true,
+              provinsi: true,
+              kotaKabupaten: true,
+              mataPelajaran: true,
               user: {
                 select: { id: true, name: true },
               },
@@ -182,6 +186,10 @@ export async function GET(request: NextRequest) {
             branchTeachers: {
               select: {
                 id: true,
+                userId: true,
+                provinsi: true,
+                kotaKabupaten: true,
+                mataPelajaran: true,
                 user: {
                   select: { id: true, name: true },
                 },
