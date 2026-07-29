@@ -369,7 +369,7 @@ export default function ReportsPrintButton({
     <div class="signature">
       <p class="sig-title">Mengetahui,</p>
       <p class="sig-role">Owner Kidemy</p>
-      <img src="${window.location.origin}/image/ttdowner.WEBP" alt="TTD Owner" class="sig-image" />
+      <img src="${window.location.origin}/image/ttdowner.webp" alt="TTD Owner" class="sig-image" />
       <p class="sig-name">( Rahayu Wiladatika I, S.Pd )</p>
     </div>
   </div>
