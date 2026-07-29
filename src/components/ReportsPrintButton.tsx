@@ -83,7 +83,16 @@ export default function ReportsPrintButton({
       return `${bulanTahunAwal} - ${bulanTahunAkhir}`
     })()
 
-    const tableRows = lessons
+    const sortedLessons = [...lessons].sort((a, b) => {
+      const dateA = new Date(a.tanggalLes).getTime()
+      const dateB = new Date(b.tanggalLes).getTime()
+      if (dateA !== dateB) {
+        return dateA - dateB
+      }
+      return a.jamMulai.localeCompare(b.jamMulai)
+    })
+
+    const tableRows = sortedLessons
       .map(
         (l) => `
         <tr>
