@@ -29,6 +29,34 @@ export default function ReportsPrintButton({
   role,
 }: ReportsPrintButtonProps) {
   const handlePrint = () => {
+    const uniqueOrMixed = (values: Array<string | null | undefined>, emptyFallback = '-') => {
+      const cleaned = values.map((v) => (v ?? '').trim()).filter(Boolean)
+      const unique = [...new Set(cleaned)]
+      if (unique.length === 0) return emptyFallback
+      if (unique.length === 1) return unique[0]
+      return 'Bervariasi'
+    }
+
+    const namaPengajar = uniqueOrMixed(lessons.map((l) => l.namaGuru))
+    const namaSiswa = uniqueOrMixed(lessons.map((l) => l.namaMurid))
+    const jenjangKelas = uniqueOrMixed(lessons.map((l) => l.kelasMurid || '-'))
+    const jenisLes = uniqueOrMixed(lessons.map((l) => l.jenisPembelajaran))
+    const namaSiswaJenjangKelas =
+      namaSiswa === 'Bervariasi' || jenjangKelas === 'Bervariasi'
+        ? 'Bervariasi'
+        : `${namaSiswa} / ${jenjangKelas}`
+
+    const tanggalList = lessons
+      .map((l) => new Date(l.tanggalLes))
+      .filter((d) => !Number.isNaN(d.getTime()))
+      .sort((a, b) => a.getTime() - b.getTime())
+    const tanggalAwal = tanggalList.length ? tanggalList[0] : null
+    const tanggalAkhir = tanggalList.length ? tanggalList[tanggalList.length - 1] : null
+    const periodeData =
+      tanggalAwal && tanggalAkhir
+        ? `${tanggalAwal.toLocaleDateString('id-ID')} - ${tanggalAkhir.toLocaleDateString('id-ID')}`
+        : '-'
+
     const tableRows = lessons
       .map(
         (l) => `
@@ -109,7 +137,7 @@ export default function ReportsPrintButton({
     /* ── Meta info ────────────────────────── */
     .meta {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr;
       gap: 8px 24px;
       background: #f0f7ff;
       border: 1px solid #bfdbfe;
@@ -128,6 +156,7 @@ export default function ReportsPrintButton({
       border-collapse: collapse;
       margin-bottom: 20px;
       font-size: 8.5pt;
+      border: 1px solid #d1d5db;
     }
 
     thead tr {
@@ -141,13 +170,14 @@ export default function ReportsPrintButton({
       text-align: left;
       font-size: 8.5pt;
       letter-spacing: 0.2px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
     }
 
     tbody tr:nth-child(even) { background: #f8fafc; }
 
     tbody td {
       padding: 8px 8px;
-      border-bottom: 1px solid #e5e7eb;
+      border: 1px solid #d1d5db;
       color: #374151;
       vertical-align: top;
     }
@@ -160,9 +190,9 @@ export default function ReportsPrintButton({
 
     /* ── Footer ───────────────────────────── */
     .footer {
-      margin-top: 32px;
+      margin-top: 64px;
       border-top: 1px solid #e5e7eb;
-      padding-top: 14px;
+      padding-top: 16px;
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
@@ -181,7 +211,7 @@ export default function ReportsPrintButton({
     .signature .sig-line {
       width: 160px;
       border-bottom: 1px solid #374151;
-      margin: 40px auto 6px;
+      margin: 72px auto 10px;
     }
 
     .signature p { color: #374151; font-weight: 500; }
@@ -210,6 +240,22 @@ export default function ReportsPrintButton({
     <div class="meta-item">
       <span class="meta-label">Nama Pencetak</span>
       <span class="meta-value">${userName}</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Nama Pengajar</span>
+      <span class="meta-value">${namaPengajar}</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Jenis Les yang dipilih</span>
+      <span class="meta-value">${jenisLes}</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Nama Siswa / Jenjang Kelas</span>
+      <span class="meta-value">${namaSiswaJenjangKelas}</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Periode Data</span>
+      <span class="meta-value">${periodeData}</span>
     </div>
     <div class="meta-item">
       <span class="meta-label">Total Sesi Les</span>

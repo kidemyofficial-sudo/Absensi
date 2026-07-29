@@ -302,6 +302,9 @@ export default function StudentsPage() {
               >
                 {deleteLoadingMode === 'hard' ? 'Memproses...' : 'Hapus Permanen'}
               </button>
+              <p className="text-xs mt-1.5 font-semibold" style={{ color: '#b91c1c', lineHeight: '1.4' }}>
+                ⚠️ PENTING: Tindakan ini akan menghapus data siswa beserta semua absensi dan riwayat les terkait secara PERMANEN dan TIDAK BISA dikembalikan!
+              </p>
               <button
                 onClick={closeDelete}
                 disabled={deleteLoadingMode !== null}
