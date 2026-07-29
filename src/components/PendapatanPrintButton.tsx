@@ -62,9 +62,45 @@ export default function PendapatanPrintButton({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const handlePrint = (printAsRole: 'OWNER' | 'GURU') => {
+  const handlePrint = async (printAsRole: 'OWNER' | 'GURU') => {
     setIsOpen(false)
     const isPrintOwner = printAsRole === 'OWNER'
+
+    const printWindow = window.open('', '_blank', 'width=900,height=700')
+    if (!printWindow) return
+
+    // Load logo dan TTD sebagai base64 (agar muncul saat print/download)
+    let logoBase64: string | null = null
+    let ttdBase64: string | null = null
+    try {
+      const [logoRes, ttdRes] = await Promise.all([
+        fetch('/image/kidemy logo.png'),
+        fetch('/image/ttdowner.png'),
+      ])
+      if (logoRes.ok) {
+        const blob = await logoRes.blob()
+        logoBase64 = await new Promise<string>((resolve) => {
+          const reader = new FileReader()
+          reader.onloadend = () => resolve(reader.result as string)
+          reader.readAsDataURL(blob)
+        })
+      }
+      if (ttdRes.ok) {
+        const blob = await ttdRes.blob()
+        ttdBase64 = await new Promise<string>((resolve) => {
+          const reader = new FileReader()
+          reader.onloadend = () => resolve(reader.result as string)
+          reader.readAsDataURL(blob)
+        })
+      }
+    } catch {
+      // Lanjut tanpa gambar
+    }
+
+    const logoHtml = logoBase64 ? `<img src="${logoBase64}" alt="Kidemy Logo" />` : ''
+    const ttdHtml = ttdBase64
+      ? `<img src="${ttdBase64}" alt="TTD Owner" class="sig-image" />`
+      : `<div class="sig-space"></div>`
 
     const tableHeaders = isPrintOwner
       ? `<th>Tanggal</th><th>Jenis Les</th><th>Guru</th><th>Murid</th><th>Jml Siswa</th><th>Total Biaya</th><th>Bagi Hasil Owner</th><th>Bagi Hasil Guru</th>`
@@ -97,15 +133,11 @@ export default function PendapatanPrintButton({
       })
       .join('')
 
-    // Hitung total berdasarkan tipe cetak
     const totalCetak = revenues.reduce((sum, r) => {
       return sum + (isPrintOwner ? r.pendapatanOwner : r.pendapatanGuru)
     }, 0)
 
     const totalLabel = isPrintOwner ? 'Total Pendapatan Owner' : 'Total Salary'
-
-    const printWindow = window.open('', '_blank', 'width=900,height=700')
-    if (!printWindow) return
 
     printWindow.document.write(`
 <!DOCTYPE html>
@@ -136,15 +168,7 @@ export default function PendapatanPrintButton({
       margin-bottom: 24px;
     }
 
-    .brand {
-      display: flex;
-      align-items: center;
-    }
-
-    .brand img {
-      height: 110px;
-      object-fit: contain;
-    }
+    .brand img { height: 110px; object-fit: contain; }
 
     .header-right {
       text-align: right;
@@ -237,19 +261,19 @@ export default function PendapatanPrintButton({
       color: #9ca3af;
     }
 
-    .signature {
-      text-align: center;
-      font-size: 9.5pt;
+    .signature { text-align: center; font-size: 9.5pt; }
+    .signature .sig-title { font-weight: 400; color: #1f2937; margin-bottom: 4px; }
+    .signature .sig-role  { font-weight: 600; color: #111827; margin-bottom: 8px; }
+    .signature .sig-space {
+      width: 180px; height: 80px; margin: 8px auto;
+      border-bottom: 1px solid #374151; display: block;
     }
-
-    .signature .sig-line {
-      width: 160px;
-      border-bottom: 1px solid #374151;
-      margin: 48px auto 6px;
+    .signature .sig-image {
+      width: 160px; height: auto; max-height: 90px;
+      margin: 8px auto; display: block; object-fit: contain;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
     }
-
-    .signature p { color: #374151; font-weight: 500; }
-    .signature small { color: #9ca3af; font-size: 8.5pt; }
+    .signature .sig-name { font-weight: 500; color: #374151; margin-top: 4px; }
 
     @media print {
       body { padding: 16px 20px; }
@@ -261,7 +285,7 @@ export default function PendapatanPrintButton({
   <!-- Header -->
   <div class="header">
     <div class="brand">
-      <img src="${window.location.origin}/image/kidemy logo.png" alt="Kidemy Logo" />
+      ${logoHtml}
     </div>
     <div class="header-right">
       <h2>Laporan Pendapatan</h2>
@@ -311,9 +335,10 @@ export default function PendapatanPrintButton({
       <p>Hubungi admin jika terdapat ketidaksesuaian data.</p>
     </div>
     <div class="signature">
-      <div class="sig-line"></div>
-      <p>${isPrintOwner ? 'Tanda Tangan Owner' : 'Tanda Tangan Guru'}</p>
-      <small>${userName}</small>
+      <p class="sig-title">Mengetahui,</p>
+      <p class="sig-role">Owner Kidemy</p>
+      ${ttdHtml}
+      <p class="sig-name">( Rahayu Wiladatika I, S.Pd )</p>
     </div>
   </div>
 
