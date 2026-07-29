@@ -41,7 +41,7 @@ export default function StudentsPage() {
   const [showStorage, setShowStorage] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<Student | null>(null)
   const [deleteModeConfirm, setDeleteModeConfirm] = useState(false)
-  const [deleting, setDeleting] = useState(false)
+  const [deleteLoadingMode, setDeleteLoadingMode] = useState<'soft' | 'hard' | null>(null)
 
   const mataPelajaranList = [
     'Matematika', 'Bahasa Indonesia', 'Bahasa Inggris', 'IPA', 'IPS',
@@ -152,12 +152,12 @@ export default function StudentsPage() {
   const closeDelete = () => {
     setDeleteModeConfirm(false)
     setDeleteTarget(null)
-    setDeleting(false)
+    setDeleteLoadingMode(null)
   }
 
   const doDelete = async (mode: 'soft' | 'hard') => {
     if (!deleteTarget) return
-    setDeleting(true)
+    setDeleteLoadingMode(mode)
     setMessage('')
     try {
       const res = await fetch(`/api/students/${deleteTarget.id}?mode=${mode}`, { method: 'DELETE' })
@@ -168,7 +168,7 @@ export default function StudentsPage() {
       fetchStudents()
     } catch (err) {
       setMessage(err instanceof Error ? err.message : 'Terjadi kesalahan')
-      setDeleting(false)
+      setDeleteLoadingMode(null)
     }
   }
 
@@ -280,7 +280,7 @@ export default function StudentsPage() {
             <div className="space-y-3">
               <button
                 onClick={() => doDelete('soft')}
-                disabled={deleting}
+                disabled={deleteLoadingMode !== null}
                 className="w-full px-4 py-3 rounded-xl font-bold text-sm transition-colors border"
                 style={{
                   background: 'rgba(245,158,11,0.10)',
@@ -288,11 +288,11 @@ export default function StudentsPage() {
                   borderColor: 'rgba(245,158,11,0.30)',
                 }}
               >
-                {deleting ? 'Memproses...' : 'Hapus Sementara (pindah ke Storage)'}
+                {deleteLoadingMode === 'soft' ? 'Memproses...' : 'Hapus Sementara (pindah ke Storage)'}
               </button>
               <button
                 onClick={() => doDelete('hard')}
-                disabled={deleting}
+                disabled={deleteLoadingMode !== null}
                 className="w-full px-4 py-3 rounded-xl font-bold text-sm transition-colors border"
                 style={{
                   background: 'rgba(239,68,68,0.10)',
@@ -300,11 +300,11 @@ export default function StudentsPage() {
                   borderColor: 'rgba(239,68,68,0.30)',
                 }}
               >
-                {deleting ? 'Memproses...' : 'Hapus Permanen'}
+                {deleteLoadingMode === 'hard' ? 'Memproses...' : 'Hapus Permanen'}
               </button>
               <button
                 onClick={closeDelete}
-                disabled={deleting}
+                disabled={deleteLoadingMode !== null}
                 className="w-full px-4 py-3 rounded-xl font-bold text-sm transition-colors border"
                 style={{
                   background: 'rgba(255,255,255,0.65)',

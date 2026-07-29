@@ -59,7 +59,10 @@ export async function PATCH(
       return NextResponse.json({ error: 'Aksi tidak valid' }, { status: 400 })
     }
 
-    const existingStudent = await prisma.student.findUnique({ where: { id } })
+    const existingStudent = await prisma.student.findUnique({
+      where: { id },
+      select: { id: true, name: true },
+    })
     if (!existingStudent) {
       return NextResponse.json({ error: 'Siswa tidak ditemukan' }, { status: 404 })
     }
@@ -79,10 +82,10 @@ export async function PATCH(
       entityId: id,
       oldData: {
         name: existingStudent.name,
-        isArchived: existingStudent.isArchived,
-        archivedAt: existingStudent.archivedAt,
+        action,
       },
       newData: {
+        action,
         isArchived: updated.isArchived,
         archivedAt: updated.archivedAt,
       },
@@ -91,7 +94,19 @@ export async function PATCH(
 
     return NextResponse.json({ student: updated })
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
     console.error('Update storage student error:', error)
+
+    if (message.includes('isArchived') || message.includes('archivedAt')) {
+      return NextResponse.json(
+        {
+          error:
+            'Fitur Storage siswa belum bisa dipakai karena schema database belum siap. Jalankan `npx prisma db push` tanpa `--force-reset`, lalu coba lagi.',
+        },
+        { status: 500 }
+      )
+    }
+
     return NextResponse.json({ error: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
@@ -165,82 +180,104 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const user = await getCurrentUser()
-
-  if (!user || user.role !== 'OWNER') {
-    return NextResponse.json({ error: 'Tidak diizinkan' }, { status: 403 })
-  }
-
-  const { id } = await params
-
-  const { searchParams } = new URL(request.url)
-  const mode = searchParams.get('mode') || 'soft' // soft | hard
-
-  const existingStudent = await prisma.student.findUnique({ where: { id } })
-
-  if (!existingStudent) {
-    return NextResponse.json({ error: 'Siswa tidak ditemukan' }, { status: 404 })
-  }
-
-  if (mode === 'soft') {
-    const updated = await prisma.student.update({
-      where: { id },
-      data: { isArchived: true, archivedAt: new Date() },
-    })
-
-    await logAudit({
-      userId: user.id,
-      action: 'ARCHIVE',
-      entity: 'Student',
-      entityId: id,
-      oldData: { name: existingStudent.name, isArchived: existingStudent.isArchived },
-      newData: { isArchived: updated.isArchived, archivedAt: updated.archivedAt },
-      ip: getIp(request),
-    })
-
-    return NextResponse.json({ message: 'Siswa dipindahkan ke storage' })
-  }
-
-  if (mode === 'hard') {
-    // Jangan hapus jika sudah ada aktivitas (absensi / riwayat les) — agar histori tetap aman
-    const [attendanceCount, lessonCount] = await Promise.all([
-      prisma.attendance.count({ where: { studentId: id } }),
-      prisma.lesson.count({ where: { studentId: id } }),
-    ])
-
-    if (attendanceCount > 0 || lessonCount > 0) {
-      return NextResponse.json(
-        {
-          error:
-            `Tidak bisa hapus permanen karena siswa sudah memiliki aktivitas (Absensi: ${attendanceCount}, Les: ${lessonCount}). ` +
-            `Gunakan Hapus Sementara (Storage) agar histori tetap tersimpan.`,
-        },
-        { status: 400 }
-      )
-    }
-
-    // Lepaskan relasi many-to-many dengan guru cabang (kalau ada), lalu hapus siswa
-    await prisma.student.update({
-      where: { id },
-      data: { branchTeachers: { set: [] } },
-    })
-
-    await logAudit({
-      userId: user.id,
-      action: 'DELETE',
-      entity: 'Student',
-      entityId: id,
-      oldData: { name: existingStudent.name, cabangDaerah: existingStudent.cabangDaerah },
-      ip: getIp(request),
-    })
-
-    await prisma.student.delete({ where: { id } })
-    return NextResponse.json({ message: 'Siswa berhasil dihapus permanen' })
-  }
-
-  return NextResponse.json({ error: 'Mode hapus tidak valid' }, { status: 400 })
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const user = await getCurrentUser()
+
+  if (!user || user.role !== 'OWNER') {
+    return NextResponse.json({ error: 'Tidak diizinkan' }, { status: 403 })
+  }
+
+  const { id } = await params
+
+  const { searchParams } = new URL(request.url)
+  const mode = searchParams.get('mode') || 'soft' // soft | hard
+
+  try {
+    const existingStudent = await prisma.student.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        cabangDaerah: true,
+      },
+    })
+
+    if (!existingStudent) {
+      return NextResponse.json({ error: 'Siswa tidak ditemukan' }, { status: 404 })
+    }
+
+    if (mode === 'soft') {
+      const updated = await prisma.student.update({
+        where: { id },
+        data: { isArchived: true, archivedAt: new Date() },
+      })
+
+      await logAudit({
+        userId: user.id,
+        action: 'ARCHIVE',
+        entity: 'Student',
+        entityId: id,
+        oldData: { name: existingStudent.name },
+        newData: { isArchived: updated.isArchived, archivedAt: updated.archivedAt },
+        ip: getIp(request),
+      })
+
+      return NextResponse.json({ message: 'Siswa dipindahkan ke storage' })
+    }
+
+    if (mode === 'hard') {
+      const [attendanceCount, lessonCount] = await Promise.all([
+        prisma.attendance.count({ where: { studentId: id } }),
+        prisma.lesson.count({ where: { studentId: id } }),
+      ])
+
+      if (attendanceCount > 0 || lessonCount > 0) {
+        return NextResponse.json(
+          {
+            error:
+              `Tidak bisa hapus permanen karena siswa sudah memiliki aktivitas (Absensi: ${attendanceCount}, Les: ${lessonCount}). ` +
+              `Gunakan Hapus Sementara (Storage) agar histori tetap tersimpan.`,
+          },
+          { status: 400 }
+        )
+      }
+
+      await prisma.student.update({
+        where: { id },
+        data: { branchTeachers: { set: [] } },
+      })
+
+      await logAudit({
+        userId: user.id,
+        action: 'DELETE',
+        entity: 'Student',
+        entityId: id,
+        oldData: { name: existingStudent.name, cabangDaerah: existingStudent.cabangDaerah },
+        ip: getIp(request),
+      })
+
+      await prisma.student.delete({ where: { id } })
+      return NextResponse.json({ message: 'Siswa berhasil dihapus permanen' })
+    }
+
+    return NextResponse.json({ error: 'Mode hapus tidak valid' }, { status: 400 })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    console.error('Delete student error:', error)
+
+    if (mode === 'soft' && (message.includes('isArchived') || message.includes('archivedAt'))) {
+      return NextResponse.json(
+        {
+          error:
+            'Hapus sementara belum bisa dipakai karena schema database untuk Storage siswa belum siap. Jalankan `npx prisma db push` tanpa `--force-reset`, lalu coba lagi.',
+        },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({ error: 'Gagal menghapus siswa' }, { status: 500 })
+  }
 }
