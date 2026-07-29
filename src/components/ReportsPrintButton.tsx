@@ -90,7 +90,7 @@ export default function ReportsPrintButton({
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <title>Rekap Laporan Les – Kidemy</title>
+  <title>Laporan Hasil Pembelajaran – Kidemy</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
@@ -245,7 +245,7 @@ export default function ReportsPrintButton({
       <img src="${window.location.origin}/image/kidemy logo.png" alt="Kidemy Logo" />
     </div>
     <div class="header-right">
-      <h2>Rekap Laporan Kehadiran & Les</h2>
+      <h2>Laporan Hasil Pembelajaran</h2>
       <p>Dicetak: ${new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date())}</p>
     </div>
   </div>
