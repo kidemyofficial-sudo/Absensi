@@ -19,37 +19,88 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url)
   const role = searchParams.get('role')
+  const search = searchParams.get('search')?.trim()
+  const archived = searchParams.get('archived')
 
   const where: Record<string, unknown> = {}
   if (role) {
     where.role = role
   }
 
-  const users = await prisma.user.findMany({
-    where,
-    select: {
-      id: true,
-      name: true,
-      phone: true,
-      role: true,
-      status: true,
-      createdAt: true,
-      students: {
+  // Filter storage: Owner bisa lihat user yang di-arsip dengan ?archived=1
+  // Default: tampilkan user yang tidak diarsip (isArchived = false atau null untuk data lama)
+  if (archived === '1') {
+    where.isArchived = true
+  } else {
+    where.isArchived = { not: true }
+  }
+
+  if (search) {
+    where.OR = [
+      { name: { contains: search, mode: 'insensitive' } },
+      { phone: { contains: search, mode: 'insensitive' } },
+    ]
+  }
+
+  try {
+    const users = await prisma.user.findMany({
+      where,
+      select: {
+        id: true,
+        name: true,
+        phone: true,
+        role: true,
+        status: true,
+        createdAt: true,
+        students: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        branchTeachers: {
+          select: {
+            cabangDaerah: true,
+          },
+        },
+      },
+      orderBy: { name: 'asc' },
+    })
+
+    return NextResponse.json({ users })
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('Users GET error:', err)
+
+    // Fallback aman: bila kolom isArchived belum ada di database
+    if (msg.includes('isArchived') || msg.includes('archivedAt')) {
+      const fallbackWhere: Record<string, unknown> = {}
+      if (role) fallbackWhere.role = role
+      if (search) {
+        fallbackWhere.OR = [
+          { name: { contains: search, mode: 'insensitive' } },
+          { phone: { contains: search, mode: 'insensitive' } },
+        ]
+      }
+      const users = await prisma.user.findMany({
+        where: fallbackWhere,
         select: {
           id: true,
           name: true,
+          phone: true,
+          role: true,
+          status: true,
+          createdAt: true,
+          students: { select: { id: true, name: true } },
+          branchTeachers: { select: { cabangDaerah: true } },
         },
-      },
-      branchTeachers: {
-        select: {
-          cabangDaerah: true,
-        },
-      },
-    },
-    orderBy: { name: 'asc' },
-  })
+        orderBy: { name: 'asc' },
+      })
+      return NextResponse.json({ users, warning: 'Kolom storage belum tersedia, menampilkan semua data.' })
+    }
 
-  return NextResponse.json({ users })
+    return NextResponse.json({ error: 'Terjadi kesalahan server' }, { status: 500 })
+  }
 }
 
 export async function POST(request: NextRequest) {

@@ -23,6 +23,62 @@ export async function PATCH(
 
   try {
     const body = await request.json()
+    const action = typeof body?.action === 'string' ? body.action : null
+
+    // Handle ARCHIVE / RESTORE action (khusus Owner)
+    if (action === 'ARCHIVE' || action === 'RESTORE') {
+      if (user.role !== 'OWNER') {
+        return NextResponse.json({ error: 'Hanya Owner yang bisa mengarsipkan user' }, { status: 403 })
+      }
+      if (user.id === id) {
+        return NextResponse.json({ error: 'Tidak bisa mengarsipkan diri sendiri' }, { status: 400 })
+      }
+
+      const targetUser = await prisma.user.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          name: true,
+          role: true,
+          students: {
+            where: { archivedAt: null },
+            select: { id: true, name: true },
+          },
+        },
+      })
+
+      if (!targetUser) {
+        return NextResponse.json({ error: 'User tidak ditemukan' }, { status: 404 })
+      }
+
+      // Wali murid yang masih punya siswa aktif tidak bisa diarsipkan
+      if (action === 'ARCHIVE' && targetUser.role === 'ORANG_TUA' && targetUser.students.length > 0) {
+        return NextResponse.json(
+          {
+            error: `Wali murid masih memiliki ${targetUser.students.length} siswa aktif. Arsipkan atau hapus siswa terlebih dahulu.`,
+          },
+          { status: 400 }
+        )
+      }
+
+      const updated = await prisma.user.update({
+        where: { id },
+        data:
+          action === 'ARCHIVE'
+            ? { isArchived: true, archivedAt: new Date() }
+            : { isArchived: false, archivedAt: null },
+        select: { id: true, name: true, role: true, isArchived: true },
+      })
+
+      return NextResponse.json({
+        user: updated,
+        message:
+          action === 'ARCHIVE'
+            ? `${targetUser.name} berhasil dipindahkan ke storage`
+            : `${targetUser.name} berhasil dipulihkan dari storage`,
+      })
+    }
+
     const dataToUpdate: {
       name?: string
       phone?: string

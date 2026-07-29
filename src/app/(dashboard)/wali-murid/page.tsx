@@ -24,7 +24,10 @@ export default function WaliMuridPage() {
   const [formData, setFormData] = useState({ name: '', phone: '', password: '' })
   const [message, setMessage] = useState('')
   const [search, setSearch] = useState('')
+  const [showStorage, setShowStorage] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null)
+  const [archiveConfirm, setArchiveConfirm] = useState<{ id: string; name: string } | null>(null)
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [editParent, setEditParent] = useState<{
     id: string
     name: string
@@ -39,12 +42,14 @@ export default function WaliMuridPage() {
   const fetchParents = useCallback(async () => {
     setLoading(true)
     const params = new URLSearchParams()
+    params.set('role', 'ORANG_TUA')
     if (search) params.set('search', search)
-    const res = await fetch(`/api/users?role=ORANG_TUA&${params.toString()}`)
+    if (showStorage) params.set('archived', '1')
+    const res = await fetch(`/api/users?${params.toString()}`)
     const data = await res.json()
     setParents(data.users || [])
     setLoading(false)
-  }, [search])
+  }, [search, showStorage])
 
   useEffect(() => {
     fetchParents()
@@ -100,6 +105,48 @@ export default function WaliMuridPage() {
       fetchParents()
     } catch (err) {
       setMessage(err instanceof Error ? err.message : 'Terjadi kesalahan')
+    }
+  }
+
+  const handleArchiveConfirmed = async () => {
+    if (!archiveConfirm) return
+    setActionLoading(archiveConfirm.id)
+    setArchiveConfirm(null)
+    setMessage('')
+    try {
+      const res = await fetch(`/api/users/${archiveConfirm.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'ARCHIVE' }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Gagal memindahkan ke storage')
+      setMessage(data.message || 'Wali murid dipindahkan ke storage')
+      fetchParents()
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : 'Terjadi kesalahan')
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const handleRestore = async (parent: Parent) => {
+    setActionLoading(parent.id)
+    setMessage('')
+    try {
+      const res = await fetch(`/api/users/${parent.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'RESTORE' }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Gagal memulihkan wali murid')
+      setMessage(data.message || 'Wali murid berhasil dipulihkan dari storage')
+      fetchParents()
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : 'Terjadi kesalahan')
+    } finally {
+      setActionLoading(null)
     }
   }
 
@@ -175,7 +222,7 @@ export default function WaliMuridPage() {
     }
   }
 
-  const isSuccess = message.includes('berhasil')
+  const isSuccess = message.toLowerCase().includes('berhasil') || message.toLowerCase().includes('dipindahkan') || message.toLowerCase().includes('dipulihkan')
 
   return (
     <div>
@@ -187,6 +234,15 @@ export default function WaliMuridPage() {
         variant="danger"
         onConfirm={handleDeleteConfirmed}
         onCancel={() => setDeleteConfirm(null)}
+      />
+      <ConfirmDialog
+        isOpen={!!archiveConfirm}
+        title="Pindah ke Storage"
+        message={`Yakin ingin memindahkan wali murid ${archiveConfirm?.name} ke storage? Akun tidak akan bisa login, namun data tetap tersimpan.`}
+        confirmText="Ya, Pindahkan"
+        variant="danger"
+        onConfirm={handleArchiveConfirmed}
+        onCancel={() => setArchiveConfirm(null)}
       />
       {editParent && (
         <div className="fixed inset-0 z-50 bg-slate-950/35 backdrop-blur-sm flex items-center justify-center p-4">
@@ -298,31 +354,63 @@ export default function WaliMuridPage() {
           </div>
         </div>
       )}
+
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold" style={{ color: '#1e1b4b' }}>Wali Murid</h1>
-          <p className="text-sm mt-1" style={{ color: '#6b7280' }}>Kelola data wali murid (orang tua siswa)</p>
+          <p className="text-sm mt-1" style={{ color: '#6b7280' }}>
+            Kelola data wali murid (aktif &amp; storage)
+          </p>
         </div>
-        <button
-          onClick={() => { setShowForm(!showForm); setFormData({ name: '', phone: '', password: '' }) }}
-          className="btn-primary"
-        >
-          {showForm ? (
-            <>
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              Batal
-            </>
-          ) : (
-            <>
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-              </svg>
-              Tambah Wali Murid
-            </>
+        <div className="flex items-center gap-3">
+          {/* Tab Aktif / Storage */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => { setShowStorage(false); setMessage('') }}
+              className="px-3 py-2 rounded-xl text-xs font-bold transition-colors border"
+              style={{
+                background: !showStorage ? 'rgba(99,102,241,0.12)' : 'rgba(255,255,255,0.6)',
+                color: !showStorage ? '#4f46e5' : '#64748b',
+                borderColor: !showStorage ? 'rgba(99,102,241,0.35)' : 'rgba(148,163,184,0.4)',
+              }}
+            >
+              Aktif
+            </button>
+            <button
+              onClick={() => { setShowStorage(true); setMessage('') }}
+              className="px-3 py-2 rounded-xl text-xs font-bold transition-colors border"
+              style={{
+                background: showStorage ? 'rgba(245,158,11,0.12)' : 'rgba(255,255,255,0.6)',
+                color: showStorage ? '#b45309' : '#64748b',
+                borderColor: showStorage ? 'rgba(245,158,11,0.35)' : 'rgba(148,163,184,0.4)',
+              }}
+            >
+              Storage
+            </button>
+          </div>
+          {!showStorage && (
+            <button
+              onClick={() => { setShowForm(!showForm); setFormData({ name: '', phone: '', password: '' }) }}
+              className="btn-primary"
+            >
+              {showForm ? (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Batal
+                </>
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                  </svg>
+                  Tambah Wali Murid
+                </>
+              )}
+            </button>
           )}
-        </button>
+        </div>
       </div>
 
       {message && (
@@ -338,7 +426,7 @@ export default function WaliMuridPage() {
         </div>
       )}
 
-      {showForm && (
+      {showForm && !showStorage && (
         <div className="glass-card p-6 mb-6">
           <h3 className="text-base font-bold mb-4" style={{ color: '#1e1b4b' }}>Tambah Wali Murid Baru</h3>
           <form onSubmit={handleSubmit}>
@@ -406,7 +494,9 @@ export default function WaliMuridPage() {
         {loading ? (
           <div className="p-8 text-center text-sm" style={{ color: '#9ca3af' }}>Loading...</div>
         ) : parents.length === 0 ? (
-          <div className="p-8 text-center text-sm" style={{ color: '#9ca3af' }}>Tidak ada wali murid ditemukan</div>
+          <div className="p-8 text-center text-sm" style={{ color: '#9ca3af' }}>
+            {showStorage ? 'Tidak ada wali murid di storage' : 'Tidak ada wali murid ditemukan'}
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="glass-table w-full">
@@ -426,7 +516,11 @@ export default function WaliMuridPage() {
                     <td className="font-bold whitespace-nowrap" style={{ color: '#1e1b4b' }}>{parent.name}</td>
                     <td className="whitespace-nowrap" style={{ color: '#4b5563' }}>{parent.phone}</td>
                     <td className="whitespace-nowrap">
-                      {parent.status === 'PENDING' ? (
+                      {showStorage ? (
+                        <span className="px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                          Storage
+                        </span>
+                      ) : parent.status === 'PENDING' ? (
                         <span className="px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
                           Menunggu ACC
                         </span>
@@ -456,27 +550,61 @@ export default function WaliMuridPage() {
                     <td className="whitespace-nowrap" style={{ color: '#4b5563' }}>
                       {new Date(parent.createdAt).toLocaleDateString('id-ID')}
                     </td>
-                    <td className="text-right whitespace-nowrap gap-2 flex items-center justify-end">
-                      {parent.status === 'PENDING' && (
-                        <button
-                          onClick={() => handleApprove(parent.id)}
-                          className="px-2.5 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-lg font-bold text-xs transition-colors"
-                        >
-                          ACC
-                        </button>
-                      )}
-                      <button
-                        onClick={() => openEditForm(parent)}
-                        className="px-2.5 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-800 rounded-lg font-bold text-xs transition-colors"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => setDeleteConfirm({ id: parent.id, name: parent.name })}
-                        className="px-2.5 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-lg font-bold text-xs transition-colors"
-                      >
-                        Hapus
-                      </button>
+                    <td className="text-right whitespace-nowrap">
+                      <div className="inline-flex items-center gap-2">
+                        {!showStorage ? (
+                          <>
+                            {parent.status === 'PENDING' && (
+                              <button
+                                onClick={() => handleApprove(parent.id)}
+                                className="px-2.5 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-lg font-bold text-xs transition-colors"
+                              >
+                                ACC
+                              </button>
+                            )}
+                            <button
+                              onClick={() => openEditForm(parent)}
+                              className="px-2.5 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-800 rounded-lg font-bold text-xs transition-colors"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => setArchiveConfirm({ id: parent.id, name: parent.name })}
+                              disabled={actionLoading === parent.id}
+                              className="px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors border"
+                              style={{
+                                background: 'rgba(245,158,11,0.1)',
+                                color: '#b45309',
+                                borderColor: 'rgba(245,158,11,0.3)',
+                              }}
+                            >
+                              {actionLoading === parent.id ? 'Memproses...' : 'Storage'}
+                            </button>
+                            <button
+                              onClick={() => setDeleteConfirm({ id: parent.id, name: parent.name })}
+                              className="px-2.5 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-lg font-bold text-xs transition-colors"
+                            >
+                              Hapus
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => handleRestore(parent)}
+                              disabled={actionLoading === parent.id}
+                              className="px-2.5 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-lg font-bold text-xs transition-colors"
+                            >
+                              {actionLoading === parent.id ? 'Memproses...' : 'Pulihkan'}
+                            </button>
+                            <button
+                              onClick={() => setDeleteConfirm({ id: parent.id, name: parent.name })}
+                              className="px-2.5 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-lg font-bold text-xs transition-colors"
+                            >
+                              Hapus Permanen
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

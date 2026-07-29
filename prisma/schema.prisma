@@ -36,6 +36,8 @@ model User {
   status             UserStatus @default(PENDING)
   failedLoginAttempts Int      @default(0)
   lockedUntil        DateTime?
+  isArchived         Boolean   @default(false)
+  archivedAt         DateTime?
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 
@@ -47,6 +49,9 @@ model User {
   branchTeachers BranchTeacher[]
   tasks          MyTask[]
   schedules      TeacherSchedule[]
+
+  @@index([isArchived])
+  @@index([role])
 }
 
 enum UserStatus {

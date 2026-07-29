@@ -21,17 +21,22 @@ export default function GuruPage() {
   const [formData, setFormData] = useState({ name: '', phone: '', password: '' })
   const [message, setMessage] = useState('')
   const [search, setSearch] = useState('')
+  const [showStorage, setShowStorage] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null)
+  const [archiveConfirm, setArchiveConfirm] = useState<{ id: string; name: string } | null>(null)
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
 
   const fetchTeachers = useCallback(async () => {
     setLoading(true)
     const params = new URLSearchParams()
+    params.set('role', 'GURU')
     if (search) params.set('search', search)
-    const res = await fetch(`/api/users?role=GURU&${params.toString()}`)
+    if (showStorage) params.set('archived', '1')
+    const res = await fetch(`/api/users?${params.toString()}`)
     const data = await res.json()
     setTeachers(data.users || [])
     setLoading(false)
-  }, [search])
+  }, [search, showStorage])
 
   useEffect(() => {
     fetchTeachers()
@@ -66,6 +71,8 @@ export default function GuruPage() {
         const data = await res.json()
         throw new Error(data.error || 'Gagal hapus guru')
       }
+      const data = await res.json()
+      setMessage(data.message || 'Guru berhasil dihapus')
       fetchTeachers()
     } catch (err) {
       setMessage(err instanceof Error ? err.message : 'Terjadi kesalahan')
@@ -89,7 +96,49 @@ export default function GuruPage() {
     }
   }
 
-  const isSuccess = message.includes('berhasil')
+  const handleArchiveConfirmed = async () => {
+    if (!archiveConfirm) return
+    setActionLoading(archiveConfirm.id)
+    setArchiveConfirm(null)
+    setMessage('')
+    try {
+      const res = await fetch(`/api/users/${archiveConfirm.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'ARCHIVE' }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Gagal memindahkan ke storage')
+      setMessage(data.message || 'Guru dipindahkan ke storage')
+      fetchTeachers()
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : 'Terjadi kesalahan')
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const handleRestore = async (teacher: Teacher) => {
+    setActionLoading(teacher.id)
+    setMessage('')
+    try {
+      const res = await fetch(`/api/users/${teacher.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'RESTORE' }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Gagal memulihkan guru')
+      setMessage(data.message || 'Guru berhasil dipulihkan dari storage')
+      fetchTeachers()
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : 'Terjadi kesalahan')
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const isSuccess = message.toLowerCase().includes('berhasil') || message.toLowerCase().includes('dipindahkan') || message.toLowerCase().includes('dipulihkan')
 
   return (
     <div>
@@ -102,31 +151,72 @@ export default function GuruPage() {
         onConfirm={handleDeleteConfirmed}
         onCancel={() => setDeleteConfirm(null)}
       />
+      <ConfirmDialog
+        isOpen={!!archiveConfirm}
+        title="Pindah ke Storage"
+        message={`Yakin ingin memindahkan guru ${archiveConfirm?.name} ke storage? Guru tidak akan bisa login, namun riwayat les tetap tersimpan.`}
+        confirmText="Ya, Pindahkan"
+        variant="danger"
+        onConfirm={handleArchiveConfirmed}
+        onCancel={() => setArchiveConfirm(null)}
+      />
+
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold" style={{ color: '#1e1b4b' }}>Guru</h1>
-          <p className="text-sm mt-1" style={{ color: '#6b7280' }}>Kelola data guru pengampu</p>
+          <p className="text-sm mt-1" style={{ color: '#6b7280' }}>
+            Kelola data guru pengampu (aktif &amp; storage)
+          </p>
         </div>
-        <button
-          onClick={() => { setShowForm(!showForm); setFormData({ name: '', phone: '', password: '' }) }}
-          className="btn-primary"
-        >
-          {showForm ? (
-            <>
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              Batal
-            </>
-          ) : (
-            <>
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-              </svg>
-              Tambah Guru
-            </>
+        <div className="flex items-center gap-3">
+          {/* Tab Aktif / Storage */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => { setShowStorage(false); setMessage('') }}
+              className="px-3 py-2 rounded-xl text-xs font-bold transition-colors border"
+              style={{
+                background: !showStorage ? 'rgba(99,102,241,0.12)' : 'rgba(255,255,255,0.6)',
+                color: !showStorage ? '#4f46e5' : '#64748b',
+                borderColor: !showStorage ? 'rgba(99,102,241,0.35)' : 'rgba(148,163,184,0.4)',
+              }}
+            >
+              Aktif
+            </button>
+            <button
+              onClick={() => { setShowStorage(true); setMessage('') }}
+              className="px-3 py-2 rounded-xl text-xs font-bold transition-colors border"
+              style={{
+                background: showStorage ? 'rgba(245,158,11,0.12)' : 'rgba(255,255,255,0.6)',
+                color: showStorage ? '#b45309' : '#64748b',
+                borderColor: showStorage ? 'rgba(245,158,11,0.35)' : 'rgba(148,163,184,0.4)',
+              }}
+            >
+              Storage
+            </button>
+          </div>
+          {!showStorage && (
+            <button
+              onClick={() => { setShowForm(!showForm); setFormData({ name: '', phone: '', password: '' }) }}
+              className="btn-primary"
+            >
+              {showForm ? (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Batal
+                </>
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                  </svg>
+                  Tambah Guru
+                </>
+              )}
+            </button>
           )}
-        </button>
+        </div>
       </div>
 
       {message && (
@@ -142,7 +232,7 @@ export default function GuruPage() {
         </div>
       )}
 
-      {showForm && (
+      {showForm && !showStorage && (
         <div className="glass-card p-6 mb-6">
           <h3 className="text-base font-bold mb-4" style={{ color: '#1e1b4b' }}>Tambah Guru Baru</h3>
           <form onSubmit={handleSubmit}>
@@ -210,7 +300,9 @@ export default function GuruPage() {
         {loading ? (
           <div className="p-8 text-center text-sm" style={{ color: '#9ca3af' }}>Loading...</div>
         ) : teachers.length === 0 ? (
-          <div className="p-8 text-center text-sm" style={{ color: '#9ca3af' }}>Tidak ada guru ditemukan</div>
+          <div className="p-8 text-center text-sm" style={{ color: '#9ca3af' }}>
+            {showStorage ? 'Tidak ada guru di storage' : 'Tidak ada guru ditemukan'}
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="glass-table w-full">
@@ -230,7 +322,11 @@ export default function GuruPage() {
                     <td className="font-bold whitespace-nowrap" style={{ color: '#1e1b4b' }}>{teacher.name}</td>
                     <td className="whitespace-nowrap" style={{ color: '#4b5563' }}>{teacher.phone}</td>
                     <td className="whitespace-nowrap">
-                      {teacher.status === 'PENDING' ? (
+                      {showStorage ? (
+                        <span className="px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                          Storage
+                        </span>
+                      ) : teacher.status === 'PENDING' ? (
                         <span className="px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
                           Menunggu ACC
                         </span>
@@ -260,21 +356,55 @@ export default function GuruPage() {
                     <td className="whitespace-nowrap" style={{ color: '#4b5563' }}>
                       {new Date(teacher.createdAt).toLocaleDateString('id-ID')}
                     </td>
-                    <td className="text-right whitespace-nowrap gap-2 flex items-center justify-end">
-                      {teacher.status === 'PENDING' && (
-                        <button
-                          onClick={() => handleApprove(teacher.id)}
-                          className="px-2.5 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-lg font-bold text-xs transition-colors"
-                        >
-                          ACC
-                        </button>
-                      )}
-                      <button
-                        onClick={() => setDeleteConfirm({ id: teacher.id, name: teacher.name })}
-                        className="px-2.5 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-lg font-bold text-xs transition-colors"
-                      >
-                        Hapus
-                      </button>
+                    <td className="text-right whitespace-nowrap">
+                      <div className="inline-flex items-center gap-2">
+                        {!showStorage ? (
+                          <>
+                            {teacher.status === 'PENDING' && (
+                              <button
+                                onClick={() => handleApprove(teacher.id)}
+                                className="px-2.5 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-lg font-bold text-xs transition-colors"
+                              >
+                                ACC
+                              </button>
+                            )}
+                            <button
+                              onClick={() => setArchiveConfirm({ id: teacher.id, name: teacher.name })}
+                              disabled={actionLoading === teacher.id}
+                              className="px-2.5 py-1.5 rounded-lg font-bold text-xs transition-colors border"
+                              style={{
+                                background: 'rgba(245,158,11,0.1)',
+                                color: '#b45309',
+                                borderColor: 'rgba(245,158,11,0.3)',
+                              }}
+                            >
+                              {actionLoading === teacher.id ? 'Memproses...' : 'Storage'}
+                            </button>
+                            <button
+                              onClick={() => setDeleteConfirm({ id: teacher.id, name: teacher.name })}
+                              className="px-2.5 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-lg font-bold text-xs transition-colors"
+                            >
+                              Hapus
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => handleRestore(teacher)}
+                              disabled={actionLoading === teacher.id}
+                              className="px-2.5 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-lg font-bold text-xs transition-colors"
+                            >
+                              {actionLoading === teacher.id ? 'Memproses...' : 'Pulihkan'}
+                            </button>
+                            <button
+                              onClick={() => setDeleteConfirm({ id: teacher.id, name: teacher.name })}
+                              className="px-2.5 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-lg font-bold text-xs transition-colors"
+                            >
+                              Hapus Permanen
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
