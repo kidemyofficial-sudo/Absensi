@@ -144,6 +144,21 @@ export async function GET(request: NextRequest) {
     // Fallback aman: bila kolom storage belum ada di database,
     // tetap tampilkan daftar siswa tanpa filter storage agar data lama tidak terlihat hilang.
     if (msg.includes('isArchived') || msg.includes('archivedAt')) {
+      if (user.role === 'OWNER' && archived === '1') {
+        return NextResponse.json({
+          students: [],
+          cabangs: [],
+          pagination: {
+            page,
+            limit,
+            total: 0,
+            totalPages: 1,
+          },
+          warning:
+            'Field Storage siswa belum ada di database, jadi tab Storage masih kosong sampai schema di-update.',
+        })
+      }
+
       const fallbackWhere: Prisma.StudentWhereInput = { ...where }
       delete fallbackWhere.archivedAt
 
@@ -199,7 +214,7 @@ export async function GET(request: NextRequest) {
           totalPages: Math.max(1, Math.ceil(total / limit)),
         },
         warning:
-          'Field Storage siswa belum ada di database, jadi daftar saat ini masih memakai mode lama sampai schema di-update.',
+          'Field Storage siswa belum ada di database, jadi daftar aktif masih memakai mode lama sampai schema di-update.',
       })
     }
 
