@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
   const startDate = searchParams.get('startDate')
   const endDate = searchParams.get('endDate')
   const guruFilter = searchParams.get('guru')
-  const jenisFilter = searchParams.get('jenis')
+  const siswaFilter = searchParams.get('siswa')
 
   const where: Record<string, unknown> = {}
 
@@ -46,8 +46,8 @@ export async function GET(request: NextRequest) {
     where.namaGuru = guruFilter
   }
 
-  if (jenisFilter) {
-    where.jenisPembelajaran = jenisFilter
+  if (siswaFilter) {
+    where.namaMurid = siswaFilter
   }
 
   if (user.role === 'GURU') {

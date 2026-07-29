@@ -20,7 +20,7 @@ export default function ReportsPage() {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [guruFilter, setGuruFilter] = useState('')
-  const [jenisFilter, setJenisFilter] = useState('')
+  const [siswaFilter, setSiswaFilter] = useState('')
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null)
 
   const fetchUser = useCallback(async () => {
@@ -35,12 +35,12 @@ export default function ReportsPage() {
     if (startDate) params.set('startDate', startDate)
     if (endDate) params.set('endDate', endDate)
     if (guruFilter) params.set('guru', guruFilter)
-    if (jenisFilter) params.set('jenis', jenisFilter)
+    if (siswaFilter) params.set('siswa', siswaFilter)
     const res = await fetch(`/api/lessons?${params.toString()}`)
     const data = await res.json()
     setLessons(data.lessons || [])
     setLoading(false)
-  }, [startDate, endDate, guruFilter, jenisFilter])
+  }, [startDate, endDate, guruFilter, siswaFilter])
 
   useEffect(() => {
     fetchUser()
@@ -66,7 +66,11 @@ export default function ReportsPage() {
   }
 
   const guruNames = [...new Set(lessons.map((l) => l.namaGuru))].sort()
-  const jenisList = [...new Set(lessons.map((l) => l.jenisPembelajaran))].sort()
+  
+  // Filter siswa berdasarkan guru yang dipilih
+  const availableStudents = guruFilter 
+    ? [...new Set(lessons.filter(l => l.namaGuru === guruFilter).map((l) => l.namaMurid))].sort()
+    : [...new Set(lessons.map((l) => l.namaMurid))].sort()
 
   if (!user) return <div className="glass-card p-8 text-center text-sm" style={{ color: '#9ca3af' }}>Loading...</div>
 
@@ -111,16 +115,16 @@ export default function ReportsPage() {
             </div>
             <div className="w-full sm:w-auto">
               <label className="block text-xs font-semibold mb-1.5" style={{ color: '#6b7280' }}>Guru</label>
-              <select value={guruFilter} onChange={(e) => setGuruFilter(e.target.value)} className={inputClass}>
+              <select value={guruFilter} onChange={(e) => { setGuruFilter(e.target.value); setSiswaFilter('') }} className={inputClass}>
                 <option value="">Semua Guru</option>
                 {guruNames.map((g) => (<option key={g} value={g}>{g}</option>))}
               </select>
             </div>
             <div className="w-full sm:w-auto">
-              <label className="block text-xs font-semibold mb-1.5" style={{ color: '#6b7280' }}>Jenis Pembelajaran</label>
-              <select value={jenisFilter} onChange={(e) => setJenisFilter(e.target.value)} className={inputClass}>
-                <option value="">Semua Jenis</option>
-                {jenisList.map((j) => (<option key={j} value={j}>{j}</option>))}
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: '#6b7280' }}>Siswa</label>
+              <select value={siswaFilter} onChange={(e) => setSiswaFilter(e.target.value)} className={inputClass} disabled={!guruFilter && availableStudents.length === 0}>
+                <option value="">Semua Siswa</option>
+                {availableStudents.map((s) => (<option key={s} value={s}>{s}</option>))}
               </select>
             </div>
             <button onClick={handleSearch} className="btn-primary w-full sm:w-auto">
@@ -142,8 +146,8 @@ export default function ReportsPage() {
               <table className="glass-table min-w-[1200px]">
                 <thead>
                   <tr>
-                    {['Tanggal','Guru','Jenis','Lokasi','Kelas','Murid','Nama Murid','Jam','Wali Murid','Catatan'].map((h) => (
-                      <th key={h} className={h === 'Murid' ? 'text-center' : ''}>{h}</th>
+                    {['Tanggal','Guru','Jenis','Lokasi','Kelas','Jumlah Murid','Nama Murid','Jam','Wali Murid','Catatan'].map((h) => (
+                      <th key={h} className={h === 'Jumlah Murid' ? 'text-center' : ''}>{h}</th>
                     ))}
                   </tr>
                 </thead>

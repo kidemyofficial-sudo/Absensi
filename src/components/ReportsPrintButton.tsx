@@ -218,6 +218,7 @@ export default function ReportsPrintButton({
     .signature {
       text-align: center;
       font-size: 10pt;
+      position: relative;
     }
 
     .signature .sig-title {
@@ -229,13 +230,20 @@ export default function ReportsPrintButton({
     .signature .sig-role {
       font-weight: 600;
       color: #111827;
-      margin-bottom: 80px;
+      margin-bottom: 8px;
+    }
+
+    .signature .sig-image {
+      width: 140px;
+      height: 70px;
+      margin: 0 auto;
+      object-fit: contain;
     }
 
     .signature .sig-name {
       font-weight: 500;
       color: #374151;
-      margin-top: 8px;
+      margin-top: 4px;
     }
 
     @media print {
@@ -341,7 +349,7 @@ export default function ReportsPrintButton({
         <th>Jenis</th>
         <th>Lokasi</th>
         <th>Kelas</th>
-        <th>Jml Murid</th>
+        <th>Jumlah Murid</th>
         <th>Nama Murid</th>
         <th>Jam Les</th>
         <th>Wali Murid</th>
@@ -361,6 +369,7 @@ export default function ReportsPrintButton({
     <div class="signature">
       <p class="sig-title">Mengetahui,</p>
       <p class="sig-role">Owner Kidemy</p>
+      <img src="${window.location.origin}/image/ttdowner.WEBP" alt="TTD Owner" class="sig-image" />
       <p class="sig-name">( Rahayu Wiladatika I, S.Pd )</p>
     </div>
   </div>
