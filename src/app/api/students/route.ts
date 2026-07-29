@@ -37,10 +37,19 @@ export async function GET(request: NextRequest) {
   const status = searchParams.get('status')
   const cabangFilter = searchParams.get('cabang')
   const search = searchParams.get('search')?.trim()
+  const archived = searchParams.get('archived')
   const page = getPositiveInt(searchParams.get('page'), 1)
   const limit = getPositiveInt(searchParams.get('limit'), PAGE_SIZE, MAX_PAGE_SIZE)
 
   const where: Prisma.StudentWhereInput = {}
+
+  // Default: jangan tampilkan siswa di storage (archived).
+  // Owner bisa melihat storage dengan `?archived=1`
+  if (user.role === 'OWNER' && archived === '1') {
+    where.isArchived = true
+  } else {
+    where.isArchived = false
+  }
 
   // Default filter: Guru hanya lihat siswa APPROVED
   if (user.role === 'GURU') {

@@ -65,6 +65,8 @@ model Student {
   parentId      String
   biayaPerSiswa Int           @default(50000)
   status        StudentStatus @default(PENDING)
+  isArchived    Boolean       @default(false)
+  archivedAt    DateTime?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
@@ -75,6 +77,7 @@ model Student {
   lessons         Lesson[]
 
   @@index([status])
+  @@index([isArchived])
   @@index([cabangDaerah])
   @@index([parentId])
   @@index([createdAt])
