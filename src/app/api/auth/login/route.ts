@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
       where: { phone: validatedData.phone },
       select: {
         id: true, name: true, phone: true, role: true, password: true,
-        failedLoginAttempts: true, lockedUntil: true,
+        failedLoginAttempts: true, lockedUntil: true, isArchived: true,
       },
     })
 
@@ -37,6 +37,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Nomor telepon atau password salah' },
         { status: 401 }
+      )
+    }
+
+    // Archived account check
+    if (user.isArchived) {
+      return NextResponse.json(
+        { error: 'Akun Anda sedang nonaktif (Storage). Silakan hubungi Owner untuk mengaktifkan kembali.' },
+        { status: 403 }
       )
     }
 

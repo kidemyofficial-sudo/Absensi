@@ -18,13 +18,17 @@ export async function GET() {
     let todayAttendance = 0
 
     try {
-      totalStudents = await prisma.student.count()
+      totalStudents = await prisma.student.count({
+        where: { archivedAt: null },
+      })
     } catch {
       totalStudents = 0
     }
 
     try {
-      totalTeachers = await prisma.user.count({ where: { role: 'GURU' } })
+      totalTeachers = await prisma.user.count({
+        where: { role: 'GURU', isArchived: { not: true } },
+      })
     } catch {
       totalTeachers = 0
     }
