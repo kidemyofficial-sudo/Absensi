@@ -29,6 +29,7 @@ interface SlipGajiButtonProps {
   totalBiayaLes: number
   totalGajiGuru: number
   revenues: LesRevenue[]
+  guruId?: string  // opsional: jika diisi, revenues kosong akan di-fetch otomatis
 }
 
 function formatRp(n: number) {
@@ -91,8 +92,23 @@ export function SlipGajiPrintButton({
   jumlahLes,
   totalGajiGuru,
   revenues,
+  guruId,
 }: SlipGajiButtonProps) {
   const handlePrint = async () => {
+    // Jika revenues kosong dan guruId tersedia, fetch dulu dari API
+    let finalRevenues = revenues
+    if (finalRevenues.length === 0 && guruId) {
+      try {
+        const res = await fetch(`/api/gaji-guru/${guruId}?bulan=${bulan}&tahun=${tahun}`)
+        const data = await res.json()
+        if (res.ok && data.revenues) {
+          finalRevenues = data.revenues
+        }
+      } catch {
+        // lanjut dengan array kosong
+      }
+    }
+
     const printWindow = window.open('', '_blank', 'width=900,height=700')
     if (!printWindow) return
 
@@ -113,7 +129,7 @@ export function SlipGajiPrintButton({
     const periode = namaBulanStr(bulan, tahun)
     const tanggalCetak = formatTanggalLong(new Date().toISOString())
 
-    const sorted = [...revenues].sort(
+    const sorted = [...finalRevenues].sort(
       (a, b) =>
         new Date(a.lesson.tanggalLes).getTime() -
         new Date(b.lesson.tanggalLes).getTime()
@@ -128,7 +144,7 @@ export function SlipGajiPrintButton({
         <td>${r.lesson.jenisPembelajaran}</td>
         <td>${r.lesson.namaMurid}</td>
         <td style="text-align:center">${r.lesson.jumlahMurid}</td>
-        <td>${r.lesson.jamMulai} – ${r.lesson.jamSelesai}</td>
+        <td>${r.lesson.jamMulai} \u2013 ${r.lesson.jamSelesai}</td>
         <td class="amount">${formatRp(r.pendapatanGuru)}</td>
       </tr>`
       )
@@ -227,10 +243,10 @@ export function SlipGajiPrintButton({
     .total-row td {
       font-weight: 700;
       border-top: 2px solid #1e3a8a;
-      background: #eff6ff;
+      background: #1e3a8a;
       padding: 10px 8px;
       font-size: 10pt;
-      color: #1e3a8a;
+      color: #ffffff;
     }
 
     /* ── Footer / TTD ─────────────────────── */
@@ -265,7 +281,7 @@ export function SlipGajiPrintButton({
       thead th { color: #fff !important; }
       tbody tr:nth-child(even) { background: #f8fafc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .salary-box { background: #1e3a8a !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .total-row td { background: #eff6ff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .total-row td { background: #1e3a8a !important; color: #ffffff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .meta { background: #f0f7ff !important; border-color: #bfdbfe !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .header { border-bottom: 2px solid #1e40af !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     }
@@ -322,16 +338,16 @@ export function SlipGajiPrintButton({
         <th>Tanggal</th>
         <th>Jenis Les</th>
         <th>Murid</th>
-        <th style="text-align:center">Jml Murid</th>
+        <th style="text-align:center">Jumlah Murid</th>
         <th>Jam</th>
         <th style="text-align:right">Gaji Guru</th>
       </tr>
     </thead>
     <tbody>
-      ${rows}
+      ${sorted.length > 0 ? rows : '<tr><td colspan="7" style="text-align:center;padding:16px;color:#9ca3af">Belum ada data les untuk periode ini</td></tr>'}
       <tr class="total-row">
         <td colspan="6">Total Gaji (${jumlahLes} Sesi)</td>
-        <td class="amount" style="text-align:right">${formatRp(totalGajiGuru)}</td>
+        <td style="text-align:right">${formatRp(totalGajiGuru)}</td>
       </tr>
     </tbody>
   </table>

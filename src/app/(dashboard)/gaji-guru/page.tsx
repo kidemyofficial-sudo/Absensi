@@ -288,6 +288,7 @@ export default function GajiGuruPage() {
                           totalBiayaLes={g.totalBiayaLes}
                           totalGajiGuru={g.totalGajiGuru}
                           revenues={[]}
+                          guruId={g.guruId}
                         />
                         <KirimWhatsAppButton
                           namaGuru={g.namaGuru}
