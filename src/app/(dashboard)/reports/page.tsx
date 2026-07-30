@@ -9,6 +9,7 @@ interface Lesson {
   id: string; tanggalLes: string; namaGuru: string; whatsappGuru: string
   jenisPembelajaran: string; lokasiMengajar: string; kelasMurid: string | null
   jumlahMurid: number; namaMurid: string; catatanMateri: string
+  kritikSaran: string | null
   fotoUrl: string | null; jamMulai: string; jamSelesai: string
   namaWaliMurid: string; whatsappWaliMurid: string | null
 }
@@ -126,7 +127,7 @@ export default function ReportsPage() {
               <table className="glass-table min-w-[1200px]">
                 <thead>
                   <tr>
-                    {['Tanggal','Guru','Jenis','Lokasi','Kelas','Jumlah Murid','Nama Murid','Jam','Wali Murid','Catatan'].map((h) => (
+                    {['Tanggal','Guru','Jenis','Lokasi','Kelas','Jumlah Murid','Nama Murid','Jam','Wali Murid','Catatan','Perkembangan & Kendala'].map((h) => (
                       <th key={h} className={h === 'Jumlah Murid' ? 'text-center' : ''}>{h}</th>
                     ))}
                   </tr>
@@ -144,6 +145,7 @@ export default function ReportsPage() {
                       <td className="whitespace-nowrap">{lesson.jamMulai} - {lesson.jamSelesai}</td>
                       <td>{lesson.namaWaliMurid}</td>
                       <td className="max-w-[180px] truncate">{lesson.catatanMateri}</td>
+                      <td className="max-w-[200px] truncate">{lesson.kritikSaran || '-'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -169,6 +171,9 @@ export default function ReportsPage() {
                   <div><span style={{ color: '#9ca3af' }}>Murid:</span> <span style={{ color: '#374151' }}>{lesson.jumlahMurid} orang</span></div>
                 </div>
                 {lesson.catatanMateri && <p className="text-xs mt-2 line-clamp-2" style={{ color: '#6b7280' }}>{lesson.catatanMateri}</p>}
+                {lesson.kritikSaran && (
+                  <p className="text-xs mt-1 line-clamp-2" style={{ color: '#ef4444' }}>⚠️ {lesson.kritikSaran}</p>
+                )}
               </div>
             ))}
           </div>
@@ -238,6 +243,12 @@ export default function ReportsPage() {
                   <span className="text-xs block mb-0.5" style={{ color: '#9ca3af' }}>Catatan / Materi</span>
                   <p className="font-medium whitespace-pre-wrap" style={{ color: '#374151' }}>{selectedLesson.catatanMateri}</p>
                 </div>
+                {selectedLesson.kritikSaran && (
+                  <div style={{ background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: '12px', padding: '12px' }}>
+                    <span className="text-xs block mb-0.5 font-semibold" style={{ color: '#ef4444' }}>⚠️ Perkembangan &amp; Kendala</span>
+                    <p className="font-medium whitespace-pre-wrap" style={{ color: '#374151' }}>{selectedLesson.kritikSaran}</p>
+                  </div>
+                )}
                 {selectedLesson.fotoUrl && (
                   <div>
                     <span className="text-xs block mb-1" style={{ color: '#9ca3af' }}>Foto Kegiatan</span>

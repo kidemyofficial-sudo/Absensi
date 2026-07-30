@@ -11,6 +11,7 @@ interface Lesson {
   jumlahMurid: number
   namaMurid: string
   catatanMateri: string
+  kritikSaran: string | null
   jamMulai: string
   jamSelesai: string
   namaWaliMurid: string
@@ -128,6 +129,7 @@ export default function ReportsPrintButton({
           <td>${l.jamMulai} - ${l.jamSelesai}</td>
           <td>${decodeEntities(l.namaWaliMurid)}</td>
           <td class="catatan">${decodeEntities(l.catatanMateri)}</td>
+          <td class="catatan">${decodeEntities(l.kritikSaran) || '-'}</td>
         </tr>
       `
       )
@@ -417,6 +419,7 @@ export default function ReportsPrintButton({
         <th>Jam Les</th>
         <th>Wali Murid</th>
         <th>Catatan</th>
+        <th>Perkembangan &amp; Kendala</th>
       </tr>
     </thead>
     <tbody>
