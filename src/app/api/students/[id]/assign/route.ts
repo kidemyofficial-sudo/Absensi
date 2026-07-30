@@ -57,68 +57,51 @@ export async function PATCH(
     }
 
     const updated = await prisma.$transaction(async (tx) => {
+      // 1. Update cabangDaerah on the student
       const updatedStudent = await tx.student.update({
         where: { id },
         data: { cabangDaerah: validatedData.cabangDaerah },
       })
 
       if (teacher) {
-        let branchTeacher = await tx.branchTeacher.findUnique({
+        // 2. Upsert BranchTeacher (shared per guru+cabang, NO mataPelajaran here)
+        const branchTeacher = await tx.branchTeacher.upsert({
           where: {
             userId_cabangDaerah: {
               userId: validatedData.teacherId!,
               cabangDaerah: validatedData.cabangDaerah,
             },
           },
-        })
-
-        if (!branchTeacher) {
-          branchTeacher = await tx.branchTeacher.create({
-            data: {
-              userId: validatedData.teacherId!,
-              cabangDaerah: validatedData.cabangDaerah,
-              provinsi: validatedData.provinsi,
-              kotaKabupaten: validatedData.kotaKabupaten,
-              mataPelajaran: validatedData.mataPelajaran || 'Umum',
-            },
-          })
-        } else {
-          // If branchTeacher exists, update mataPelajaran, provinsi, and kotaKabupaten
-          branchTeacher = await tx.branchTeacher.update({
-            where: { id: branchTeacher.id },
-            data: {
-              mataPelajaran: validatedData.mataPelajaran || branchTeacher.mataPelajaran || 'Umum',
-              provinsi: validatedData.provinsi,
-              kotaKabupaten: validatedData.kotaKabupaten,
-            },
-          })
-        }
-
-        const currentBranchTeachers = await tx.branchTeacher.findMany({
-          where: {
-            student: { some: { id } },
+          create: {
+            userId: validatedData.teacherId!,
+            cabangDaerah: validatedData.cabangDaerah,
+            provinsi: validatedData.provinsi,
+            kotaKabupaten: validatedData.kotaKabupaten,
           },
-          select: { id: true },
+          update: {
+            provinsi: validatedData.provinsi,
+            kotaKabupaten: validatedData.kotaKabupaten,
+          },
         })
 
-        if (currentBranchTeachers.length > 0) {
-          await tx.student.update({
-            where: { id },
-            data: {
-              branchTeachers: {
-                disconnect: currentBranchTeachers,
-              },
-            },
-          })
-        }
+        // 3. Disconnect any existing StudentTeacher links for this student
+        //    so we replace the previous teacher assignment with the new one
+        await tx.studentTeacher.deleteMany({
+          where: { studentId: id },
+        })
 
-        await tx.branchTeacher.update({
-          where: { id: branchTeacher.id },
+        // 4. Create StudentTeacher record with mataPelajaran SPECIFIC to this student
+        await tx.studentTeacher.create({
           data: {
-            student: {
-              connect: { id },
-            },
+            studentId: id,
+            branchTeacherId: branchTeacher.id,
+            mataPelajaran: validatedData.mataPelajaran || 'Umum',
           },
+        })
+      } else {
+        // No teacher selected — clear existing student-teacher links
+        await tx.studentTeacher.deleteMany({
+          where: { studentId: id },
         })
       }
 

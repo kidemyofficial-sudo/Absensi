@@ -110,8 +110,8 @@ export async function POST(request: NextRequest) {
       where: {
         id: validatedData.studentId,
         status: 'APPROVED',
-        branchTeachers: {
-          some: { userId: user.id },
+        studentTeachers: {
+          some: { branchTeacher: { userId: user.id } },
         },
       },
       select: {
@@ -158,8 +158,8 @@ export async function POST(request: NextRequest) {
       const branchTeacher = await tx.branchTeacher.findFirst({
         where: {
           userId: user.id,
-          student: {
-            some: { id: student.id },
+          studentTeachers: {
+            some: { studentId: student.id },
           },
         },
       })

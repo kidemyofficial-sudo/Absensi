@@ -220,14 +220,7 @@ export async function DELETE(
             where: { studentId: { in: studentIds } },
           })
 
-          // Disconnect branch teachers dari siswa-siswa ini
-          for (const sid of studentIds) {
-            await tx.student.update({
-              where: { id: sid },
-              data: { branchTeachers: { set: [] } },
-            })
-          }
-
+          // StudentTeacher di-cascade delete saat student dihapus (onDelete: Cascade)
           // Hapus semua siswa milik Wali Murid ini
           await tx.student.deleteMany({
             where: { parentId: id },
@@ -258,22 +251,8 @@ export async function DELETE(
           where: { guruId: id },
         })
 
-        // Disconnect semua siswa dari BranchTeacher milik guru ini & hapus BranchTeacher
-        const branchTeachers = await tx.branchTeacher.findMany({
-          where: { userId: id },
-          select: { id: true, student: { select: { id: true } } },
-        })
-
-        for (const bt of branchTeachers) {
-          if (bt.student.length > 0) {
-            const studentIds = bt.student.map((s) => s.id)
-            await tx.branchTeacher.update({
-              where: { id: bt.id },
-              data: { student: { disconnect: studentIds.map((sid) => ({ id: sid })) } },
-            })
-          }
-        }
-
+        // StudentTeacher di-cascade delete saat BranchTeacher dihapus (onDelete: Cascade)
+        // Hapus semua BranchTeacher milik Guru ini
         await tx.branchTeacher.deleteMany({
           where: { userId: id },
         })

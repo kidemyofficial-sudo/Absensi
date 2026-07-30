@@ -252,11 +252,6 @@ export async function DELETE(
         await tx.attendance.deleteMany({ where: { studentId: id } })
         await tx.lesson.deleteMany({ where: { studentId: id } })
 
-        await tx.student.update({
-          where: { id },
-          data: { branchTeachers: { set: [] } },
-        })
-
         await tx.student.delete({ where: { id } })
       })
 

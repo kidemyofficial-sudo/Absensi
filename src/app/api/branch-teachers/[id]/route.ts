@@ -16,24 +16,14 @@ export async function DELETE(
 
   const branchTeacher = await prisma.branchTeacher.findUnique({
     where: { id },
-    include: { student: { select: { id: true } } },
+    select: { id: true },
   })
 
   if (!branchTeacher) {
     return NextResponse.json({ error: 'Data tidak ditemukan' }, { status: 404 })
   }
 
-  // Disconnect all students first
-  await prisma.branchTeacher.update({
-    where: { id },
-    data: {
-      student: {
-        disconnect: branchTeacher.student.map((s) => ({ id: s.id })),
-      },
-    },
-  })
-
-  // Delete the branch teacher
+  // StudentTeacher records will cascade-delete automatically (onDelete: Cascade)
   await prisma.branchTeacher.delete({ where: { id } })
 
   return NextResponse.json({ message: 'Berhasil dihapus' })

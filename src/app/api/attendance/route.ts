@@ -79,8 +79,8 @@ export async function POST(request: NextRequest) {
       where: {
         id: { in: studentIds },
         status: 'APPROVED',
-        branchTeachers: {
-          some: { userId: user.id },
+        studentTeachers: {
+          some: { branchTeacher: { userId: user.id } },
         },
       },
       select: { id: true },

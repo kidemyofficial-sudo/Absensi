@@ -263,7 +263,7 @@ export default async function DashboardPage() {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
     const endOfMonth   = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
 
-    type BranchTeacherRow = { cabangDaerah: string; _count: { student: number } }
+    type BranchTeacherRow = { cabangDaerah: string; _count: { studentTeachers: number } }
     type GuruRevRow = { id: string; lessonId: string; pendapatanGuru: number; lesson: { tanggalLes: Date; jumlahMurid: number; namaMurid: string; jenisPembelajaran: string } }
     type TodayScheduleRow = { id: string; title: string; time: string; timeEnd: string | null; category: string; recurrence: string }
 
@@ -276,7 +276,7 @@ export default async function DashboardPage() {
       ;[branchTeachers, todayAttendances, monthlyRevenues, rawSchedules] = await Promise.all([
         prisma.branchTeacher.findMany({
           where: { userId: user.id },
-          select: { cabangDaerah: true, _count: { select: { student: true } } },
+          select: { cabangDaerah: true, _count: { select: { studentTeachers: true } } },
         }),
         prisma.attendance.count({ where: { teacherId: user.id, date: today } }),
         prisma.lessonRevenue.findMany({
@@ -344,7 +344,7 @@ export default async function DashboardPage() {
                       <span className="text-sm font-semibold" style={{ color: '#1e1b4b' }}>{bt.cabangDaerah}</span>
                     </div>
                     <span className="text-xs font-bold px-3 py-1 rounded-xl" style={{ background: 'rgba(99,102,241,0.1)', color: '#6366f1' }}>
-                      {bt._count.student} siswa
+                      {bt._count.studentTeachers} siswa
                     </span>
                   </li>
                 ))}

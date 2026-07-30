@@ -155,12 +155,11 @@ async function main() {
         cabangDaerah: 'Kota Sidoarjo, Jawa Timur',
         provinsi: 'Jawa Timur',
         kotaKabupaten: 'Kota Sidoarjo',
-        mataPelajaran: b.mataPelajaran,
         persentaseOwner: b.persentaseOwner,
         persentaseGuru: b.persentaseGuru,
       },
     })
-    console.log(`Branch dibuat: ${guruList[b.guruIdx].name} → Sidoarjo (${b.mataPelajaran}, ${b.persentaseOwner}/${b.persentaseGuru})`)
+    console.log(`Branch dibuat: ${guruList[b.guruIdx].name} → Sidoarjo (${b.persentaseOwner}/${b.persentaseGuru})`)
   }
 
   for (const b of branchSurabaya) {
@@ -170,12 +169,11 @@ async function main() {
         cabangDaerah: 'Kota Surabaya, Jawa Timur',
         provinsi: 'Jawa Timur',
         kotaKabupaten: 'Kota Surabaya',
-        mataPelajaran: b.mataPelajaran,
         persentaseOwner: b.persentaseOwner,
         persentaseGuru: b.persentaseGuru,
       },
     })
-    console.log(`Branch dibuat: ${guruList[b.guruIdx].name} → Surabaya (${b.mataPelajaran}, ${b.persentaseOwner}/${b.persentaseGuru})`)
+    console.log(`Branch dibuat: ${guruList[b.guruIdx].name} → Surabaya (${b.persentaseOwner}/${b.persentaseGuru})`)
   }
 
   // === 6. ASSIGN SISWA KE CABANG ===
@@ -193,9 +191,12 @@ async function main() {
         where: { id: siswa.id },
         data: { cabangDaerah: 'Kota Sidoarjo, Jawa Timur' },
       })
-      await prisma.branchTeacher.update({
-        where: { id: bt.id },
-        data: { student: { connect: { id: siswa.id } } },
+      await prisma.studentTeacher.create({
+        data: {
+          studentId: siswa.id,
+          branchTeacherId: bt.id,
+          mataPelajaran: 'Umum',
+        },
       })
     }
   }
@@ -213,9 +214,12 @@ async function main() {
         where: { id: siswa.id },
         data: { cabangDaerah: 'Kota Surabaya, Jawa Timur' },
       })
-      await prisma.branchTeacher.update({
-        where: { id: bt.id },
-        data: { student: { connect: { id: siswa.id } } },
+      await prisma.studentTeacher.create({
+        data: {
+          studentId: siswa.id,
+          branchTeacherId: bt.id,
+          mataPelajaran: 'Umum',
+        },
       })
     }
   }

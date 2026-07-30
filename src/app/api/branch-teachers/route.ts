@@ -14,8 +14,11 @@ export async function GET() {
       user: {
         select: { id: true, name: true, phone: true },
       },
-      student: {
-        select: { id: true, name: true },
+      studentTeachers: {
+        select: {
+          student: { select: { id: true, name: true } },
+          mataPelajaran: true,
+        },
       },
     },
     orderBy: { cabangDaerah: 'asc' },
@@ -33,9 +36,9 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { teacherId, cabangDaerah, provinsi, kotaKabupaten, mataPelajaran } = body
+    const { teacherId, cabangDaerah, provinsi, kotaKabupaten } = body
 
-    if (!teacherId || !cabangDaerah || !provinsi || !kotaKabupaten || !mataPelajaran) {
+    if (!teacherId || !cabangDaerah || !provinsi || !kotaKabupaten) {
       return NextResponse.json({ error: 'Data tidak lengkap' }, { status: 400 })
     }
 
@@ -68,7 +71,6 @@ export async function POST(request: NextRequest) {
         cabangDaerah,
         provinsi,
         kotaKabupaten,
-        mataPelajaran,
       },
       include: {
         user: {

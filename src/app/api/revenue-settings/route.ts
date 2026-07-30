@@ -18,22 +18,35 @@ export async function GET() {
       parent: {
         select: { id: true, name: true },
       },
-      branchTeachers: {
+      studentTeachers: {
         select: {
-          id: true,
-          persentaseOwner: true,
-          persentaseGuru: true,
-          nominalOwner: true,
-          nominalGuru: true,
           mataPelajaran: true,
-          user: { select: { name: true } },
+          branchTeacher: {
+            select: {
+              id: true,
+              persentaseOwner: true,
+              persentaseGuru: true,
+              nominalOwner: true,
+              nominalGuru: true,
+              user: { select: { name: true } },
+            },
+          },
         },
       },
     },
     orderBy: { name: 'asc' },
   })
 
-  return NextResponse.json({ students })
+  return NextResponse.json({
+    students: students.map((s) => ({
+      ...s,
+      branchTeachers: s.studentTeachers.map((st) => ({
+        ...st.branchTeacher,
+        mataPelajaran: st.mataPelajaran,
+      })),
+      studentTeachers: undefined,
+    })),
+  })
 }
 
 export async function PUT(request: NextRequest) {
@@ -56,19 +69,32 @@ export async function PUT(request: NextRequest) {
         data: { biayaPerSiswa: validatedData.biayaPerSiswa },
         include: {
           parent: { select: { id: true, name: true } },
-          branchTeachers: {
+          studentTeachers: {
             select: {
-              id: true,
-              persentaseOwner: true,
-              persentaseGuru: true,
-              nominalOwner: true,
-              nominalGuru: true,
               mataPelajaran: true,
-              user: { select: { name: true } },
+              branchTeacher: {
+                select: {
+                  id: true,
+                  persentaseOwner: true,
+                  persentaseGuru: true,
+                  nominalOwner: true,
+                  nominalGuru: true,
+                  user: { select: { name: true } },
+                },
+              },
             },
           },
         },
       })
+
+      const mappedStudent = {
+        ...student,
+        branchTeachers: student.studentTeachers.map((st) => ({
+          ...st.branchTeacher,
+          mataPelajaran: st.mataPelajaran,
+        })),
+        studentTeachers: undefined,
+      }
 
       if (
         validatedData.branchTeacherId &&
@@ -146,22 +172,33 @@ export async function PUT(request: NextRequest) {
           where: { id: validatedData.studentId },
           include: {
             parent: { select: { id: true, name: true } },
-            branchTeachers: {
+            studentTeachers: {
               select: {
-                id: true,
-                persentaseOwner: true,
-                persentaseGuru: true,
-                nominalOwner: true,
-                nominalGuru: true,
                 mataPelajaran: true,
-                user: { select: { name: true } },
+                branchTeacher: {
+                  select: {
+                    id: true,
+                    persentaseOwner: true,
+                    persentaseGuru: true,
+                    nominalOwner: true,
+                    nominalGuru: true,
+                    user: { select: { name: true } },
+                  },
+                },
               },
             },
           },
-        })
+        }).then((s) => ({
+          ...s,
+          branchTeachers: s.studentTeachers.map((st) => ({
+            ...st.branchTeacher,
+            mataPelajaran: st.mataPelajaran,
+          })),
+          studentTeachers: undefined,
+        }))
       }
 
-      return student
+      return mappedStudent
     }, {
       timeout: 30000, // 30 detik timeout untuk mencegah error "Transaction already closed"
     })

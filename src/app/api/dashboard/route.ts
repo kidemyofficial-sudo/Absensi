@@ -56,7 +56,7 @@ export async function GET() {
         cabangDaerah: true,
         _count: {
           select: {
-            student: true,
+            studentTeachers: true,
           },
         },
       },
@@ -78,7 +78,7 @@ export async function GET() {
       role: 'GURU',
       classes: branchTeachers.map((bt) => ({
         name: bt.cabangDaerah,
-        studentCount: bt._count.student,
+        studentCount: bt._count.studentTeachers,
       })),
       todayAttendances: todayAttendances.length,
     })

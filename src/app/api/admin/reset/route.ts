@@ -38,20 +38,9 @@ export async function GET() {
     const audit = await prisma.auditLog.deleteMany()
     log.push(`✅ Hapus ${audit.count} AuditLog`)
 
-    // 6. Lepas semua relasi Student ↔ BranchTeacher (many-to-many)
-    //    Caranya: update setiap BranchTeacher, disconnect semua student
-    const allBts = await prisma.branchTeacher.findMany({
-      select: { id: true, student: { select: { id: true } } },
-    })
-    for (const bt of allBts) {
-      if (bt.student.length > 0) {
-        await prisma.branchTeacher.update({
-          where: { id: bt.id },
-          data: { student: { set: [] } },
-        })
-      }
-    }
-    log.push(`✅ Disconnect semua relasi Student ↔ BranchTeacher`)
+    // 6. StudentTeacher (FK ke Student dan BranchTeacher)
+    const stCount = await prisma.studentTeacher.deleteMany()
+    log.push(`✅ Hapus ${stCount.count} StudentTeacher`)
 
     // 7. BranchTeacher (FK ke User.guru)
     const bt = await prisma.branchTeacher.deleteMany()

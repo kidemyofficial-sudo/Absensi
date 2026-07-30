@@ -79,8 +79,8 @@ export async function GET(request: NextRequest) {
 
   // Guru hanya bisa lihat siswa di cabangnya
   if (user.role === 'GURU') {
-    where.branchTeachers = {
-      some: { userId: user.id },
+    where.studentTeachers = {
+      some: { branchTeacher: { userId: user.id } },
     }
   }
 
@@ -102,15 +102,19 @@ export async function GET(request: NextRequest) {
           parent: {
             select: { id: true, name: true, phone: true },
           },
-          branchTeachers: {
+          studentTeachers: {
             select: {
-              id: true,
-              userId: true,
-              provinsi: true,
-              kotaKabupaten: true,
               mataPelajaran: true,
-              user: {
-                select: { id: true, name: true },
+              branchTeacher: {
+                select: {
+                  id: true,
+                  userId: true,
+                  provinsi: true,
+                  kotaKabupaten: true,
+                  user: {
+                    select: { id: true, name: true },
+                  },
+                },
               },
             },
           },
@@ -132,7 +136,18 @@ export async function GET(request: NextRequest) {
     ])
 
     return NextResponse.json({
-      students,
+      students: students.map((s) => ({
+        ...s,
+        branchTeachers: s.studentTeachers.map((st) => ({
+          id: st.branchTeacher.id,
+          userId: st.branchTeacher.userId,
+          provinsi: st.branchTeacher.provinsi,
+          kotaKabupaten: st.branchTeacher.kotaKabupaten,
+          mataPelajaran: st.mataPelajaran,
+          user: st.branchTeacher.user,
+        })),
+        studentTeachers: undefined,
+      })),
       cabangs: cabangRows.map((row) => row.cabangDaerah).filter(Boolean),
       pagination: {
         page,
@@ -183,15 +198,19 @@ export async function GET(request: NextRequest) {
             parent: {
               select: { id: true, name: true, phone: true },
             },
-            branchTeachers: {
+            studentTeachers: {
               select: {
-                id: true,
-                userId: true,
-                provinsi: true,
-                kotaKabupaten: true,
                 mataPelajaran: true,
-                user: {
-                  select: { id: true, name: true },
+                branchTeacher: {
+                  select: {
+                    id: true,
+                    userId: true,
+                    provinsi: true,
+                    kotaKabupaten: true,
+                    user: {
+                      select: { id: true, name: true },
+                    },
+                  },
                 },
               },
             },
@@ -213,7 +232,18 @@ export async function GET(request: NextRequest) {
       ])
 
       return NextResponse.json({
-        students,
+        students: students.map((s) => ({
+          ...s,
+          branchTeachers: s.studentTeachers.map((st) => ({
+            id: st.branchTeacher.id,
+            userId: st.branchTeacher.userId,
+            provinsi: st.branchTeacher.provinsi,
+            kotaKabupaten: st.branchTeacher.kotaKabupaten,
+            mataPelajaran: st.mataPelajaran,
+            user: st.branchTeacher.user,
+          })),
+          studentTeachers: undefined,
+        })),
         cabangs: cabangRows.map((row) => row.cabangDaerah).filter(Boolean),
         pagination: {
           page,
