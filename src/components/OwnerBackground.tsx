@@ -20,7 +20,7 @@ export default function OwnerBackground() {
         style={{
           backgroundImage: "url('/image/bgowner.png')",
           backgroundSize: 'cover',
-          backgroundPosition: 'center top',
+          backgroundPosition: 'center center',
           backgroundRepeat: 'no-repeat',
           opacity: 0.07,
           zIndex: 0,
@@ -34,7 +34,7 @@ export default function OwnerBackground() {
         style={{
           backgroundImage: "url('/image/bgowner.png')",
           backgroundSize: 'cover',
-          backgroundPosition: 'center top',
+          backgroundPosition: 'center center',
           backgroundRepeat: 'no-repeat',
           opacity: mobileOpacity * 0.14,
           transition: 'opacity 1.2s ease-out',
