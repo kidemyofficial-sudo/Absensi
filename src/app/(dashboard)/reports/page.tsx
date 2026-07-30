@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import ReportsPrintButton from '@/components/ReportsPrintButton'
+import WhatsAppReportButton from '@/components/WhatsAppReportButton'
 
 interface UserInfo { id: string; name: string; phone: string; role: string }
 
@@ -10,6 +11,7 @@ interface Lesson {
   jenisPembelajaran: string; lokasiMengajar: string; kelasMurid: string | null
   jumlahMurid: number; namaMurid: string; catatanMateri: string
   kritikSaran: string | null
+  biayaPerSiswa: number
   fotoUrl: string | null; jamMulai: string; jamSelesai: string
   namaWaliMurid: string; whatsappWaliMurid: string | null
 }
@@ -74,11 +76,17 @@ export default function ReportsPage() {
         </div>
         <div className="flex items-center gap-3">
           {lessons.length > 0 && user.role === 'OWNER' && (
-            <ReportsPrintButton
-              lessons={lessons}
-              userName={user.name}
-              role={user.role}
-            />
+            <>
+              <WhatsAppReportButton
+                lessons={lessons}
+                role={user.role}
+              />
+              <ReportsPrintButton
+                lessons={lessons}
+                userName={user.name}
+                role={user.role}
+              />
+            </>
           )}
         </div>
       </div>
