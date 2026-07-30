@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser, hashPassword } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { decodeHtmlEntities } from '@/lib/sanitize'
 import { z } from 'zod'
 
 const createUserSchema = z.object({
@@ -67,7 +68,13 @@ export async function GET(request: NextRequest) {
       orderBy: { name: 'asc' },
     })
 
-    return NextResponse.json({ users })
+    const mappedUsers = users.map((u) => ({
+      ...u,
+      name: decodeHtmlEntities(u.name),
+      students: u.students ? u.students.map((s) => ({ ...s, name: decodeHtmlEntities(s.name) })) : [],
+    }))
+
+    return NextResponse.json({ users: mappedUsers })
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     console.error('Users GET error:', err)
@@ -96,12 +103,20 @@ export async function GET(request: NextRequest) {
         },
         orderBy: { name: 'asc' },
       })
-      return NextResponse.json({ users, warning: 'Kolom storage belum tersedia, menampilkan semua data.' })
+
+      const mappedUsers = users.map((u) => ({
+        ...u,
+        name: decodeHtmlEntities(u.name),
+        students: u.students ? u.students.map((s) => ({ ...s, name: decodeHtmlEntities(s.name) })) : [],
+      }))
+
+      return NextResponse.json({ users: mappedUsers, warning: 'Kolom storage belum tersedia, menampilkan semua data.' })
     }
 
     return NextResponse.json({ error: 'Terjadi kesalahan server' }, { status: 500 })
   }
 }
+
 
 export async function POST(request: NextRequest) {
   const user = await getCurrentUser()

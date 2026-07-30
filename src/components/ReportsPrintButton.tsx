@@ -49,8 +49,30 @@ export default function ReportsPrintButton({
       console.warn('TTD image not loaded, using signature space:', err)
     }
 
+    // Decode legacy HTML entities from database (safety net for old records)
+    const decodeEntities = (str: string | null | undefined): string => {
+      if (!str) return ''
+      let s = str
+      let prev = ''
+      let maxLoop = 5
+      while (s !== prev && maxLoop > 0) {
+        prev = s
+        s = s
+          .replace(/&amp;/g, '&')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&quot;/g, '"')
+          .replace(/&#x27;/g, "'")
+          .replace(/&#39;/g, "'")
+          .replace(/&#x2F;/g, '/')
+          .replace(/&#47;/g, '/')
+        maxLoop--
+      }
+      return s
+    }
+
     const uniqueOrMixed = (values: Array<string | null | undefined>, emptyFallback = '-') => {
-      const cleaned = values.map((v) => (v ?? '').trim()).filter(Boolean)
+      const cleaned = values.map((v) => decodeEntities(v ?? '').trim()).filter(Boolean)
       const unique = [...new Set(cleaned)]
       if (unique.length === 0) return emptyFallback
       if (unique.length === 1) return unique[0]
@@ -97,15 +119,15 @@ export default function ReportsPrintButton({
         (l) => `
         <tr>
           <td>${new Date(l.tanggalLes).toLocaleDateString('id-ID')}</td>
-          <td>${l.namaGuru}</td>
-          <td>${l.jenisPembelajaran}</td>
-          <td>${l.lokasiMengajar}</td>
-          <td style="text-align:center">${l.kelasMurid || '-'}</td>
+          <td>${decodeEntities(l.namaGuru)}</td>
+          <td>${decodeEntities(l.jenisPembelajaran)}</td>
+          <td>${decodeEntities(l.lokasiMengajar)}</td>
+          <td style="text-align:center">${decodeEntities(l.kelasMurid) || '-'}</td>
           <td style="text-align:center">${l.jumlahMurid}</td>
-          <td>${l.namaMurid}</td>
+          <td>${decodeEntities(l.namaMurid)}</td>
           <td>${l.jamMulai} - ${l.jamSelesai}</td>
-          <td>${l.namaWaliMurid}</td>
-          <td class="catatan">${l.catatanMateri}</td>
+          <td>${decodeEntities(l.namaWaliMurid)}</td>
+          <td class="catatan">${decodeEntities(l.catatanMateri)}</td>
         </tr>
       `
       )

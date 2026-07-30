@@ -5,7 +5,7 @@ import { Prisma, StudentStatus } from '@prisma/client'
 import { z } from 'zod'
 import { ZodError } from 'zod'
 import { logAudit, getIp } from '@/lib/audit'
-import { sanitize } from '@/lib/sanitize'
+import { sanitize, decodeHtmlEntities } from '@/lib/sanitize'
 import { withUniqueKodeSiswa } from '@/lib/student-code'
 
 // Schema untuk Orang Tua mendaftarkan siswa
@@ -138,13 +138,21 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       students: students.map((s) => ({
         ...s,
+        name: decodeHtmlEntities(s.name),
+        ttl: decodeHtmlEntities(s.ttl),
+        domisili: decodeHtmlEntities(s.domisili),
+        asalSekolah: decodeHtmlEntities(s.asalSekolah),
+        parent: s.parent ? { ...s.parent, name: decodeHtmlEntities(s.parent.name) } : null,
         branchTeachers: s.studentTeachers.map((st) => ({
           id: st.branchTeacher.id,
           userId: st.branchTeacher.userId,
           provinsi: st.branchTeacher.provinsi,
           kotaKabupaten: st.branchTeacher.kotaKabupaten,
-          mataPelajaran: st.mataPelajaran,
-          user: st.branchTeacher.user,
+          mataPelajaran: decodeHtmlEntities(st.mataPelajaran),
+          user: {
+            ...st.branchTeacher.user,
+            name: decodeHtmlEntities(st.branchTeacher.user.name),
+          },
         })),
         studentTeachers: undefined,
       })),
@@ -156,6 +164,7 @@ export async function GET(request: NextRequest) {
         totalPages: Math.max(1, Math.ceil(total / limit)),
       },
     })
+
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     console.error('Prisma error in students GET:', err)
@@ -234,13 +243,21 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         students: students.map((s) => ({
           ...s,
+          name: decodeHtmlEntities(s.name),
+          ttl: decodeHtmlEntities(s.ttl),
+          domisili: decodeHtmlEntities(s.domisili),
+          asalSekolah: decodeHtmlEntities(s.asalSekolah),
+          parent: s.parent ? { ...s.parent, name: decodeHtmlEntities(s.parent.name) } : null,
           branchTeachers: s.studentTeachers.map((st) => ({
             id: st.branchTeacher.id,
             userId: st.branchTeacher.userId,
             provinsi: st.branchTeacher.provinsi,
             kotaKabupaten: st.branchTeacher.kotaKabupaten,
-            mataPelajaran: st.mataPelajaran,
-            user: st.branchTeacher.user,
+            mataPelajaran: decodeHtmlEntities(st.mataPelajaran),
+            user: {
+              ...st.branchTeacher.user,
+              name: decodeHtmlEntities(st.branchTeacher.user.name),
+            },
           })),
           studentTeachers: undefined,
         })),

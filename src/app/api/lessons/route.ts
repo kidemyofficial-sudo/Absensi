@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { lessonSchema } from '@/lib/validations'
 import { apiRatelimit, getClientIp } from '@/lib/rate-limit'
 import { logAudit, getIp } from '@/lib/audit'
-import { sanitize } from '@/lib/sanitize'
+import { sanitize, decodeHtmlEntities } from '@/lib/sanitize'
 import { ZodError } from 'zod'
 
 export async function GET(request: NextRequest) {
@@ -78,7 +78,17 @@ export async function GET(request: NextRequest) {
   ])
 
   return NextResponse.json({
-    lessons,
+    lessons: lessons.map((l) => ({
+      ...l,
+      namaMurid: decodeHtmlEntities(l.namaMurid),
+      namaWaliMurid: decodeHtmlEntities(l.namaWaliMurid),
+      namaGuru: decodeHtmlEntities(l.namaGuru),
+      catatanMateri: decodeHtmlEntities(l.catatanMateri),
+      lokasiMengajar: decodeHtmlEntities(l.lokasiMengajar),
+      jenisPembelajaran: decodeHtmlEntities(l.jenisPembelajaran),
+      kelasMurid: l.kelasMurid ? decodeHtmlEntities(l.kelasMurid) : null,
+      kritikSaran: l.kritikSaran ? decodeHtmlEntities(l.kritikSaran) : null,
+    })),
     pagination: {
       page,
       limit,
@@ -87,6 +97,7 @@ export async function GET(request: NextRequest) {
     },
   })
 }
+
 
 export async function POST(request: NextRequest) {
   const user = await getCurrentUser()
