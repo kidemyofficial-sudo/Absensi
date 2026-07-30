@@ -4,6 +4,7 @@ import LogoutButton from '@/components/LogoutButton'
 import Sidebar from '@/components/Sidebar'
 import NotificationBell from '@/components/NotificationBell'
 import SmartNotifier from '@/components/SmartNotifier'
+import OwnerBackground from '@/components/OwnerBackground'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -28,9 +29,12 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="h-screen flex overflow-hidden glass-bg">
+    <div className="h-screen flex overflow-hidden glass-bg" style={{ position: 'relative' }}>
+      {/* Background gambar khusus Owner */}
+      {user.role === 'OWNER' && <OwnerBackground />}
+
       <Sidebar user={user} />
-      <div className="flex-1 flex flex-col h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col h-screen overflow-hidden" style={{ position: 'relative', zIndex: 1 }}>
         {/* Glass Header */}
         <header
           style={{
