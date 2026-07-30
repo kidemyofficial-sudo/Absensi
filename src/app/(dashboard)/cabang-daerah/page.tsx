@@ -15,9 +15,11 @@ interface BranchTeacher {
   cabangDaerah: string
   provinsi: string
   kotaKabupaten: string
-  mataPelajaran: string
   user: Teacher
-  student: { id: string; name: string }[]
+  studentTeachers: {
+    mataPelajaran: string
+    student: { id: string; name: string }
+  }[]
 }
 
 export default function CabangDaerahPage() {
@@ -29,7 +31,6 @@ export default function CabangDaerahPage() {
     provinsi: '',
     kotaKabupaten: '',
     teacherId: '',
-    mataPelajaran: '',
   })
   const [message, setMessage] = useState('')
   const [search, setSearch] = useState('')
@@ -79,13 +80,12 @@ export default function CabangDaerahPage() {
           provinsi: formData.provinsi,
           kotaKabupaten: formData.kotaKabupaten,
           teacherId: formData.teacherId,
-          mataPelajaran: formData.mataPelajaran,
         }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Gagal tambah cabang daerah')
       setMessage('Cabang Daerah berhasil ditambahkan!')
-      setFormData({ provinsi: '', kotaKabupaten: '', teacherId: '', mataPelajaran: '' })
+      setFormData({ provinsi: '', kotaKabupaten: '', teacherId: '' })
       setShowForm(false)
       fetchData()
     } catch (err) {
@@ -116,10 +116,12 @@ export default function CabangDaerahPage() {
 
   const filteredCabangs = Object.entries(groupedByCabang).filter(([cabangDaerah, bts]) =>
     cabangDaerah.toLowerCase().includes(search.toLowerCase()) ||
-    bts.some(bt => bt.provinsi.toLowerCase().includes(search.toLowerCase()) ||
+    bts.some(bt =>
+      bt.provinsi.toLowerCase().includes(search.toLowerCase()) ||
       bt.kotaKabupaten.toLowerCase().includes(search.toLowerCase()) ||
       bt.user.name.toLowerCase().includes(search.toLowerCase()) ||
-      bt.mataPelajaran.toLowerCase().includes(search.toLowerCase()))
+      bt.studentTeachers.some(st => st.mataPelajaran.toLowerCase().includes(search.toLowerCase()))
+    )
   )
 
   const isSuccess = message.includes('berhasil')
@@ -141,7 +143,7 @@ export default function CabangDaerahPage() {
           <p className="text-sm mt-1" style={{ color: '#6b7280' }}>Kelola cabang daerah dan guru pengampu</p>
         </div>
         <button
-          onClick={() => { setShowForm(!showForm); setFormData({ provinsi: '', kotaKabupaten: '', teacherId: '', mataPelajaran: '' }) }}
+          onClick={() => { setShowForm(!showForm); setFormData({ provinsi: '', kotaKabupaten: '', teacherId: '' }) }}
           className="btn-primary"
         >
           {showForm ? (
@@ -218,24 +220,15 @@ export default function CabangDaerahPage() {
                   {teachers.map((t) => (<option key={t.id} value={t.id}>{t.name}</option>))}
                 </select>
               </div>
-              <div>
-                <label className="block text-xs font-semibold mb-1.5" style={{ color: '#4b5563' }}>Mata Pelajaran</label>
-                <select
-                  value={formData.mataPelajaran}
-                  onChange={(e) => setFormData({ ...formData, mataPelajaran: e.target.value })}
-                  required
-                  className="glass-input"
-                >
-                  <option value="">Pilih Mata Pelajaran</option>
-                  {mataPelajaranList.map((mp) => (<option key={mp} value={mp}>{mp}</option>))}
-                </select>
-              </div>
             </div>
             {formData.kotaKabupaten && formData.provinsi && (
               <p className="text-xs mb-4" style={{ color: '#9ca3af' }}>
                 Cabang Daerah: <span className="font-semibold" style={{ color: '#1e1b4b' }}>{formData.kotaKabupaten}, {formData.provinsi}</span>
               </p>
             )}
+            <p className="text-xs mb-4" style={{ color: '#9ca3af' }}>
+              Mata pelajaran akan diatur saat menambahkan siswa ke guru ini.
+            </p>
             <button type="submit" className="btn-primary" style={{ background: 'linear-gradient(135deg,#10b981,#059669)', boxShadow: '0 4px 15px rgba(16,185,129,0.25)' }}>
               Simpan
             </button>
@@ -267,7 +260,7 @@ export default function CabangDaerahPage() {
           <div className="glass-card p-8 text-center text-sm" style={{ color: '#9ca3af' }}>Tidak ada cabang daerah ditemukan</div>
         ) : (
           filteredCabangs.map(([cabangDaerah, bts]) => {
-            const totalMurid = bts.reduce((sum, bt) => sum + bt.student.length, 0)
+            const totalMurid = bts.reduce((sum, bt) => sum + bt.studentTeachers.length, 0)
             const isExpanded = expandedCabang === cabangDaerah
 
             return (
@@ -316,12 +309,16 @@ export default function CabangDaerahPage() {
                                   </svg>
                                   <div>
                                     <p className="text-sm font-semibold" style={{ color: '#1e1b4b' }}>{bt.user.name}</p>
-                                    <p className="text-xs" style={{ color: '#6b7280' }}>{bt.mataPelajaran}</p>
+                                    <p className="text-xs" style={{ color: '#6b7280' }}>
+                                      {bt.studentTeachers.length === 0
+                                        ? 'Belum ada siswa'
+                                        : [...new Set(bt.studentTeachers.map(st => st.mataPelajaran))].join(', ')}
+                                    </p>
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-3">
                                   <span className="text-[10px] font-semibold bg-white border border-white/50 px-2 py-0.5 rounded-lg" style={{ color: '#4b5563' }}>
-                                    {bt.student.length} siswa
+                                    {bt.studentTeachers.length} siswa
                                   </span>
                                   <button
                                     onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(bt.id) }}
@@ -338,16 +335,17 @@ export default function CabangDaerahPage() {
                                   <p className="text-xs mb-2" style={{ color: '#6b7280' }}>
                                     Mata Pelajaran: <span className="font-semibold" style={{ color: '#1e1b4b' }}>{bt.mataPelajaran}</span>
                                   </p>
-                                  {bt.student.length === 0 ? (
+                                  {bt.studentTeachers.length === 0 ? (
                                     <p className="text-xs italic" style={{ color: '#9ca3af' }}>Belum ada siswa terdaftar</p>
                                   ) : (
                                     <div>
                                       <p className="text-[10px] font-bold uppercase tracking-wider mb-1.5" style={{ color: '#9ca3af' }}>Siswa Terdaftar:</p>
                                       <ul className="space-y-1">
-                                        {bt.student.map((s) => (
-                                          <li key={s.id} className="flex items-center gap-2 text-xs font-semibold" style={{ color: '#374151' }}>
+                                        {bt.studentTeachers.map((st) => (
+                                          <li key={st.student.id} className="flex items-center gap-2 text-xs font-semibold" style={{ color: '#374151' }}>
                                             <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#6366f1' }} />
-                                            {s.name}
+                                            {st.student.name}
+                                            <span className="text-[10px] font-normal" style={{ color: '#9ca3af' }}>({st.mataPelajaran})</span>
                                           </li>
                                         ))}
                                       </ul>
