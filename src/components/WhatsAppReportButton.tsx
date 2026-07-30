@@ -67,20 +67,20 @@ export default function WhatsAppReportButton({ lessons, role }: WhatsAppReportBu
     const msg =
       `Assalamualaikum wr.wb Ayah/Bunda,\n` +
       `Mohon maaf izin mengganggu waktunya nggeh Ayah/Bunda. Saya ingin menyampaikan laporan kegiatan belajar dan rekap les Kakak *${namaMurid}* selama periode *${periode}* ini, berikut ringkasannya:\n\n` +
-      `📋 *Total pertemuan:*\n` +
+      `*Total pertemuan:*\n` +
       `${totalPertemuan} kali\n\n` +
-      `💰 *Per sesi:* ${formatRupiah(biayaPerSesi)}\n` +
-      `💳 *Total:*\n` +
-      `${totalPertemuan} × ${formatRupiah(biayaPerSesi)} = *${formatRupiah(totalBiaya)}*\n\n` +
+      `*Per sesi:* ${formatRupiah(biayaPerSesi)}\n` +
+      `*Total:*\n` +
+      `${totalPertemuan} x ${formatRupiah(biayaPerSesi)} = *${formatRupiah(totalBiaya)}*\n\n` +
       `Pembayaran dapat dilakukan melalui:\n\n` +
-      `🏦 *MANDIRI* (Rahayu Wiladatika)\n` +
+      `MANDIRI (Rahayu Wiladatika)\n` +
       `1420023407165\n\n` +
-      `💚 *DANA* (Rahayu Wiladatika)\n` +
+      `DANA (Rahayu Wiladatika)\n` +
       `08817019549\n\n` +
-      `🌊 *SEABANK* (Rahayu Wiladatika)\n` +
+      `SEABANK (Rahayu Wiladatika)\n` +
       `901254773451\n\n` +
-      `Setelah melakukan pembayaran, mohon Ayah/Bunda mengirimkan konfirmasi nggeh 🙏🏻☺️\n\n` +
-      `Terima kasih banyak atas kerja sama dan kepercayaannya pada Kidemy. Semoga Kakak *${namaMurid}* selalu semangat dan makin berkembang dalam belajarnya. 🌟📚`
+      `Setelah melakukan pembayaran, mohon Ayah/Bunda mengirimkan konfirmasi nggeh.\n\n` +
+      `Terima kasih banyak atas kerja sama dan kepercayaannya pada Kidemy. Semoga Kakak *${namaMurid}* selalu semangat dan makin berkembang dalam belajarnya.`
 
     return { msg, waPhone }
   }
