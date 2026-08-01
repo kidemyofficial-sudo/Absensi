@@ -16,52 +16,111 @@ interface Lesson {
   namaWaliMurid: string; whatsappWaliMurid: string | null
 }
 
+interface FilterOptions {
+  guruNames: string[]
+  siswaOptions: { namaMurid: string; namaGuru: string }[]
+}
+
+const PAGE_SIZE = 50
+
 export default function ReportsPage() {
   const [user, setUser] = useState<UserInfo | null>(null)
   const [lessons, setLessons] = useState<Lesson[]>([])
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>({ guruNames: [], siswaOptions: [] })
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [guruFilter, setGuruFilter] = useState('')
   const [siswaFilter, setSiswaFilter] = useState('')
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null)
 
+  // ─── Fetch user ───────────────────────────────────────────────────────────
   const fetchUser = useCallback(async () => {
     const res = await fetch('/api/auth/me')
     const data = await res.json()
     setUser(data.user || null)
   }, [])
 
-  const fetchLessons = useCallback(async () => {
-    setLoading(true)
+  // ─── Fetch dropdown options dari endpoint khusus (cepat, query DB langsung) ─
+  const fetchFilterOptions = useCallback(async () => {
+    try {
+      const res = await fetch('/api/lessons/filters')
+      if (!res.ok) return
+      const data = await res.json()
+      setFilterOptions(data)
+    } catch {
+      // Jika endpoint belum ada, abaikan saja
+    }
+  }, [])
+
+  // ─── Fetch lessons dengan pagination ─────────────────────────────────────
+  const fetchLessons = useCallback(async (page: number, append = false) => {
+    if (page === 1) setLoading(true)
+    else setLoadingMore(true)
+
     const params = new URLSearchParams()
     if (startDate) params.set('startDate', startDate)
     if (endDate) params.set('endDate', endDate)
     if (guruFilter) params.set('guru', guruFilter)
     if (siswaFilter) params.set('siswa', siswaFilter)
+    params.set('page', String(page))
+    params.set('limit', String(PAGE_SIZE))
+
     const res = await fetch(`/api/lessons?${params.toString()}`)
     const data = await res.json()
-    setLessons(data.lessons || [])
-    setLoading(false)
+    const newLessons: Lesson[] = data.lessons || []
+
+    if (append) {
+      setLessons((prev) => [...prev, ...newLessons])
+    } else {
+      setLessons(newLessons)
+    }
+
+    // Cek apakah masih ada halaman berikutnya
+    const pagination = data.pagination
+    if (pagination) {
+      setHasMore(pagination.page < pagination.totalPages)
+    } else {
+      setHasMore(false)
+    }
+
+    if (page === 1) setLoading(false)
+    else setLoadingMore(false)
   }, [startDate, endDate, guruFilter, siswaFilter])
 
-  useEffect(() => {
-    fetchUser()
-  }, [fetchUser])
+  // ─── Init ─────────────────────────────────────────────────────────────────
+  useEffect(() => { fetchUser() }, [fetchUser])
 
   useEffect(() => {
-    if (user) fetchLessons()
-  }, [user, fetchLessons])
+    if (user) {
+      fetchFilterOptions()
+      setCurrentPage(1)
+      fetchLessons(1, false)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user])
 
-  const handleSearch = () => { fetchLessons() }
+  // ─── Cari / Filter ────────────────────────────────────────────────────────
+  const handleSearch = () => {
+    setCurrentPage(1)
+    fetchLessons(1, false)
+  }
 
+  // ─── Muat lebih banyak ───────────────────────────────────────────────────
+  const handleLoadMore = () => {
+    const nextPage = currentPage + 1
+    setCurrentPage(nextPage)
+    fetchLessons(nextPage, true)
+  }
 
-  const guruNames = [...new Set(lessons.map((l) => l.namaGuru))].sort()
-  
-  // Filter siswa berdasarkan guru yang dipilih
-  const availableStudents = guruFilter 
-    ? [...new Set(lessons.filter(l => l.namaGuru === guruFilter).map((l) => l.namaMurid))].sort()
-    : [...new Set(lessons.map((l) => l.namaMurid))].sort()
+  // ─── Dropdown: filter siswa berdasarkan guru terpilih ────────────────────
+  // Sumber: filterOptions (dari DB langsung, selalu lengkap)
+  const availableStudents = guruFilter
+    ? filterOptions.siswaOptions.filter(s => s.namaGuru === guruFilter).map(s => s.namaMurid)
+    : filterOptions.siswaOptions.map(s => s.namaMurid).filter((v, i, a) => a.indexOf(v) === i)
 
   if (!user) return <div className="glass-card p-8 text-center text-sm" style={{ color: '#9ca3af' }}>Loading...</div>
 
@@ -104,16 +163,24 @@ export default function ReportsPage() {
             </div>
             <div className="w-full sm:w-auto">
               <label className="block text-xs font-semibold mb-1.5" style={{ color: '#6b7280' }}>Guru</label>
-              <select value={guruFilter} onChange={(e) => { setGuruFilter(e.target.value); setSiswaFilter('') }} className={inputClass}>
+              <select
+                value={guruFilter}
+                onChange={(e) => { setGuruFilter(e.target.value); setSiswaFilter('') }}
+                className={inputClass}
+              >
                 <option value="">Semua Guru</option>
-                {guruNames.map((g) => (<option key={g} value={g}>{g}</option>))}
+                {filterOptions.guruNames.map((g) => <option key={g} value={g}>{g}</option>)}
               </select>
             </div>
             <div className="w-full sm:w-auto">
               <label className="block text-xs font-semibold mb-1.5" style={{ color: '#6b7280' }}>Siswa</label>
-              <select value={siswaFilter} onChange={(e) => setSiswaFilter(e.target.value)} className={inputClass} disabled={!guruFilter && availableStudents.length === 0}>
+              <select
+                value={siswaFilter}
+                onChange={(e) => setSiswaFilter(e.target.value)}
+                className={inputClass}
+              >
                 <option value="">Semua Siswa</option>
-                {availableStudents.map((s) => (<option key={s} value={s}>{s}</option>))}
+                {availableStudents.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
             <button onClick={handleSearch} className="btn-primary w-full sm:w-auto">
@@ -185,6 +252,24 @@ export default function ReportsPage() {
               </div>
             ))}
           </div>
+
+          {/* Muat Lebih Banyak */}
+          {hasMore && (
+            <div className="flex justify-center mt-6">
+              <button
+                onClick={handleLoadMore}
+                disabled={loadingMore}
+                className="btn-secondary"
+              >
+                {loadingMore ? 'Memuat...' : `Muat Lebih Banyak`}
+              </button>
+            </div>
+          )}
+
+          {/* Info jumlah data */}
+          <p className="text-center text-xs mt-3" style={{ color: '#9ca3af' }}>
+            Menampilkan {lessons.length} data{hasMore ? ' (masih ada lebih banyak)' : ' (semua data ditampilkan)'}
+          </p>
         </>
       )}
 
