@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import ConfirmDialog from '@/components/ConfirmDialog'
 import ReportsPrintButton from '@/components/ReportsPrintButton'
 import WhatsAppReportButton from '@/components/WhatsAppReportButton'
 
@@ -36,6 +37,9 @@ export default function ReportsPage() {
   const [guruFilter, setGuruFilter] = useState('')
   const [siswaFilter, setSiswaFilter] = useState('')
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<Lesson | null>(null)
+  const [message, setMessage] = useState('')
+  const [deleteLoadingId, setDeleteLoadingId] = useState<string | null>(null)
 
   // ─── Fetch user ───────────────────────────────────────────────────────────
   const fetchUser = useCallback(async () => {
@@ -116,6 +120,34 @@ export default function ReportsPage() {
     fetchLessons(nextPage, true)
   }
 
+  const handleDeleteConfirmed = async () => {
+    if (!deleteConfirm) return
+
+    const lessonToDelete = deleteConfirm
+    setDeleteLoadingId(lessonToDelete.id)
+    setDeleteConfirm(null)
+    setMessage('')
+
+    try {
+      const res = await fetch(`/api/lessons/${lessonToDelete.id}`, {
+        method: 'DELETE',
+      })
+      const data = await res.json().catch(() => ({}))
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Gagal menghapus data les')
+      }
+
+      setLessons((prev) => prev.filter((lesson) => lesson.id !== lessonToDelete.id))
+      setSelectedLesson((prev) => (prev?.id === lessonToDelete.id ? null : prev))
+      setMessage(data.message || 'Data les berhasil dihapus')
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : 'Terjadi kesalahan')
+    } finally {
+      setDeleteLoadingId(null)
+    }
+  }
+
   // ─── Dropdown: filter siswa berdasarkan guru terpilih ────────────────────
   // Sumber: filterOptions (dari DB langsung, selalu lengkap)
   const availableStudents = guruFilter
@@ -125,9 +157,25 @@ export default function ReportsPage() {
   if (!user) return <div className="glass-card p-8 text-center text-sm" style={{ color: '#9ca3af' }}>Loading...</div>
 
   const inputClass = "glass-input text-sm w-full sm:w-auto"
+  const canDeleteLesson = user.role === 'OWNER' || user.role === 'GURU'
+  const isSuccess = message.toLowerCase().includes('berhasil')
+  const openDeleteConfirm = (lesson: Lesson) => {
+    setSelectedLesson(null)
+    setDeleteConfirm(lesson)
+  }
 
   return (
     <div>
+      <ConfirmDialog
+        isOpen={!!deleteConfirm}
+        title="Hapus Data Les"
+        message={`Yakin ingin menghapus data les ${deleteConfirm?.namaMurid ?? ''} bersama ${deleteConfirm?.namaGuru ?? ''}? Tindakan ini akan menghapus laporan les beserta pendapatan terkait, data tidak akan tampil lagi di laporan owner, dan tidak bisa dibatalkan.`}
+        confirmText="Ya, Hapus"
+        variant="danger"
+        onConfirm={handleDeleteConfirmed}
+        onCancel={() => setDeleteConfirm(null)}
+      />
+
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold" style={{ color: '#1e1b4b' }}>Laporan</h1>
@@ -149,6 +197,19 @@ export default function ReportsPage() {
           )}
         </div>
       </div>
+
+      {message && (
+        <div
+          className="mb-5 p-3.5 rounded-xl text-sm font-medium"
+          style={{
+            background: isSuccess ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)',
+            color: isSuccess ? '#065f46' : '#991b1b',
+            border: `1px solid ${isSuccess ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}`,
+          }}
+        >
+          {message}
+        </div>
+      )}
 
       {user.role === 'OWNER' && (
         <div className="glass-card p-4 mb-6">
@@ -202,7 +263,7 @@ export default function ReportsPage() {
               <table className="glass-table min-w-[1200px]">
                 <thead>
                   <tr>
-                    {['Tanggal','Guru','Jenis','Lokasi','Kelas','Jumlah Murid','Nama Murid','Jam','Wali Murid','Catatan','Perkembangan & Kendala'].map((h) => (
+                    {['Tanggal','Guru','Jenis','Lokasi','Kelas','Jumlah Murid','Nama Murid','Jam','Wali Murid','Catatan','Perkembangan & Kendala', ...(canDeleteLesson ? ['Aksi'] : [])].map((h) => (
                       <th key={h} className={h === 'Jumlah Murid' ? 'text-center' : ''}>{h}</th>
                     ))}
                   </tr>
@@ -221,6 +282,20 @@ export default function ReportsPage() {
                       <td>{lesson.namaWaliMurid}</td>
                       <td className="max-w-[180px] truncate">{lesson.catatanMateri}</td>
                       <td className="max-w-[200px] truncate">{lesson.kritikSaran || '-'}</td>
+                      {canDeleteLesson && (
+                        <td className="whitespace-nowrap">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              openDeleteConfirm(lesson)
+                            }}
+                            disabled={deleteLoadingId === lesson.id}
+                            className="px-2.5 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-lg font-bold text-xs transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                          >
+                            {deleteLoadingId === lesson.id ? 'Menghapus...' : 'Hapus'}
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -248,6 +323,20 @@ export default function ReportsPage() {
                 {lesson.catatanMateri && <p className="text-xs mt-2 line-clamp-2" style={{ color: '#6b7280' }}>{lesson.catatanMateri}</p>}
                 {lesson.kritikSaran && (
                   <p className="text-xs mt-1 line-clamp-2" style={{ color: '#ef4444' }}>⚠️ {lesson.kritikSaran}</p>
+                )}
+                {canDeleteLesson && (
+                  <div className="mt-3 flex justify-end">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        openDeleteConfirm(lesson)
+                      }}
+                      disabled={deleteLoadingId === lesson.id}
+                      className="px-3 py-2 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-xl font-bold text-xs transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {deleteLoadingId === lesson.id ? 'Menghapus...' : 'Hapus Data'}
+                    </button>
+                  </div>
                 )}
               </div>
             ))}
@@ -375,9 +464,20 @@ export default function ReportsPage() {
                 )}
               </div>
               <div className="mt-6 flex justify-end">
-                <button onClick={() => setSelectedLesson(null)} className="btn-secondary">
-                  Tutup
-                </button>
+                <div className="flex flex-col-reverse sm:flex-row gap-3">
+                  {canDeleteLesson && (
+                    <button
+                      onClick={() => openDeleteConfirm(selectedLesson)}
+                      disabled={deleteLoadingId === selectedLesson.id}
+                      className="px-4 py-2.5 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-xl font-bold text-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {deleteLoadingId === selectedLesson.id ? 'Menghapus...' : 'Hapus Data Ini'}
+                    </button>
+                  )}
+                  <button onClick={() => setSelectedLesson(null)} className="btn-secondary">
+                    Tutup
+                  </button>
+                </div>
               </div>
             </div>
           </div>

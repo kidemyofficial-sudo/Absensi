@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { LESSON_LOCATIONS, MIN_CATATAN_MATERI_LENGTH } from '@/lib/lesson-options'
 
 interface UserInfo {
@@ -72,6 +72,7 @@ export default function AttendancePage() {
   // Custom Image Upload states
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null)
+  const submitLockRef = useRef(false)
   
   const [jamMulai, setJamMulai] = useState('')
   const [jamSelesai, setJamSelesai] = useState('')
@@ -136,6 +137,8 @@ export default function AttendancePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (saving || submitLockRef.current) return
+    submitLockRef.current = true
     setSaving(true)
     setMessage({ type: '', text: '' })
 
@@ -147,18 +150,21 @@ export default function AttendancePage() {
 
     if (!selectedStudent) {
       setMessage({ type: 'error', text: 'Pilih murid yang diajar terlebih dahulu' })
+      submitLockRef.current = false
       setSaving(false)
       return
     }
 
     if (!resolvedJenisPembelajaran) {
       setMessage({ type: 'error', text: 'Tulis nama mata pelajaran jika memilih Lainnya' })
+      submitLockRef.current = false
       setSaving(false)
       return
     }
 
     if (trimmedCatatanMateri.length < MIN_CATATAN_MATERI_LENGTH) {
       setMessage({ type: 'error', text: 'Catatan terlalu singkat, jelaskan aktivitas dan materi lebih detail' })
+      submitLockRef.current = false
       setSaving(false)
       return
     }
@@ -239,8 +245,10 @@ export default function AttendancePage() {
       }
     } catch {
       setMessage({ type: 'error', text: 'Terjadi kesalahan jaringan' })
+    } finally {
+      submitLockRef.current = false
+      setSaving(false)
     }
-    setSaving(false)
   }
 
   const handleResetForm = () => {
@@ -514,6 +522,7 @@ export default function AttendancePage() {
                 <button
                   type="button"
                   onClick={handleResetSelection}
+                  disabled={saving}
                   className="btn-secondary text-xs self-start sm:self-auto"
                   style={{ padding: '0.45rem 0.85rem' }}
                 >
@@ -668,7 +677,7 @@ export default function AttendancePage() {
                   <button type="submit" disabled={saving} className="btn-primary">
                     {saving ? 'Menyimpan...' : 'Submit & Kirim Laporan'}
                   </button>
-                  <button type="button" onClick={handleResetSelection} className="btn-secondary">
+                  <button type="button" onClick={handleResetSelection} disabled={saving} className="btn-secondary">
                     Batal
                   </button>
                 </div>

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { lessonSchema } from '@/lib/validations'
@@ -6,6 +7,8 @@ import { apiRatelimit, getClientIp } from '@/lib/rate-limit'
 import { logAudit, getIp } from '@/lib/audit'
 import { sanitize, decodeHtmlEntities } from '@/lib/sanitize'
 import { ZodError } from 'zod'
+
+const DUPLICATE_LESSON_ERROR = 'DUPLICATE_LESSON'
 
 export async function GET(request: NextRequest) {
   const user = await getCurrentUser()
@@ -139,12 +142,44 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const lessonDate = new Date(validatedData.tanggalLes)
+    const sanitizedNamaMurid = sanitize(student.name)
+    const sanitizedCatatanMateri = sanitize(validatedData.catatanMateri)
+    const sanitizedKritikSaran = validatedData.kritikSaran ? sanitize(validatedData.kritikSaran) : null
+    const sanitizedNamaWaliMurid = sanitize(validatedData.namaWaliMurid)
+
+    const duplicateLessonWhere: Prisma.LessonWhereInput = {
+      tanggalLes: lessonDate,
+      guruId: user.id,
+      studentId: student.id,
+      jenisPembelajaran: validatedData.jenisPembelajaran,
+      lokasiMengajar: validatedData.lokasiMengajar,
+      kelasMurid: validatedData.kelasMurid || null,
+      jumlahMurid: validatedData.jumlahMurid,
+      namaMurid: sanitizedNamaMurid,
+      catatanMateri: sanitizedCatatanMateri,
+      kritikSaran: sanitizedKritikSaran,
+      jamMulai: validatedData.jamMulai,
+      jamSelesai: validatedData.jamSelesai,
+      namaWaliMurid: sanitizedNamaWaliMurid,
+      whatsappWaliMurid: validatedData.whatsappWaliMurid || null,
+    }
+
     // Create lesson and revenue in a serializable transaction
     // Serializable isolation mencegah race condition (double insert, inconsistent reads)
     const result = await prisma.$transaction(async (tx) => {
+      const existingLesson = await tx.lesson.findFirst({
+        where: duplicateLessonWhere,
+        select: { id: true },
+      })
+
+      if (existingLesson) {
+        throw new Error(DUPLICATE_LESSON_ERROR)
+      }
+
       const lesson = await tx.lesson.create({
         data: {
-          tanggalLes: new Date(validatedData.tanggalLes),
+          tanggalLes: lessonDate,
           guruId: user.id,
           studentId: student.id,
           biayaPerSiswa: student.biayaPerSiswa,
@@ -154,13 +189,13 @@ export async function POST(request: NextRequest) {
           lokasiMengajar: validatedData.lokasiMengajar,
           kelasMurid: validatedData.kelasMurid || null,
           jumlahMurid: validatedData.jumlahMurid,
-          namaMurid: sanitize(student.name),
-          catatanMateri: sanitize(validatedData.catatanMateri),
-          kritikSaran: validatedData.kritikSaran ? sanitize(validatedData.kritikSaran) : null,
+          namaMurid: sanitizedNamaMurid,
+          catatanMateri: sanitizedCatatanMateri,
+          kritikSaran: sanitizedKritikSaran,
           fotoUrl: validatedData.fotoUrl || null,
           jamMulai: validatedData.jamMulai,
           jamSelesai: validatedData.jamSelesai,
-          namaWaliMurid: sanitize(validatedData.namaWaliMurid),
+          namaWaliMurid: sanitizedNamaWaliMurid,
           whatsappWaliMurid: validatedData.whatsappWaliMurid || null,
         },
       })
@@ -223,6 +258,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: error.issues[0]?.message || 'Data tidak valid' },
         { status: 400 }
+      )
+    }
+    if (error instanceof Error && error.message === DUPLICATE_LESSON_ERROR) {
+      return NextResponse.json(
+        { error: 'Data les yang sama sudah tersimpan. Silakan cek halaman laporan agar tidak terjadi duplikat.' },
+        { status: 409 }
+      )
+    }
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2034') {
+      return NextResponse.json(
+        { error: 'Terdeteksi submit ganda. Cek laporan terlebih dahulu sebelum mencoba kirim ulang.' },
+        { status: 409 }
       )
     }
     console.error('Create lesson error:', error)
