@@ -333,7 +333,11 @@ export default function CabangDaerahPage() {
                               <div className="px-3 pb-3" style={{ background: 'rgba(255,255,255,0.2)' }}>
                                 <div className="bg-white/80 backdrop-blur-sm border border-white/50 rounded-xl p-3.5 mt-1">
                                   <p className="text-xs mb-2" style={{ color: '#6b7280' }}>
-                                    Mata Pelajaran: <span className="font-semibold" style={{ color: '#1e1b4b' }}>{bt.mataPelajaran}</span>
+                                    Mata Pelajaran: <span className="font-semibold" style={{ color: '#1e1b4b' }}>
+                                      {bt.studentTeachers.length === 0
+                                        ? '-'
+                                        : [...new Set(bt.studentTeachers.map(st => st.mataPelajaran))].join(', ')}
+                                    </span>
                                   </p>
                                   {bt.studentTeachers.length === 0 ? (
                                     <p className="text-xs italic" style={{ color: '#9ca3af' }}>Belum ada siswa terdaftar</p>
