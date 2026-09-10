@@ -110,8 +110,8 @@ export default function AttendancePage() {
     if (user?.role !== 'GURU') return
 
     const fetchStudents = async () => {
-      // Fetch up to 50 students
-      const res = await fetch('/api/students?status=APPROVED&limit=50')
+      // Fetch up to 50 students assigned to this teacher
+      const res = await fetch('/api/students?limit=50')
       const data = await res.json()
       setStudents(data.students || [])
     }
@@ -445,10 +445,16 @@ export default function AttendancePage() {
 
               {/* Grid Murid */}
               {filteredStudents.length === 0 ? (
-                <div className="glass-card p-12 text-center text-sm" style={{ color: '#9ca3af' }}>
-                  {students.length === 0 
-                    ? "Belum ada murid yang ditugaskan ke Anda. Silakan hubungi admin/owner."
-                    : "Murid dengan nama tersebut tidak ditemukan."}
+                <div className="glass-card p-12 text-center" style={{ color: '#9ca3af' }}>
+                  {students.length === 0 ? (
+                    <div className="space-y-2">
+                      <p className="text-sm font-semibold" style={{ color: '#374151' }}>Belum ada murid yang ditugaskan ke Anda</p>
+                      <p className="text-xs">Murid yang sudah didaftarkan perlu di-<strong>approve</strong> dan di-<strong>assign</strong> ke Anda terlebih dahulu oleh Owner/Admin.</p>
+                      <p className="text-xs">Silakan hubungi Owner/Admin untuk proses assign murid.</p>
+                    </div>
+                  ) : (
+                    <p className="text-sm">Murid dengan nama &ldquo;{searchQuery}&rdquo; tidak ditemukan dari daftar murid Anda.</p>
+                  )}
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
