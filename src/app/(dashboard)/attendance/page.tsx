@@ -31,6 +31,7 @@ const JENIS_PEMBELAJARAN = [
 ]
 
 const KELAS_MURID = [
+  'TK A', 'TK B',
   'Kelas 1 SD', 'Kelas 2 SD', 'Kelas 3 SD', 'Kelas 4 SD', 'Kelas 5 SD', 'Kelas 6 SD',
   'Kelas 7 SMP', 'Kelas 8 SMP', 'Kelas 9 SMP',
   'Kelas 10 SMA', 'Kelas 11 SMA', 'Kelas 12 SMA', 'Umum',

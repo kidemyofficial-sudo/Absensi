@@ -28,9 +28,9 @@ export default async function DashboardPage() {
 
     try {
       ;[totalStudents, totalTeachers, pendingStudents, todayAttendance, monthlyRevenue] = await Promise.all([
-        prisma.student.count({ where: { status: 'APPROVED' } }),
+        prisma.student.count({ where: { status: 'APPROVED', archivedAt: null } }),
         prisma.user.count({ where: { role: 'GURU' } }),
-        prisma.student.count({ where: { status: 'PENDING' } }),
+        prisma.student.count({ where: { status: 'PENDING', archivedAt: null } }),
         prisma.attendance.count({ where: { date: today } }),
         prisma.lessonRevenue.findMany({
           where: { lesson: { tanggalLes: { gte: startOfMonth, lte: endOfMonth } } },
